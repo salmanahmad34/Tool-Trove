@@ -1,24 +1,19 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Sparkles, Send, Bot, User, Brain } from 'lucide-react';
+import axios from 'axios';
 
 const SAMPLES = [
   {
     pillText: "📧 Write a cold email for startup",
     user: "Write a professional cold email for my web dev agency targeting US startups",
-    thinking: "DeepSeek R1: Analyzing target audience (US startups). Identifying value proposition (react, fast loading times, affordable rates). Crafting a short, punchy subject line and clear CTA.",
-    ai: "Subject: Quick question about [Company]'s frontend\n\nHi [Name],\n\nI noticed [Company] recently launched v2 — congrats! We help early-stage startups like yours build scalable frontends 2x faster using React + TypeScript. Would a 15-min call next week make sense?\n\nBest,\n[Your Name]"
   },
   {
     pillText: "🐛 Debug standard JS recursion",
     user: "Debug this JavaScript function: function fib(n) { return fib(n-1) + fib(n-2); }",
-    thinking: "DeepSeek R1: Checking recursive definition of Fibonacci series. Finding bug: missing base cases (n <= 1). Recursion will trigger an infinite call stack (Stack Overflow). Designing corrective return statement.",
-    ai: "The issue is in your recursive base case. You're missing a check for n <= 1.\n\nFixed code:\n```javascript\nfunction fib(n) {\n  if (n <= 1) return n;\n  return fib(n-1) + fib(n-2);\n}\n```\nThis ensures the recursion stops correctly and prevents stack overflows."
   },
   {
     pillText: "📝 Summarize PDF in bullet points",
     user: "Summarize this financial PDF report in 5 bullet points highlighting growth",
-    thinking: "DeepSeek R1: Reading document context. Extracting growth KPI indicators. Formatting precisely 5 crisp bullet points focusing on Revenue, Margins, CAC, Market expansion, and future outlook.",
-    ai: "• Revenue grew by 24% YoY, reaching ₹150Cr.\n• Operating margins improved to 18% from 14%.\n• Customer acquisition cost (CAC) dropped by 12%.\n• Expansion into Southeast Asian markets contributed 15% of new revenue.\n• Projected growth for 2026 remains bullish at 30%."
   }
 ];
 
@@ -27,7 +22,7 @@ export default function ChatAssistant() {
     {
       role: 'ai',
       thinking: '',
-      content: "Hello! I am ToolTrove AI, powered by DeepSeek R1. Ask me to write emails, debug code, or compile reports instantly. Try clicking one of the quick prompts below!"
+      content: "Hello! I am ToolTrove AI, powered by Google Gemma 4 (via OpenRouter). Ask me to write emails, debug code, or compile reports instantly. Try clicking one of the quick prompts below!"
     }
   ]);
   const [inputText, setInputText] = useState("");
@@ -39,50 +34,77 @@ export default function ChatAssistant() {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, isTyping, thinkingProcess]);
 
-  const simulateAIResponse = (userQuery, sampleData = null) => {
+  const simulateAIResponse = async (userQuery) => {
     setIsTyping(true);
-    
-    // Choose appropriate response
-    const matchedSample = sampleData || SAMPLES.find(s => s.user.toLowerCase().includes(userQuery.toLowerCase())) || {
-      user: userQuery,
-      thinking: "DeepSeek R1: Parsing general inquiry. Retrieving helpful, developer-friendly response. Formatting output with Markdown features.",
-      ai: `I'd love to help you with that! As a developer utility helper in ToolTrove, I can run calculations, compress images, and draft content. \n\nYour query was: **"${userQuery}"**\n\nIs there a specific tool in our forest habitat you'd like me to walk you through?`
-    };
+    setThinkingProcess("Google Gemma 4 thinking...");
 
-    // Step 1: Simulate the thinking phase
-    let thinkCharIndex = 0;
-    setThinkingProcess("DeepSeek R1 thinking...");
-    const thinkingInterval = setInterval(() => {
-      if (thinkCharIndex < matchedSample.thinking.length) {
-        setThinkingProcess(matchedSample.thinking.slice(0, thinkCharIndex + 4));
-        thinkCharIndex += 4;
-      } else {
-        clearInterval(thinkingInterval);
-        setThinkingProcess("");
-        
-        // Step 2: Start typing the actual AI response
-        let responseCharIndex = 0;
-        setMessages(prev => [...prev, {
-          role: 'ai',
-          thinking: matchedSample.thinking,
-          content: ""
-        }]);
+    // Create the message payload formatted for OpenRouter API
+    const apiMessages = [
+      {
+        role: "system",
+        content: "You are ToolTrove AI, a helpful, developer-friendly assistant powered by Google Gemma 4. Provide clear, accurate, and concise answers."
+      },
+      ...messages.map(m => ({
+        role: m.role === 'ai' ? 'assistant' : 'user',
+        content: m.content
+      })),
+      { role: "user", content: userQuery }
+    ];
 
-        const typingInterval = setInterval(() => {
-          if (responseCharIndex < matchedSample.ai.length) {
-            setMessages(prev => {
-              const updated = [...prev];
-              updated[updated.length - 1].content = matchedSample.ai.slice(0, responseCharIndex + 4);
-              return updated;
-            });
-            responseCharIndex += 4;
-          } else {
-            clearInterval(typingInterval);
-            setIsTyping(false);
+    try {
+      const response = await axios.post(
+        'https://openrouter.ai/api/v1/chat/completions',
+        {
+          model: 'google/gemma-4-26b-a4b-it:free',
+          messages: apiMessages,
+          reasoning: {
+            enabled: true
           }
-        }, 15);
-      }
-    }, 20);
+        },
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${import.meta.env.VITE_OPENROUTER_API_KEY}`
+          }
+        }
+      );
+
+      const aiContent = response.data.choices[0].message.content;
+      
+      setThinkingProcess("");
+      
+      // Simulate typing effect for the returned content
+      let responseCharIndex = 0;
+      setMessages(prev => [...prev, {
+        role: 'ai',
+        thinking: "Google Gemma 4 completed reasoning.",
+        content: ""
+      }]);
+
+      const typingInterval = setInterval(() => {
+        if (responseCharIndex < aiContent.length) {
+          setMessages(prev => {
+            const updated = [...prev];
+            updated[updated.length - 1].content = aiContent.slice(0, responseCharIndex + 4);
+            return updated;
+          });
+          responseCharIndex += 4;
+        } else {
+          clearInterval(typingInterval);
+          setIsTyping(false);
+        }
+      }, 15);
+
+    } catch (error) {
+      console.error("Error calling OpenRouter API:", error);
+      setThinkingProcess("");
+      setMessages(prev => [...prev, {
+        role: 'ai',
+        thinking: "",
+        content: "I'm sorry, I encountered an error connecting to the Google Gemma 4 server. Please check your API key or try again later."
+      }]);
+      setIsTyping(false);
+    }
   };
 
   const handleSend = (e) => {
@@ -98,7 +120,7 @@ export default function ChatAssistant() {
   const handlePillClick = (sample) => {
     if (isTyping) return;
     setMessages(prev => [...prev, { role: 'user', content: sample.user }]);
-    simulateAIResponse(sample.user, sample);
+    simulateAIResponse(sample.user);
   };
 
   return (
@@ -108,13 +130,13 @@ export default function ChatAssistant() {
       <div className="grid lg:grid-cols-2 gap-12 items-center relative z-10">
         <div>
           <div className="inline-flex items-center gap-2 px-4 py-2 bg-orange-500/20 text-orange-400 border border-orange-500/30 rounded-full text-sm font-bold mb-6">
-            <Brain className="w-4 h-4 animate-pulse" /> Powered by DeepSeek R1
+            <Brain className="w-4 h-4 animate-pulse" /> Powered by Google Gemma 4
           </div>
           <h3 className="text-4xl md:text-5xl font-black mb-6 leading-tight">
             Ask. Think. <span className="text-orange-400">Solved.</span>
           </h3>
           <p className="text-slate-300 mb-8 leading-relaxed text-lg">
-            Experience our next-generation reasoning AI. It doesn't just guess outputs—it demonstrates its thought process transparently to deliver flawless utility scripting.
+            Experience our next-generation reasoning AI via OpenRouter. It doesn't just guess outputs—it demonstrates its thought process transparently to deliver flawless utility scripting.
           </p>
 
           <div className="space-y-3">
@@ -143,7 +165,7 @@ export default function ChatAssistant() {
               <div className="w-2.5 h-2.5 bg-emerald-500 rounded-full animate-pulse"></div>
               <div>
                 <h4 className="font-bold text-sm">ToolTrove AI Console</h4>
-                <p className="text-[10px] text-slate-400">DeepSeek R1 active</p>
+                <p className="text-[10px] text-slate-400">Google Gemma 4 active</p>
               </div>
             </div>
             <div className="px-3 py-1 bg-orange-500/20 text-orange-400 rounded-lg text-xs font-bold uppercase tracking-wider">
