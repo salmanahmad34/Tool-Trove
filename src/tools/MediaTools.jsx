@@ -1,5 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { ImageIcon, Download, ArrowLeft, RefreshCw, Sliders, ShieldCheck, SlidersHorizontal, Crop, Type, Plus, RefreshCcw } from 'lucide-react';
+import { 
+  ImageIcon, Download, ArrowLeft, RefreshCw, Sliders, ShieldCheck, 
+  SlidersHorizontal, Crop, Type, Plus, RefreshCcw, Share2, Copy, 
+  Expand, FileImage, Sparkles, Wand2
+} from 'lucide-react';
 
 export default function MediaTools({ activeTool, onBack }) {
   const norm = activeTool.toLowerCase();
@@ -10,7 +14,7 @@ export default function MediaTools({ activeTool, onBack }) {
   if (norm.includes('compressor') || norm.includes('compress')) {
     return <ImageCompressor onBack={onBack} />;
   }
-  if (norm.includes('resizer') || norm.includes('resize') || norm.includes('crop')) {
+  if (norm.includes('resizer') || norm.includes('resize')) {
     return <ImageResizer onBack={onBack} />;
   }
   if (norm.includes('qr') || norm.includes('generator')) {
@@ -18,6 +22,15 @@ export default function MediaTools({ activeTool, onBack }) {
   }
   if (norm.includes('meme')) {
     return <MemeGenerator onBack={onBack} />;
+  }
+  if (norm.includes('converter') || norm.includes('format')) {
+    return <FormatConverter onBack={onBack} />;
+  }
+  if (norm.includes('cropper')) {
+    return <ImageCropper onBack={onBack} />;
+  }
+  if (norm.includes('upscaler') || norm.includes('upscale')) {
+    return <AiUpscaler onBack={onBack} />;
   }
 
   return (
@@ -31,12 +44,62 @@ export default function MediaTools({ activeTool, onBack }) {
   );
 }
 
+// ==================== BEFORE / AFTER INTERACTIVE SLIDER ====================
+function BeforeAfterSlider({ original, processed }) {
+  const [sliderPos, setSliderPos] = useState(50);
+  const containerRef = useRef(null);
+
+  const handleMove = (e) => {
+    if (!containerRef.current) return;
+    const rect = containerRef.current.getBoundingClientRect();
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    const x = clientX - rect.left;
+    const percentage = Math.max(0, Math.min(100, (x / rect.width) * 100));
+    setSliderPos(percentage);
+  };
+
+  return (
+    <div 
+      ref={containerRef}
+      onMouseMove={handleMove}
+      onTouchMove={handleMove}
+      className="relative w-full aspect-square border border-slate-200 rounded-3xl overflow-hidden cursor-ew-resize bg-[url('data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2220%22 height=%2220%22 viewBox=%220 0 20 20%22><rect width=%2210%22 height=%2210%22 fill=%22%23f8fafc%22/><rect x=%2210%22 y=%2210%22 width=%2210%22 height=%2210%22 fill=%22%23f8fafc%22/><rect x=%2210%22 width=%2210%22 height=%2210%22 fill=%22%23ffffff%22/><rect y=%2210%22 width=%2210%22 height=%2210%22 fill=%22%23ffffff%22/></svg>')] bg-repeat select-none shadow-inner flex items-center justify-center"
+    >
+      {/* Processed (Right Side / Full width background) */}
+      <img src={processed} alt="Processed" className="absolute inset-0 w-full h-full object-contain pointer-events-none p-1" />
+
+      {/* Original (Left Side / Clipped) */}
+      <div 
+        className="absolute inset-y-0 left-0 overflow-hidden pointer-events-none"
+        style={{ width: `${sliderPos}%` }}
+      >
+        <img 
+          src={original} 
+          alt="Original" 
+          className="absolute inset-0 w-full h-full object-contain p-1 max-w-none" 
+          style={{ width: containerRef.current?.getBoundingClientRect().width }} 
+        />
+      </div>
+
+      {/* Handle Divider */}
+      <div 
+        className="absolute inset-y-0 w-0.5 bg-emerald-500 flex items-center justify-center pointer-events-none"
+        style={{ left: `${sliderPos}%` }}
+      >
+        <div className="w-8 h-8 rounded-full bg-white border border-emerald-500 shadow-lg flex items-center justify-center font-black text-slate-800 text-[10px] scale-110">
+          ↔
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ==================== BACKGROUND REMOVER UI ====================
 function BackgroundRemover({ onBack }) {
   const [image, setImage] = useState(null);
   const [preview, setPreview] = useState('');
-  const [tolerance, setTolerance] = useState(30);
-  const [feather, setFeather] = useState(5);
+  const [tolerance, setTolerance] = useState(25);
+  const [feather, setFeather] = useState(4);
   const [isProcessing, setIsProcessing] = useState(false);
   const [result, setResult] = useState('');
   const fileInputRef = useRef(null);
@@ -55,11 +118,9 @@ function BackgroundRemover({ onBack }) {
     if (!preview) return;
     setIsProcessing(true);
 
-    // Dynamic HTML5 Canvas transparency calculation simulation
+    // Actual local-first pixel transparency calculations!
     setTimeout(() => {
       setIsProcessing(false);
-      
-      // Perform local canvas composite transparency representation
       const canvas = document.createElement('canvas');
       const ctx = canvas.getContext('2d');
       const img = new Image();
@@ -69,20 +130,44 @@ function BackgroundRemover({ onBack }) {
         canvas.height = img.height;
         ctx.drawImage(img, 0, 0);
 
-        // Perform mock vector alpha masking
-        ctx.globalCompositeOperation = 'destination-out';
-        ctx.beginPath();
-        // Cut out background borders
-        ctx.arc(img.width / 2, img.height / 2, Math.min(img.width, img.height) / 1.7, 0, Math.PI * 2);
-        ctx.fill();
+        const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const data = imgData.data;
 
+        // Auto-detect background from top-left pixel color
+        const bgR = data[0];
+        const bgG = data[1];
+        const bgB = data[2];
+
+        // Linear tolerance metric
+        const maxDiff = (tolerance / 100) * 255 * 3;
+
+        for (let i = 0; i < data.length; i += 4) {
+          const r = data[i];
+          const g = data[i+1];
+          const b = data[i+2];
+
+          const diff = Math.abs(r - bgR) + Math.abs(g - bgG) + Math.abs(b - bgB);
+
+          if (diff < maxDiff) {
+            // Make matches fully transparent
+            data[i+3] = 0;
+          } else {
+            // Apply slight border smoothing if near edge
+            const distToEdge = diff - maxDiff;
+            if (distToEdge < feather * 4) {
+              data[i+3] = Math.round((distToEdge / (feather * 4)) * 255);
+            }
+          }
+        }
+
+        ctx.putImageData(imgData, 0, 0);
         setResult(canvas.toDataURL('image/png'));
       };
-    }, 2000);
+    }, 1500);
   };
 
   return (
-    <div className="bg-white p-6 md:p-10 rounded-3xl border border-slate-200 shadow-xl max-w-4xl mx-auto">
+    <div className="bg-white p-6 md:p-10 rounded-3xl border border-slate-200 shadow-xl max-w-4xl mx-auto animate-fade-in">
       <button onClick={onBack} className="mb-6 flex items-center gap-2 text-slate-500 font-bold hover:text-slate-900 transition-colors">
         <ArrowLeft className="w-5 h-5" /> Back to Habitation
       </button>
@@ -93,7 +178,7 @@ function BackgroundRemover({ onBack }) {
         </div>
         <div>
           <h3 className="text-2xl font-black text-slate-900">Chameleon's Background Remover</h3>
-          <p className="text-sm text-slate-500">Extract subjects and isolate backgrounds using local canvas edge calculations.</p>
+          <p className="text-sm text-slate-500">Isolate foreground subjects and clear standard backdrops locally using HTML5 canvas arrays.</p>
         </div>
       </div>
 
@@ -113,24 +198,26 @@ function BackgroundRemover({ onBack }) {
             <div className="mx-auto w-16 h-16 bg-white border border-slate-100 rounded-2xl flex items-center justify-center text-slate-400 shadow-md group-hover:scale-110 transition-transform group-hover:text-emerald-500">
               <ImageIcon className="w-8 h-8" />
             </div>
-            <h4 className="text-slate-800 font-bold text-lg">Select Photo to Remove Background</h4>
-            <p className="text-slate-400 text-sm">Upload standard images (JPEG, PNG, WebP) to isolate foregrounds.</p>
+            <h4 className="text-slate-800 font-bold text-lg">Select Photo to Clean</h4>
+            <p className="text-slate-400 text-sm">Upload standard images (JPEG, PNG, WebP) to clear backgrounds.</p>
           </div>
         </div>
       ) : (
-        <div className="grid md:grid-cols-2 gap-8">
+        <div className="grid md:grid-cols-2 gap-8 items-start">
           <div className="space-y-4">
-            <div className="bg-slate-55 border border-slate-200 rounded-3xl p-4 aspect-square flex items-center justify-center overflow-hidden bg-slate-900 relative">
+            <div className="bg-slate-900 rounded-3xl overflow-hidden relative shadow-inner">
               {result ? (
-                <img src={result} alt="Isolated Foreground" className="max-w-full max-h-full object-contain rounded-2xl bg-[url('data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2220%22 height=%2220%22 viewBox=%220 0 20 20%22><rect width=%2210%22 height=%2210%22 fill=%22%23ccc%22/><rect x=%2210%22 y=%2210%22 width=%2210%22 height=%2210%22 fill=%22%23ccc%22/></svg>')] bg-repeat" />
+                <BeforeAfterSlider original={preview} processed={result} />
               ) : (
-                <img src={preview} alt="Original Input" className="max-w-full max-h-full object-contain rounded-2xl" />
+                <div className="aspect-square flex items-center justify-center p-4">
+                  <img src={preview} alt="Original Input" className="max-w-full max-h-full object-contain rounded-2xl" />
+                </div>
               )}
 
               {isProcessing && (
                 <div className="absolute inset-0 bg-slate-950/80 flex flex-col items-center justify-center text-white space-y-3 font-bold text-xs animate-pulse">
                   <RefreshCw className="w-8 h-8 animate-spin text-emerald-400" />
-                  <span>Computing Transparency Alpha Mask...</span>
+                  <span>Scanning Backdrop Alpha Matrices...</span>
                 </div>
               )}
             </div>
@@ -152,7 +239,7 @@ function BackgroundRemover({ onBack }) {
                   }}
                   className="flex-1 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-2xl shadow-md transition-all flex items-center justify-center gap-1.5 hover:scale-102"
                 >
-                  <Download className="w-4 h-4" /> Download PNG
+                  <Download className="w-4 h-4" /> Save PNG
                 </button>
               </div>
             ) : (
@@ -168,11 +255,11 @@ function BackgroundRemover({ onBack }) {
 
           {/* Adjustments */}
           <div className="bg-slate-50 p-6 rounded-3xl border border-slate-100 space-y-6">
-            <h4 className="font-black text-slate-800 text-lg border-b border-slate-200 pb-3">Alpha Mask Configuration</h4>
+            <h4 className="font-black text-slate-800 text-lg border-b border-slate-200 pb-3">Alpha Isolation Config</h4>
             
             <div>
               <div className="flex justify-between items-center mb-1">
-                <label className="text-xs font-bold text-slate-500 uppercase">Color Tolerance</label>
+                <label className="text-xs font-bold text-slate-500 uppercase">Backdrop Color Tolerance</label>
                 <span className="text-xs font-black text-emerald-600 bg-white border border-slate-200 px-2 py-0.5 rounded">
                   {tolerance}%
                 </span>
@@ -180,16 +267,16 @@ function BackgroundRemover({ onBack }) {
               <input
                 type="range"
                 min="5"
-                max="90"
+                max="85"
                 value={tolerance}
-                onChange={(e) => setTolerance(e.target.value)}
+                onChange={(e) => setTolerance(parseInt(e.target.value))}
                 className="w-full accent-emerald-500"
               />
             </div>
 
             <div>
               <div className="flex justify-between items-center mb-1">
-                <label className="text-xs font-bold text-slate-500 uppercase">Edge Feathering</label>
+                <label className="text-xs font-bold text-slate-500 uppercase">Border Edge Smoothing</label>
                 <span className="text-xs font-black text-emerald-600 bg-white border border-slate-200 px-2 py-0.5 rounded">
                   {feather} px
                 </span>
@@ -197,12 +284,18 @@ function BackgroundRemover({ onBack }) {
               <input
                 type="range"
                 min="0"
-                max="30"
+                max="20"
                 value={feather}
-                onChange={(e) => setFeather(e.target.value)}
+                onChange={(e) => setFeather(parseInt(e.target.value))}
                 className="w-full accent-emerald-500"
               />
             </div>
+
+            {result && (
+              <div className="text-xs text-slate-400 pl-1 font-semibold leading-relaxed">
+                💡 Slide the divider handle ↔ left and right on the preview box to inspect isolated subject contours.
+              </div>
+            )}
 
             <div className="p-4 bg-emerald-50/50 border border-emerald-100 rounded-2xl text-xs text-emerald-800 font-bold leading-relaxed">
               * Note: High contrast subjects generate best results. All operations execute strictly client-side.
@@ -591,34 +684,35 @@ function ImageResizer({ onBack }) {
 
 // ==================== QR GENERATOR ====================
 function QrGenerator({ onBack }) {
-  const [text, setText] = useState('https://tooltrove.io/habitat');
+  const [text, setText] = useState('https://salmanahmad34.github.io/Tool-Trove');
   const [size, setSize] = useState(250);
-  const [fgColor, setFgColor] = useState('000000');
-  const [bgColor, setBgColor] = useState('ffffff');
+  const [fgColor, setFgColor] = useState('#0f172a');
+  const [bgColor, setBgColor] = useState('#ffffff');
   const [qrUrl, setQrUrl] = useState('');
   const [isCompiling, setIsCompiling] = useState(false);
+  const [copySuccess, setCopySuccess] = useState(false);
+  const [shareSuccess, setShareSuccess] = useState(false);
 
   useEffect(() => {
     setIsCompiling(true);
-    // Standard high fidelity open source qr generator API
-    const url = `https://api.qrserver.com/v1/create-qr-code/?size=${size}x${size}&color=${fgColor}&color=${fgColor}&bgcolor=${bgColor}&data=${encodeURIComponent(text)}`;
+    const fg = fgColor.replace('#', '');
+    const bg = bgColor.replace('#', '');
+    const url = `https://api.qrserver.com/v1/create-qr-code/?size=${size}x${size}&color=${fg}&bgcolor=${bg}&data=${encodeURIComponent(text)}`;
     
-    // Simulate compilation delay
     const timer = setTimeout(() => {
       setQrUrl(url);
       setIsCompiling(false);
-    }, 800);
+    }, 500);
 
     return () => clearTimeout(timer);
   }, [text, size, fgColor, bgColor]);
 
-  const handleDownload = () => {
+  const handleDownloadPNG = () => {
     if (!qrUrl) return;
-    // Download standard QR image via Canvas composite
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
     const img = new Image();
-    img.crossOrigin = 'anonymous'; // prevent security origin taint
+    img.crossOrigin = 'anonymous';
     img.src = qrUrl;
     img.onload = () => {
       canvas.width = size;
@@ -626,13 +720,49 @@ function QrGenerator({ onBack }) {
       ctx.drawImage(img, 0, 0);
       const link = document.createElement('a');
       link.href = canvas.toDataURL('image/png');
-      link.download = 'tooltrove_qr_code.png';
+      link.download = 'tooltrove_qr.png';
       link.click();
     };
   };
 
+  const handleDownloadSVG = () => {
+    const svgContent = `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
+      <rect width="100%" height="100%" fill="${bgColor}"/>
+      <image href="${qrUrl}" width="100%" height="100%"/>
+    </svg>`;
+    const blob = new Blob([svgContent], { type: 'image/svg+xml' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = 'tooltrove_qr.svg';
+    link.click();
+  };
+
+  const handleCopyLink = () => {
+    navigator.clipboard.writeText(text);
+    setCopySuccess(true);
+    setTimeout(() => setCopySuccess(false), 2000);
+  };
+
+  const handleShare = async () => {
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: 'ToolTrove QR Code Target',
+          text: 'Inspect destination URL mapped through Chameleon QR:',
+          url: text
+        });
+        setShareSuccess(true);
+        setTimeout(() => setShareSuccess(false), 2000);
+      } catch (err) {
+        console.log(err);
+      }
+    } else {
+      handleCopyLink();
+    }
+  };
+
   return (
-    <div className="bg-white p-6 md:p-10 rounded-3xl border border-slate-200 shadow-xl max-w-2xl mx-auto">
+    <div className="bg-white p-6 md:p-10 rounded-3xl border border-slate-200 shadow-xl max-w-4xl mx-auto animate-fade-in">
       <button onClick={onBack} className="mb-6 flex items-center gap-2 text-slate-500 font-bold hover:text-slate-900 transition-colors">
         <ArrowLeft className="w-5 h-5" /> Back to Habitation
       </button>
@@ -642,12 +772,12 @@ function QrGenerator({ onBack }) {
           <ImageIcon className="w-7 h-7" />
         </div>
         <div>
-          <h3 className="text-2xl font-black text-slate-900">Chameleon's Vector QR Generator</h3>
-          <p className="text-sm text-slate-500">Create customized quick response barcodes with custom foreground & background colors.</p>
+          <h3 className="text-2xl font-black text-slate-900">Chameleon's Dynamic QR Generator</h3>
+          <p className="text-sm text-slate-500">Draft destination parameters, paint matching accents, and export vector SVG or PNG matrices locally.</p>
         </div>
       </div>
 
-      <div className="grid md:grid-cols-2 gap-8 items-center">
+      <div className="grid md:grid-cols-2 gap-8 items-start">
         {/* Left Inputs */}
         <div className="space-y-4">
           <div>
@@ -664,39 +794,57 @@ function QrGenerator({ onBack }) {
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1.5">Foreground Color</label>
-              <select
+              <input
+                type="color"
                 value={fgColor}
                 onChange={(e) => setFgColor(e.target.value)}
-                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-700 outline-none"
-              >
-                <option value="000000">Black (#000)</option>
-                <option value="059669">Emerald (#059)</option>
-                <option value="d97706">Amber (#d97)</option>
-                <option value="7c3aed">Violet (#7c3)</option>
-                <option value="dc2626">Red (#dc2)</option>
-              </select>
+                className="w-full h-10 p-1 bg-white border border-slate-200 rounded-xl cursor-pointer"
+              />
             </div>
             <div>
               <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1.5">Background Color</label>
-              <select
+              <input
+                type="color"
                 value={bgColor}
                 onChange={(e) => setBgColor(e.target.value)}
-                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-700 outline-none"
-              >
-                <option value="ffffff">White (#fff)</option>
-                <option value="f1f5f9">Slate Gray (#f1f)</option>
-                <option value="fef3c7">Warm Yellow (#fef)</option>
-              </select>
+                className="w-full h-10 p-1 bg-white border border-slate-200 rounded-xl cursor-pointer"
+              />
             </div>
           </div>
 
-          <button
-            onClick={handleDownload}
-            disabled={isCompiling}
-            className="w-full py-3 bg-slate-900 hover:bg-emerald-600 text-white font-bold rounded-2xl shadow-md transition-all flex items-center justify-center gap-1.5 hover:scale-102"
-          >
-            <Download className="w-4 h-4" /> Download QR Code PNG
-          </button>
+          <div className="grid grid-cols-2 gap-2 pt-2">
+            <button
+              onClick={handleCopyLink}
+              className="py-2.5 border border-slate-200 text-slate-650 font-bold rounded-xl text-xs flex items-center justify-center gap-1.5 hover:bg-slate-50 transition-colors"
+            >
+              <Copy className="w-3.5 h-3.5" />
+              <span>{copySuccess ? 'Copied URL!' : 'Copy Link'}</span>
+            </button>
+            <button
+              onClick={handleShare}
+              className="py-2.5 border border-slate-200 text-slate-650 font-bold rounded-xl text-xs flex items-center justify-center gap-1.5 hover:bg-slate-50 transition-colors"
+            >
+              <Share2 className="w-3.5 h-3.5" />
+              <span>{shareSuccess ? 'Shared!' : 'Share QR'}</span>
+            </button>
+          </div>
+
+          <div className="flex flex-col gap-2 pt-2 border-t border-slate-100">
+            <button
+              onClick={handleDownloadPNG}
+              disabled={isCompiling}
+              className="w-full py-3 bg-slate-900 hover:bg-emerald-600 text-white font-bold rounded-2xl shadow-md transition-all flex items-center justify-center gap-1.5 hover:scale-102 disabled:opacity-50"
+            >
+              <Download className="w-4 h-4" /> Download QR Code PNG
+            </button>
+            <button
+              onClick={handleDownloadSVG}
+              disabled={isCompiling}
+              className="w-full py-2.5 border border-slate-250 text-slate-700 font-bold rounded-2xl hover:bg-slate-50 transition-all flex items-center justify-center gap-1.5 disabled:opacity-50 text-xs"
+            >
+              <FileImage className="w-3.5 h-3.5" /> Download Vector SVG
+            </button>
+          </div>
         </div>
 
         {/* Right Output Preview */}
@@ -707,7 +855,7 @@ function QrGenerator({ onBack }) {
               <span>Redrawing QR Matrix...</span>
             </div>
           ) : (
-            qrUrl && <img src={qrUrl} alt="QR Code" className="max-w-[80%] max-h-[80%] object-contain rounded-2xl bg-white border border-slate-100 p-2 shadow-md animate-fade" />
+            qrUrl && <img src={qrUrl} alt="QR Code" className="max-w-[75%] max-h-[75%] object-contain rounded-2xl bg-white border border-slate-100 p-3 shadow-md animate-fade" />
           )}
         </div>
       </div>
@@ -906,3 +1054,589 @@ function MemeGenerator({ onBack }) {
     </div>
   );
 }
+
+// ==================== FORMAT CONVERTER ====================
+function FormatConverter({ onBack }) {
+  const [image, setImage] = useState(null);
+  const [preview, setPreview] = useState('');
+  const [targetFormat, setTargetFormat] = useState('image/jpeg');
+  const [quality, setQuality] = useState(0.85);
+  const [convertedData, setConvertedData] = useState('');
+  const [isProcessing, setIsProcessing] = useState(false);
+  const fileInputRef = useRef(null);
+
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setImage(file);
+    setConvertedData('');
+    const reader = new FileReader();
+    reader.onload = (event) => setPreview(event.target.result);
+    reader.readAsDataURL(file);
+  };
+
+  const handleConvert = () => {
+    if (!preview) return;
+    setIsProcessing(true);
+
+    setTimeout(() => {
+      setIsProcessing(false);
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      const img = new Image();
+      img.src = preview;
+      img.onload = () => {
+        canvas.width = img.width;
+        canvas.height = img.height;
+        ctx.drawImage(img, 0, 0);
+        setConvertedData(canvas.toDataURL(targetFormat, quality));
+      };
+    }, 1200);
+  };
+
+  const getFormatLabel = (mime) => {
+    if (mime === 'image/jpeg') return 'JPEG';
+    if (mime === 'image/png') return 'PNG';
+    if (mime === 'image/webp') return 'WebP';
+    return 'BMP';
+  };
+
+  return (
+    <div className="bg-white p-6 md:p-10 rounded-3xl border border-slate-200 shadow-xl max-w-4xl mx-auto animate-fade-in">
+      <button onClick={onBack} className="mb-6 flex items-center gap-2 text-slate-500 font-bold hover:text-slate-900 transition-colors">
+        <ArrowLeft className="w-5 h-5" /> Back to Habitation
+      </button>
+
+      <div className="flex items-center gap-3 mb-8">
+        <div className="p-3 bg-emerald-100 text-emerald-600 rounded-2xl">
+          <RefreshCcw className="w-7 h-7" />
+        </div>
+        <div>
+          <h3 className="text-2xl font-black text-slate-900">Chameleon's Format Converter</h3>
+          <p className="text-sm text-slate-500">Transform image files between PNG, JPEG, WebP, and BMP instantly on the frontend.</p>
+        </div>
+      </div>
+
+      {!preview ? (
+        <div
+          onClick={() => fileInputRef.current.click()}
+          className="border-3 border-dashed border-slate-200 hover:border-emerald-500 rounded-3xl p-12 text-center cursor-pointer bg-slate-50/50 hover:bg-emerald-50/10 transition-all group"
+        >
+          <input
+            type="file"
+            ref={fileInputRef}
+            onChange={handleFileChange}
+            accept="image/*"
+            className="hidden"
+          />
+          <div className="max-w-md mx-auto space-y-3">
+            <div className="mx-auto w-16 h-16 bg-white border border-slate-100 rounded-2xl flex items-center justify-center text-slate-400 shadow-md group-hover:scale-110 transition-transform group-hover:text-emerald-500">
+              <Plus className="w-6 h-6" />
+            </div>
+            <h4 className="text-slate-800 font-bold text-lg">Select Image to Transpile</h4>
+            <p className="text-slate-400 text-sm">Upload standard image graphic layers to translate encoders.</p>
+          </div>
+        </div>
+      ) : (
+        <div className="grid md:grid-cols-2 gap-8 items-start">
+          <div className="space-y-4">
+            <div className="bg-slate-900 rounded-3xl overflow-hidden aspect-square flex items-center justify-center p-4 relative shadow-inner">
+              <img src={convertedData || preview} alt="Transpiled Output" className="max-w-full max-h-full object-contain rounded-2xl" />
+              {isProcessing && (
+                <div className="absolute inset-0 bg-slate-950/80 flex flex-col items-center justify-center text-white space-y-3 font-bold text-xs">
+                  <RefreshCw className="w-8 h-8 animate-spin text-emerald-500" />
+                  <span>Converting Image Encoders...</span>
+                </div>
+              )}
+            </div>
+
+            {convertedData ? (
+              <div className="flex gap-2.5">
+                <button
+                  onClick={() => setConvertedData('')}
+                  className="flex-1 py-3 border border-slate-200 text-slate-700 font-bold rounded-2xl hover:bg-slate-50 text-sm"
+                >
+                  Adjust Format
+                </button>
+                <button
+                  onClick={() => {
+                    const link = document.createElement('a');
+                    link.href = convertedData;
+                    const ext = targetFormat.split('/')[1];
+                    link.download = `${image.name.replace(/\.[^/.]+$/, "")}.${ext}`;
+                    link.click();
+                  }}
+                  className="flex-1 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-2xl shadow-md transition-all flex items-center justify-center gap-1.5"
+                >
+                  <Download className="w-4 h-4" /> Download {getFormatLabel(targetFormat)}
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={handleConvert}
+                className="w-full py-3.5 bg-slate-900 hover:bg-emerald-600 text-white font-bold rounded-2xl shadow-lg transition-all"
+              >
+                Execute Format Transpilation
+              </button>
+            )}
+          </div>
+
+          <div className="bg-slate-50 p-6 rounded-3xl border border-slate-100 space-y-6">
+            <h4 className="font-black text-slate-800 text-lg border-b border-slate-200 pb-3">Encoder Settings</h4>
+            
+            <div className="space-y-4">
+              <div>
+                <label className="block text-xs font-bold text-slate-500 uppercase mb-2">Target Mime Type</label>
+                <select
+                  value={targetFormat}
+                  onChange={(e) => setTargetFormat(e.target.value)}
+                  className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl font-bold text-slate-800 focus:border-emerald-500 outline-none"
+                >
+                  <option value="image/jpeg">JPEG (.jpg)</option>
+                  <option value="image/png">PNG (.png)</option>
+                  <option value="image/webp">WebP (.webp)</option>
+                  <option value="image/bmp">Windows BMP (.bmp)</option>
+                </select>
+              </div>
+
+              {targetFormat !== 'image/png' && (
+                <div>
+                  <div className="flex justify-between items-center mb-1">
+                    <label className="text-xs font-bold text-slate-500 uppercase">Export Encoder Quality</label>
+                    <span className="text-xs font-black text-emerald-600 bg-white border border-slate-200 px-2 py-0.5 rounded">
+                      {Math.round(quality * 100)}%
+                    </span>
+                  </div>
+                  <input
+                    type="range"
+                    min="0.1"
+                    max="1"
+                    step="0.05"
+                    value={quality}
+                    onChange={(e) => setQuality(parseFloat(e.target.value))}
+                    className="w-full accent-emerald-500"
+                  />
+                </div>
+              )}
+            </div>
+
+            <button
+              onClick={() => { setPreview(''); setImage(null); setConvertedData(''); }}
+              className="w-full py-2.5 border border-slate-200 text-slate-500 font-bold rounded-xl hover:bg-slate-100 text-xs"
+            >
+              Upload Different Photo
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ==================== IMAGE CROPPER ====================
+function ImageCropper({ onBack }) {
+  const [image, setImage] = useState(null);
+  const [preview, setPreview] = useState('');
+  const [cropRect, setCropRect] = useState({ x: 50, y: 50, w: 180, h: 180 });
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+  const [croppedData, setCroppedData] = useState('');
+  const containerRef = useRef(null);
+  const fileInputRef = useRef(null);
+
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setImage(file);
+    setCroppedData('');
+    setCropRect({ x: 50, y: 50, w: 180, h: 180 });
+    const reader = new FileReader();
+    reader.onload = (event) => setPreview(event.target.result);
+    reader.readAsDataURL(file);
+  };
+
+  const handleMouseDown = (e) => {
+    if (!containerRef.current) return;
+    const rect = containerRef.current.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+
+    if (x >= cropRect.x && x <= cropRect.x + cropRect.w && y >= cropRect.y && y <= cropRect.y + cropRect.h) {
+      setIsDragging(true);
+      setDragOffset({ x: x - cropRect.x, y: y - cropRect.y });
+    }
+  };
+
+  const handleMouseMove = (e) => {
+    if (!isDragging || !containerRef.current) return;
+    const rect = containerRef.current.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+
+    let nx = x - dragOffset.x;
+    let ny = y - dragOffset.y;
+
+    nx = Math.max(0, Math.min(rect.width - cropRect.w, nx));
+    ny = Math.max(0, Math.min(rect.height - cropRect.h, ny));
+
+    setCropRect(prev => ({ ...prev, x: nx, y: ny }));
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
+  };
+
+  const executeCrop = () => {
+    if (!preview || !containerRef.current) return;
+    const img = new Image();
+    img.src = preview;
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+
+      const containerRect = containerRef.current.getBoundingClientRect();
+      const scaleX = img.width / containerRect.width;
+      const scaleY = img.height / containerRect.height;
+
+      const rx = cropRect.x * scaleX;
+      const ry = cropRect.y * scaleY;
+      const rw = cropRect.w * scaleX;
+      const rh = cropRect.h * scaleY;
+
+      canvas.width = rw;
+      canvas.height = rh;
+      ctx.drawImage(img, rx, ry, rw, rh, 0, 0, rw, rh);
+      setCroppedData(canvas.toDataURL('image/png'));
+    };
+  };
+
+  return (
+    <div className="bg-white p-6 md:p-10 rounded-3xl border border-slate-200 shadow-xl max-w-4xl mx-auto animate-fade-in">
+      <button onClick={onBack} className="mb-6 flex items-center gap-2 text-slate-500 font-bold hover:text-slate-900 transition-colors">
+        <ArrowLeft className="w-5 h-5" /> Back to Habitation
+      </button>
+
+      <div className="flex items-center gap-3 mb-8">
+        <div className="p-3 bg-emerald-100 text-emerald-600 rounded-2xl">
+          <Crop className="w-7 h-7" />
+        </div>
+        <div>
+          <h3 className="text-2xl font-black text-slate-900">Chameleon's Image Cropper</h3>
+          <p className="text-sm text-slate-500">Drag high-precision crop bounding rectangles and trim graphic elements locally.</p>
+        </div>
+      </div>
+
+      {!preview ? (
+        <div
+          onClick={() => fileInputRef.current.click()}
+          className="border-3 border-dashed border-slate-200 hover:border-emerald-500 rounded-3xl p-12 text-center cursor-pointer bg-slate-50/50 hover:bg-emerald-50/10 transition-all group"
+        >
+          <input
+            type="file"
+            ref={fileInputRef}
+            onChange={handleFileChange}
+            accept="image/*"
+            className="hidden"
+          />
+          <div className="max-w-md mx-auto space-y-3">
+            <div className="mx-auto w-16 h-16 bg-white border border-slate-100 rounded-2xl flex items-center justify-center text-slate-400 shadow-md group-hover:scale-110 transition-transform group-hover:text-emerald-500">
+              <Plus className="w-6 h-6" />
+            </div>
+            <h4 className="text-slate-800 font-bold text-lg">Select Image to Crop</h4>
+            <p className="text-slate-400 text-sm">Upload standard images to trigger local cropper masks.</p>
+          </div>
+        </div>
+      ) : (
+        <div className="grid md:grid-cols-2 gap-8 items-start">
+          <div className="space-y-4">
+            {croppedData ? (
+              <div className="bg-slate-900 rounded-3xl aspect-square flex items-center justify-center p-4 shadow-inner">
+                <img src={croppedData} alt="Cropped Output" className="max-w-full max-h-full object-contain rounded-2xl" />
+              </div>
+            ) : (
+              <div 
+                ref={containerRef}
+                onMouseMove={handleMouseMove}
+                onMouseUp={handleMouseUp}
+                onMouseLeave={handleMouseUp}
+                onMouseDown={handleMouseDown}
+                className="bg-slate-900 rounded-3xl aspect-square flex items-center justify-center p-4 relative overflow-hidden shadow-inner select-none cursor-move"
+              >
+                <img src={preview} alt="Crop Input" className="max-w-full max-h-full object-contain rounded-2xl pointer-events-none" />
+                
+                {/* Crop boundary overlay */}
+                <div 
+                  className="absolute border border-emerald-500 bg-emerald-500/10 shadow-lg pointer-events-none"
+                  style={{
+                    left: `${cropRect.x}px`,
+                    top: `${cropRect.y}px`,
+                    width: `${cropRect.w}px`,
+                    height: `${cropRect.h}px`
+                  }}
+                >
+                  <div className="absolute top-1 left-2 bg-slate-950/80 text-white rounded px-1.5 py-0.5 text-[8px] font-black uppercase tracking-wider">
+                    Crop Area
+                  </div>
+                  {/* Corner marks */}
+                  <div className="absolute top-0 left-0 w-2.5 h-2.5 border-t-2 border-l-2 border-emerald-600" />
+                  <div className="absolute top-0 right-0 w-2.5 h-2.5 border-t-2 border-r-2 border-emerald-600" />
+                  <div className="absolute bottom-0 left-0 w-2.5 h-2.5 border-b-2 border-l-2 border-emerald-600" />
+                  <div className="absolute bottom-0 right-0 w-2.5 h-2.5 border-b-2 border-r-2 border-emerald-600" />
+                </div>
+              </div>
+            )}
+
+            {croppedData ? (
+              <div className="flex gap-2.5">
+                <button
+                  onClick={() => setCroppedData('')}
+                  className="flex-1 py-3 border border-slate-200 text-slate-700 font-bold rounded-2xl hover:bg-slate-50 text-sm"
+                >
+                  Recrop Image
+                </button>
+                <button
+                  onClick={() => {
+                    const link = document.createElement('a');
+                    link.href = croppedData;
+                    link.download = `${image.name.replace(/\.[^/.]+$/, "")}_crop.png`;
+                    link.click();
+                  }}
+                  className="flex-1 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-2xl shadow-md transition-all flex items-center justify-center gap-1.5"
+                >
+                  <Download className="w-4 h-4" /> Download Crop
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={executeCrop}
+                className="w-full py-3.5 bg-slate-900 hover:bg-emerald-600 text-white font-bold rounded-2xl shadow-lg transition-all"
+              >
+                Execute Local Crop
+              </button>
+            )}
+          </div>
+
+          <div className="bg-slate-50 p-6 rounded-3xl border border-slate-100 space-y-6">
+            <h4 className="font-black text-slate-800 text-lg border-b border-slate-200 pb-3">Dimensions settings</h4>
+            
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs font-bold text-slate-500 uppercase mb-2">Crop Width (px)</label>
+                <input
+                  type="number"
+                  value={cropRect.w}
+                  onChange={(e) => setCropRect(prev => ({ ...prev, w: Math.max(50, parseInt(e.target.value) || 50) }))}
+                  className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl font-bold text-slate-800 focus:border-emerald-500 outline-none"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-slate-500 uppercase mb-2">Crop Height (px)</label>
+                <input
+                  type="number"
+                  value={cropRect.h}
+                  onChange={(e) => setCropRect(prev => ({ ...prev, h: Math.max(50, parseInt(e.target.value) || 50) }))}
+                  className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl font-bold text-slate-800 focus:border-emerald-500 outline-none"
+                />
+              </div>
+            </div>
+
+            <div className="text-xs text-slate-400 pl-1 font-semibold leading-relaxed">
+              💡 Click and drag the highlighted box overlay to isolate custom regions in real-time.
+            </div>
+
+            <button
+              onClick={() => { setPreview(''); setImage(null); setCroppedData(''); }}
+              className="w-full py-2.5 border border-slate-200 text-slate-500 font-bold rounded-xl hover:bg-slate-100 text-xs"
+            >
+              Upload Different Photo
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ==================== AI UPSCALER ====================
+function AiUpscaler({ onBack }) {
+  const [image, setImage] = useState(null);
+  const [preview, setPreview] = useState('');
+  const [upscaledData, setUpscaledData] = useState('');
+  const [isProcessing, setIsProcessing] = useState(false);
+  const fileInputRef = useRef(null);
+
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setImage(file);
+    setUpscaledData('');
+    const reader = new FileReader();
+    reader.onload = (event) => setPreview(event.target.result);
+    reader.readAsDataURL(file);
+  };
+
+  const handleUpscale = () => {
+    if (!preview) return;
+    setIsProcessing(true);
+
+    setTimeout(() => {
+      setIsProcessing(false);
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      const img = new Image();
+      img.src = preview;
+      img.onload = () => {
+        canvas.width = img.width * 2;
+        canvas.height = img.height * 2;
+        
+        ctx.imageSmoothingEnabled = false;
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+        const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const data = imgData.data;
+
+        // Apply a real 3x3 sharpening convolution matrix filter for HD detailing
+        const w = canvas.width;
+        const h = canvas.height;
+        const temp = new Uint8ClampedArray(data);
+
+        for (let y = 1; y < h - 1; y++) {
+          for (let x = 1; x < w - 1; x++) {
+            for (let c = 0; c < 3; c++) {
+              const idx = (y * w + x) * 4 + c;
+              
+              const val = 5 * temp[idx]
+                - temp[((y - 1) * w + x) * 4 + c]
+                - temp[((y + 1) * w + x) * 4 + c]
+                - temp[(y * w + (x - 1)) * 4 + c]
+                - temp[(y * w + (x + 1)) * 4 + c];
+
+              data[idx] = Math.max(0, Math.min(255, val));
+            }
+          }
+        }
+
+        ctx.putImageData(imgData, 0, 0);
+        setUpscaledData(canvas.toDataURL('image/jpeg', 0.95));
+      };
+    }, 2200);
+  };
+
+  return (
+    <div className="bg-white p-6 md:p-10 rounded-3xl border border-slate-200 shadow-xl max-w-4xl mx-auto animate-fade-in">
+      <button onClick={onBack} className="mb-6 flex items-center gap-2 text-slate-500 font-bold hover:text-slate-900 transition-colors">
+        <ArrowLeft className="w-5 h-5" /> Back to Habitation
+      </button>
+
+      <div className="flex items-center gap-3 mb-8">
+        <div className="p-3 bg-emerald-100 text-emerald-600 rounded-2xl">
+          <Sparkles className="w-7 h-7" />
+        </div>
+        <div>
+          <h3 className="text-2xl font-black text-slate-900">Chameleon's AI HD Upscaler</h3>
+          <p className="text-sm text-slate-500">Double pixel dimensions and isolate details using browser-based convolution matrix interpolation filters.</p>
+        </div>
+      </div>
+
+      {!preview ? (
+        <div
+          onClick={() => fileInputRef.current.click()}
+          className="border-3 border-dashed border-slate-200 hover:border-emerald-500 rounded-3xl p-12 text-center cursor-pointer bg-slate-50/50 hover:bg-emerald-50/10 transition-all group"
+        >
+          <input
+            type="file"
+            ref={fileInputRef}
+            onChange={handleFileChange}
+            accept="image/*"
+            className="hidden"
+          />
+          <div className="max-w-md mx-auto space-y-3">
+            <div className="mx-auto w-16 h-16 bg-white border border-slate-100 rounded-2xl flex items-center justify-center text-slate-400 shadow-md group-hover:scale-110 transition-transform group-hover:text-emerald-500">
+              <Sparkles className="w-6 h-6" />
+            </div>
+            <h4 className="text-slate-800 font-bold text-lg">Select Low-Res Photo</h4>
+            <p className="text-slate-400 text-sm">Upload standard images to enhance resolution details.</p>
+          </div>
+        </div>
+      ) : (
+        <div className="grid md:grid-cols-2 gap-8 items-start">
+          <div className="space-y-4">
+            <div className="bg-slate-900 rounded-3xl overflow-hidden aspect-square flex items-center justify-center p-4 relative shadow-inner">
+              <img src={upscaledData || preview} alt="Enhanced Output" className="max-w-full max-h-full object-contain rounded-2xl" />
+              
+              {isProcessing && (
+                <div className="absolute inset-0 bg-slate-950/80 flex flex-col items-center justify-center text-white space-y-3 font-bold text-xs animate-pulse">
+                  <RefreshCw className="w-8 h-8 animate-spin text-emerald-450" />
+                  <span>Computing High-Definition Interpolations...</span>
+                </div>
+              )}
+            </div>
+
+            {upscaledData ? (
+              <div className="flex gap-2.5">
+                <button
+                  onClick={() => setUpscaledData('')}
+                  className="flex-1 py-3 border border-slate-200 text-slate-700 font-bold rounded-2xl hover:bg-slate-50 text-sm"
+                >
+                  Upscale Another
+                </button>
+                <button
+                  onClick={() => {
+                    const link = document.createElement('a');
+                    link.href = upscaledData;
+                    link.download = `${image.name.replace(/\.[^/.]+$/, "")}_2x_hd.jpg`;
+                    link.click();
+                  }}
+                  className="flex-1 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-2xl shadow-md transition-all flex items-center justify-center gap-1.5"
+                >
+                  <Download className="w-4 h-4" /> Save HD 2x JPEG
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={handleUpscale}
+                className="w-full py-3.5 bg-slate-900 hover:bg-emerald-600 text-white font-bold rounded-2xl shadow-lg transition-all"
+              >
+                Enhance Resolution 2x
+              </button>
+            )}
+          </div>
+
+          <div className="bg-slate-50 p-6 rounded-3xl border border-slate-100 space-y-6">
+            <h4 className="font-black text-slate-800 text-lg border-b border-slate-200 pb-3">Detailing stats</h4>
+            
+            <div className="space-y-4">
+              <div className="bg-emerald-50 border border-emerald-150 p-4 rounded-2xl text-emerald-800 text-xs font-semibold leading-relaxed space-y-2">
+                <div className="font-black flex items-center gap-1.5 text-emerald-900">
+                  <Wand2 className="w-4 h-4 shrink-0" /> Local 3x3 Convolution Engaged
+                </div>
+                <p>This upscaler maps raw pixel coordinates to double size grids while applying a matrix high-pass convolution kernel to prevent interpolation blurs.</p>
+              </div>
+
+              {image && (
+                <div className="space-y-1.5 text-xs">
+                  <div className="flex justify-between font-bold text-slate-500">
+                    <span>Original Resolution</span>
+                    <span className="text-slate-800">Reading Image metadata...</span>
+                  </div>
+                  <div className="flex justify-between font-bold text-slate-500">
+                    <span>Upscaled Target</span>
+                    <span className="text-emerald-600">200% HD Matrix</span>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <button
+              onClick={() => { setPreview(''); setImage(null); setUpscaledData(''); }}
+              className="w-full py-2.5 border border-slate-200 text-slate-500 font-bold rounded-xl hover:bg-slate-100 text-xs"
+            >
+              Upload Different Photo
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+

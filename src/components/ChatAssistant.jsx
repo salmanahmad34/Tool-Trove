@@ -1,278 +1,251 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Sparkles, Send, Bot, User, Brain } from 'lucide-react';
-import axios from 'axios';
+import React, { useState, useEffect } from 'react';
+import { Sparkles, Bot, Terminal, Cpu, Brain, Layers } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 
-const SAMPLES = [
+const ROTATING_DEMOS = [
   {
-    pillText: "📧 Write a cold email for startup",
-    user: "Write a professional cold email for my web dev agency targeting US startups",
+    title: "Document Vector Extraction",
+    category: "PDF Parser Engine",
+    query: "Extract structured tables and font parameters from quarterly_report.pdf",
+    thinking: "Wise Owl analyzing PDF streams... Mapping typography matrix... Mapped 14 page layers. Restoring tables...",
+    outcome: `[SUCCESS] Compiled PDF Page Table Index:
+- Ingested: 1,489.2 KB
+- Recovered Columns: [Date, ClientID, InvoiceTotal, TaxSplit]
+- Saved Vector Layout: 100% compliant XML
+- Generated Output: editable Microsoft Word (.docx)`
   },
   {
-    pillText: "🐛 Debug standard JS recursion",
-    user: "Debug this JavaScript function: function fib(n) { return fib(n-1) + fib(n-2); }",
+    title: "Image Alpha Isolate",
+    category: "Canvas Edge Processor",
+    query: "Isolate foreground subject from portrait_raw.jpg and feather bounds by 5px",
+    thinking: "Chameleon Scanning canvas pixels... Extracting background colors... Isolate color RGB(243, 244, 246) with tolerance 30%... Feather bounds...",
+    outcome: `[SUCCESS] Isolated Foreground Subject:
+- Original Resolution: 2048 x 2048px
+- Active Mask Bounds: 43.2% transparent alpha layer
+- Filter Applied: 5px edge Gaussian feather
+- In-Browser Export: Transparent PNG`
   },
   {
-    pillText: "📝 Summarize PDF in bullet points",
-    user: "Summarize this financial PDF report in 5 bullet points highlighting growth",
+    title: "Systematic Wealth Projection",
+    category: "SIP Math Compiler",
+    query: "Calculate compound growth for Monthly SIP of $500, Rate 12%, for 15 Years",
+    thinking: "Elephant Calculator processing amortization formula... Running 180 compounding loop checks... Aggregating annual returns...",
+    outcome: `[SUCCESS] Financial Projections Compiled:
+- Total Invested Amount: $90,000.00
+- Est. Wealth Returns: $162,286.00
+- Future Maturity Balance: $252,286.00
+- SVG Amortization Ratio: 35.6% Principal / 64.4% Interest`
+  },
+  {
+    title: "Schema Prettify & Validate",
+    category: "Developer Validator",
+    query: "Beautify and lint raw nested JSON object with 2-space indentation",
+    thinking: "Clever Fox parsing bracket bounds... Checking commas... Restoring valid JSON structure...",
+    outcome: `{
+  "status": "active",
+  "client": "ToolTrove Sandbox",
+  "services": [
+    { "name": "Format Converter", "type": "canvas" },
+    { "name": "Base64 Encoder", "type": "utf8" }
+  ],
+  "latencyMs": 0.04
+}`
   }
 ];
 
 export default function ChatAssistant() {
-  const [messages, setMessages] = useState([
-    {
-      role: 'ai',
-      thinking: '',
-      content: "Hello! I am ToolTrove AI, powered by Google Gemma 4 (via OpenRouter). Ask me to write emails, debug code, or compile reports instantly. Try clicking one of the quick prompts below!"
-    }
-  ]);
-  const [inputText, setInputText] = useState("");
-  const [isTyping, setIsTyping] = useState(false);
+  const [demoIndex, setDemoIndex] = useState(0);
+  const [typedQuery, setTypedQuery] = useState("");
+  const [step, setStep] = useState(0); // 0: typing query, 1: thinking, 2: completed outcome
   const [thinkingProcess, setThinkingProcess] = useState("");
-  const chatEndRef = useRef(null);
+  const [typedOutcome, setTypedOutcome] = useState("");
 
+  const activeDemo = ROTATING_DEMOS[demoIndex];
+
+  // Rotate between demonstrations automatically
   useEffect(() => {
-    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages, isTyping, thinkingProcess]);
+    let queryInterval, thinkingTimeout, outcomeInterval, nextDemoTimeout;
+    setStep(0);
+    setTypedQuery("");
+    setThinkingProcess("");
+    setTypedOutcome("");
 
-  const simulateAIResponse = async (userQuery) => {
-    setIsTyping(true);
-    setThinkingProcess("Google Gemma 4 thinking...");
-
-    // Create the message payload formatted for OpenRouter API
-    const apiMessages = [
-      {
-        role: "system",
-        content: "You are ToolTrove AI, a helpful, developer-friendly assistant powered by Google Gemma 4. Provide clear, accurate, and concise answers."
-      },
-      ...messages.map(m => ({
-        role: m.role === 'ai' ? 'assistant' : 'user',
-        content: m.content
-      })),
-      { role: "user", content: userQuery }
-    ];
-
-    try {
-      // Obfuscating the key using runtime Array.join to prevent Vite's optimizer from merging them into a single scanned string
-      const apiKey = ["sk-or-v1", "5e4fd290ff5289b94b3fa8f478187237bce9dfb0ed0d0dc5e7e26714b58a29b6"].join("-");
-
-      const response = await axios.post(
-        'https://openrouter.ai/api/v1/chat/completions',
-        {
-          model: 'google/gemma-4-26b-a4b-it:free',
-          messages: apiMessages,
-          reasoning: {
-            enabled: true
+    // Step 1: Type the simulated user query
+    let charIdx = 0;
+    const fullQuery = activeDemo.query;
+    queryInterval = setInterval(() => {
+      if (charIdx <= fullQuery.length) {
+        setTypedQuery(fullQuery.slice(0, charIdx));
+        charIdx++;
+      } else {
+        clearInterval(queryInterval);
+        // Step 2: Transition to simulated thinking
+        setStep(1);
+        setThinkingProcess("Initializing client-side engine...");
+        
+        let thinkIdx = 0;
+        const thinkingInterval = setInterval(() => {
+          const statuses = [
+            "Allocating canvas buffers...",
+            activeDemo.thinking,
+            "Structuring sandboxed elements...",
+            "Polishing output details..."
+          ];
+          if (thinkIdx < statuses.length) {
+            setThinkingProcess(statuses[thinkIdx]);
+            thinkIdx++;
+          } else {
+            clearInterval(thinkingInterval);
+            // Step 3: Transition to outcome
+            setStep(2);
+            let outcomeCharIdx = 0;
+            const fullOutcome = activeDemo.outcome;
+            outcomeInterval = setInterval(() => {
+              if (outcomeCharIdx <= fullOutcome.length) {
+                setTypedOutcome(fullOutcome.slice(0, outcomeCharIdx));
+                outcomeCharIdx += 4; // Fast typing simulation
+              } else {
+                clearInterval(outcomeInterval);
+                // Step 4: Wait and proceed to the next demo
+                nextDemoTimeout = setTimeout(() => {
+                  setDemoIndex((prev) => (prev + 1) % ROTATING_DEMOS.length);
+                }, 5000);
+              }
+            }, 10);
           }
-        },
-        {
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${apiKey}`
-          }
-        }
-      );
+        }, 1500);
+      }
+    }, 40);
 
-      const aiContent = response.data.choices[0].message.content;
-      
-      setThinkingProcess("");
-      
-      // Simulate typing effect for the returned content
-      let responseCharIndex = 0;
-      setMessages(prev => [...prev, {
-        role: 'ai',
-        thinking: "Google Gemma 4 completed reasoning.",
-        content: ""
-      }]);
-
-      const typingInterval = setInterval(() => {
-        if (responseCharIndex < aiContent.length) {
-          setMessages(prev => {
-            const updated = [...prev];
-            updated[updated.length - 1].content = aiContent.slice(0, responseCharIndex + 4);
-            return updated;
-          });
-          responseCharIndex += 4;
-        } else {
-          clearInterval(typingInterval);
-          setIsTyping(false);
-        }
-      }, 15);
-
-    } catch (error) {
-      console.error("Error calling OpenRouter API:", error);
-      setThinkingProcess("");
-      setMessages(prev => [...prev, {
-        role: 'ai',
-        thinking: "",
-        content: "I'm sorry, I encountered an error connecting to the Google Gemma 4 server. Please check your API key or try again later."
-      }]);
-      setIsTyping(false);
-    }
-  };
-
-  const handleSend = (e) => {
-    e.preventDefault();
-    if (!inputText.trim() || isTyping) return;
-
-    const userText = inputText;
-    setMessages(prev => [...prev, { role: 'user', content: userText }]);
-    setInputText("");
-    simulateAIResponse(userText);
-  };
-
-  const handlePillClick = (sample) => {
-    if (isTyping) return;
-    setMessages(prev => [...prev, { role: 'user', content: sample.user }]);
-    simulateAIResponse(sample.user);
-  };
+    return () => {
+      clearInterval(queryInterval);
+      clearInterval(outcomeInterval);
+      clearTimeout(nextDemoTimeout);
+    };
+  }, [demoIndex]);
 
   return (
-    <div className="bg-slate-900 rounded-[3rem] p-6 md:p-12 text-white relative overflow-hidden shadow-2xl">
-      <div className="absolute top-0 right-0 w-96 h-96 bg-orange-500/20 blur-[100px] rounded-full pointer-events-none"></div>
+    <div className="bg-slate-950 rounded-[2.5rem] p-6 md:p-12 text-white relative overflow-hidden shadow-2xl border border-slate-800 animate-fade-in">
+      {/* Background Orbs & Lights */}
+      <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-orange-500/10 blur-[120px] rounded-full pointer-events-none"></div>
+      <div className="absolute bottom-0 left-0 w-[300px] h-[300px] bg-blue-500/5 blur-[100px] rounded-full pointer-events-none"></div>
       
-      <div className="grid lg:grid-cols-2 gap-12 items-center relative z-10">
-        <div>
-          <div className="inline-flex items-center gap-2 px-4 py-2 bg-orange-500/20 text-orange-400 border border-orange-500/30 rounded-full text-sm font-bold mb-6">
-            <Brain className="w-4 h-4 animate-pulse" /> Powered by Google Gemma 4
+      {/* CSS Floating Particles Animation Container */}
+      <div className="absolute inset-0 opacity-20 pointer-events-none">
+        <div className="absolute w-2 h-2 bg-orange-400 rounded-full top-[10%] left-[20%] animate-float-slow"></div>
+        <div className="absolute w-3.5 h-3.5 bg-orange-500/30 rounded-full top-[60%] left-[80%] animate-float-slow" style={{ animationDelay: '2s' }}></div>
+        <div className="absolute w-2 h-2 bg-blue-400 rounded-full top-[40%] left-[70%] animate-float-slow" style={{ animationDelay: '1s' }}></div>
+      </div>
+
+      <div className="grid lg:grid-cols-5 gap-12 items-center relative z-10">
+        
+        {/* Left Side: Pitch and Pulsing Orb */}
+        <div className="lg:col-span-2 space-y-6">
+          <div className="inline-flex items-center gap-2 px-4 py-2 bg-orange-500/10 text-orange-400 border border-orange-500/20 rounded-full text-xs font-black uppercase tracking-widest">
+            <Sparkles className="w-3.5 h-3.5 animate-pulse" /> 100% In-Browser Compilation
           </div>
-          <h3 className="text-4xl md:text-5xl font-black mb-6 leading-tight">
-            Ask. Think. <span className="text-orange-400">Solved.</span>
+          
+          <h3 className="text-3xl md:text-5xl font-black leading-tight text-slate-100">
+            Intelligent <br />
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-amber-500">Client Computing.</span>
           </h3>
-          <p className="text-slate-300 mb-8 leading-relaxed text-lg">
-            Experience our next-generation reasoning AI via OpenRouter. It doesn't just guess outputs—it demonstrates its thought process transparently to deliver flawless utility scripting.
+          
+          <p className="text-slate-400 leading-relaxed text-sm font-semibold">
+            Watch our platform compile complex tasks entirely on your CPU. No files or inputs ever traverse network nodes, offering absolute visual transparency and maximum corporate data privacy.
           </p>
 
-          <div className="space-y-3">
-            <p className="text-slate-400 font-semibold text-sm uppercase tracking-wider">Quick Habitation Prompts</p>
-            <div className="flex flex-col gap-2.5">
-              {SAMPLES.map((sample, idx) => (
-                <button
-                  key={idx}
-                  onClick={() => handlePillClick(sample)}
-                  disabled={isTyping}
-                  className="px-4 py-3 bg-white/5 border border-white/10 hover:border-orange-500/50 hover:bg-white/10 rounded-2xl text-left text-sm font-medium transition-all flex items-center justify-between group disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  <span className="group-hover:text-orange-300 transition-colors">{sample.pillText}</span>
-                  <span className="text-xs text-slate-500 group-hover:text-orange-400 font-bold">Try →</span>
-                </button>
-              ))}
+          {/* Glowing orbital simulation */}
+          <div className="pt-4 flex items-center gap-6">
+            <div className="relative w-16 h-16 shrink-0 flex items-center justify-center">
+              {/* Pulsing rings */}
+              <div className="absolute inset-0 bg-orange-500/20 rounded-full animate-ping pointer-events-none"></div>
+              <div className="absolute -inset-2 bg-orange-500/5 rounded-full animate-pulse pointer-events-none"></div>
+              <div className="w-12 h-12 bg-gradient-to-tr from-orange-500 to-amber-400 rounded-full shadow-lg flex items-center justify-center relative z-10 border border-orange-300">
+                <Brain className="text-white w-6 h-6 animate-pulse" />
+              </div>
+            </div>
+            <div>
+              <h5 className="font-black text-sm text-slate-200">Active Coprocessor Engine</h5>
+              <p className="text-xs text-slate-400 mt-0.5">Simulating real-time local compiler workflows</p>
             </div>
           </div>
         </div>
 
-        {/* Chat Console Panel */}
-        <div className="flex flex-col h-[480px] bg-slate-950/80 border border-white/10 rounded-3xl overflow-hidden shadow-2xl backdrop-blur-sm">
-          {/* Header */}
-          <div className="px-6 py-4 border-b border-white/10 flex items-center justify-between bg-slate-900/50">
-            <div className="flex items-center gap-3">
-              <div className="w-2.5 h-2.5 bg-emerald-500 rounded-full animate-pulse"></div>
-              <div>
-                <h4 className="font-bold text-sm">ToolTrove AI Console</h4>
-                <p className="text-[10px] text-slate-400">Google Gemma 4 active</p>
+        {/* Right Side: Showcase Console Screen */}
+        <div className="lg:col-span-3">
+          <div className="flex flex-col h-[400px] bg-slate-900/60 border border-slate-800 rounded-3xl overflow-hidden shadow-2xl backdrop-blur-md relative">
+            
+            {/* Header */}
+            <div className="px-6 py-4 border-b border-slate-800 flex items-center justify-between bg-slate-950/40">
+              <div className="flex items-center gap-3">
+                <div className="w-2.5 h-2.5 bg-orange-500 rounded-full animate-pulse"></div>
+                <div>
+                  <h4 className="font-black text-xs text-slate-200 uppercase tracking-widest flex items-center gap-1.5">
+                    <Terminal className="w-3.5 h-3.5 text-orange-500" /> ToolTrove Sandbox
+                  </h4>
+                  <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">{activeDemo.category} Active</p>
+                </div>
+              </div>
+              
+              <span className="px-2.5 py-1 bg-slate-800 border border-slate-700 text-orange-400 rounded-lg text-[9px] font-black uppercase tracking-wider">
+                Read-Only Showcase
+              </span>
+            </div>
+
+            {/* Display Screen */}
+            <div className="flex-1 p-6 overflow-y-auto space-y-4 font-mono text-xs select-none">
+              
+              {/* User Prompt */}
+              <div className="space-y-1 bg-slate-950/40 border border-slate-800 rounded-2xl p-4">
+                <div className="flex items-center gap-2 text-[10px] text-orange-400 font-bold uppercase tracking-wider">
+                  <span className="w-1.5 h-1.5 rounded-full bg-orange-500"></span> Input Requirement
+                </div>
+                <div className="text-slate-200 pl-3.5 border-l border-slate-800 leading-relaxed font-semibold italic">
+                  "{typedQuery}"<span className="animate-pulse">|</span>
+                </div>
+              </div>
+
+              {/* Engine Processing */}
+              {step >= 1 && (
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2 text-[10px] text-amber-500 font-bold uppercase tracking-wider">
+                    <Cpu className="w-3.5 h-3.5 animate-spin" /> In-Browser Calculation
+                  </div>
+                  <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 text-slate-400 space-y-1.5">
+                    <div className="flex items-center gap-2">
+                      <div className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-ping"></div>
+                      <span className="font-bold text-[10px] uppercase text-amber-400/80">Thinking:</span>
+                    </div>
+                    <p className="pl-3.5 border-l border-slate-800 text-slate-300 italic">{thinkingProcess}</p>
+                  </div>
+                </div>
+              )}
+
+              {/* Result Compilation */}
+              {step >= 2 && (
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2 text-[10px] text-emerald-400 font-bold uppercase tracking-wider">
+                    <Layers className="w-3.5 h-3.5" /> Output Outcome
+                  </div>
+                  <div className="bg-slate-950 border border-slate-800 text-emerald-400 rounded-2xl p-4 whitespace-pre-wrap leading-relaxed overflow-x-auto max-h-48 scrollbar-none shadow-inner font-semibold">
+                    {typedOutcome}
+                  </div>
+                </div>
+              )}
+
+            </div>
+
+            {/* Simulated locked footer input block */}
+            <div className="p-4 border-t border-slate-800 bg-slate-950/30 flex gap-2 items-center">
+              <div className="flex-1 bg-slate-950/80 border border-slate-800 rounded-xl px-4 py-2.5 text-[11px] text-slate-500 font-semibold italic flex justify-between items-center select-none">
+                <span>Showcase mode is active. Choose any tool above to operate...</span>
+                <Sparkles className="w-4 h-4 text-orange-500 animate-pulse" />
               </div>
             </div>
-            <div className="px-3 py-1 bg-orange-500/20 text-orange-400 rounded-lg text-xs font-bold uppercase tracking-wider">
-              Reasoning Engine
-            </div>
+
           </div>
-
-          {/* Chat Messages */}
-          <div className="flex-1 p-6 overflow-y-auto space-y-4 scrollbar-thin">
-            {messages.map((msg, idx) => (
-              <div key={idx} className="space-y-2">
-                {/* User Message */}
-                {msg.role === 'user' && (
-                  <div className="flex items-end justify-end gap-2.5">
-                    <div className="bg-orange-500 text-white rounded-2xl rounded-tr-none px-4 py-3 text-sm max-w-[85%] shadow-md">
-                      {msg.content}
-                    </div>
-                    <div className="w-8 h-8 rounded-full bg-orange-600 flex items-center justify-center font-bold text-xs shadow-inner shrink-0">
-                      <User className="w-4 h-4" />
-                    </div>
-                  </div>
-                )}
-
-                {/* AI Message */}
-                {msg.role === 'ai' && (
-                  <div className="flex items-start gap-2.5">
-                    <div className="w-8 h-8 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center text-orange-400 shrink-0 shadow-md">
-                      <Bot className="w-4 h-4" />
-                    </div>
-                    <div className="space-y-2 flex-1 max-w-[85%]">
-                      {/* Thought process block */}
-                      {msg.thinking && (
-                        <div className="bg-slate-900/90 border-l-2 border-orange-500/50 rounded-lg p-3 text-xs text-slate-400 font-mono italic leading-relaxed">
-                          <div className="flex items-center gap-1.5 text-orange-400/80 mb-1 font-bold">
-                            <Brain className="w-3.5 h-3.5 animate-pulse" />
-                            <span>Thought Process</span>
-                          </div>
-                          {msg.thinking}
-                        </div>
-                      )}
-                      
-                      {/* Content block */}
-                      {msg.content && (
-                        <div className="bg-slate-900 border border-white/5 rounded-2xl rounded-tl-none px-4 py-3 text-sm text-slate-200 shadow-md leading-relaxed whitespace-pre-wrap font-sans">
-                          {msg.content}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )}
-              </div>
-            ))}
-
-            {/* Simulated Live Thinking Box */}
-            {isTyping && thinkingProcess && (
-              <div className="flex items-start gap-2.5">
-                <div className="w-8 h-8 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center text-orange-400 shrink-0 animate-pulse">
-                  <Bot className="w-4 h-4" />
-                </div>
-                <div className="bg-slate-900/90 border-l-2 border-orange-500/50 rounded-lg p-3 text-xs text-slate-400 font-mono italic leading-relaxed flex-1 max-w-[85%]">
-                  <div className="flex items-center gap-1.5 text-orange-400/80 mb-1 font-bold">
-                    <Brain className="w-3.5 h-3.5 animate-pulse" />
-                    <span>Thinking...</span>
-                  </div>
-                  {thinkingProcess}
-                </div>
-              </div>
-            )}
-
-            {/* Simple typing bubbles when typing response */}
-            {isTyping && !thinkingProcess && (
-              <div className="flex items-start gap-2.5">
-                <div className="w-8 h-8 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center text-orange-400 shrink-0">
-                  <Bot className="w-4 h-4" />
-                </div>
-                <div className="bg-slate-900 border border-white/5 rounded-2xl rounded-tl-none px-4 py-3 text-sm shadow-md flex items-center gap-1">
-                  <span className="w-2 h-2 rounded-full bg-slate-500 animate-bounce" style={{ animationDelay: '0ms' }}></span>
-                  <span className="w-2 h-2 rounded-full bg-slate-500 animate-bounce" style={{ animationDelay: '150ms' }}></span>
-                  <span className="w-2 h-2 rounded-full bg-slate-500 animate-bounce" style={{ animationDelay: '300ms' }}></span>
-                </div>
-              </div>
-            )}
-            <div ref={chatEndRef} />
-          </div>
-
-          {/* Form Footer */}
-          <form onSubmit={handleSend} className="p-4 border-t border-white/10 bg-slate-900/50 flex gap-2">
-            <input
-              type="text"
-              value={inputText}
-              onChange={(e) => setInputText(e.target.value)}
-              disabled={isTyping}
-              placeholder="Ask anything (e.g. Write a python script for resizing)"
-              className="flex-1 bg-slate-950 border border-white/10 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-orange-500 transition-colors disabled:opacity-50"
-            />
-            <button
-              type="submit"
-              disabled={!inputText.trim() || isTyping}
-              className="p-2.5 bg-orange-500 hover:bg-orange-600 rounded-xl font-bold transition-all flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <Send className="w-4 h-4" />
-            </button>
-          </form>
         </div>
+
       </div>
     </div>
   );

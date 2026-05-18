@@ -61,7 +61,7 @@ const CATEGORIES = [
     accentColor: 'orange',
     accentClass: 'text-[#ff5c1a] border-[#ff5c1a]/20 bg-[#ff5c1a]/5 hover:bg-[#ff5c1a]/10',
     btnClass: 'bg-[#ff5c1a] shadow-[#ff5c1a]/20 hover:bg-[#e04f13]',
-    tools: ['PDF Merge', 'PDF Split', 'PDF Compressor', 'PDF to Word', 'Image to PDF']
+    tools: ['PDF Merge', 'PDF Split', 'PDF Compressor', 'PDF to Word', 'Image to PDF', 'PDF to Image', 'OCR Document Scanner', 'Resume Builder']
   },
   {
     id: 'business',
@@ -75,7 +75,7 @@ const CATEGORIES = [
     accentColor: 'amber',
     accentClass: 'text-[#d97706] border-[#d97706]/20 bg-[#d97706]/5 hover:bg-[#d97706]/10',
     btnClass: 'bg-[#d97706] shadow-[#d97706]/20 hover:bg-[#b45309]',
-    tools: ['EMI Calculator', 'GST Calculator', 'Invoice Generator', 'Currency Converter', 'Loan Calculator']
+    tools: ['EMI Calculator', 'GST Calculator', 'Invoice Generator', 'Currency Converter', 'Loan Calculator', 'SIP Calculator']
   },
   {
     id: 'security',
@@ -103,7 +103,7 @@ const CATEGORIES = [
     accentColor: 'emerald',
     accentClass: 'text-[#059669] border-[#059669]/20 bg-[#059669]/5 hover:bg-[#059669]/10',
     btnClass: 'bg-[#059669] shadow-[#059669]/20 hover:bg-[#047857]',
-    tools: ['Background Remover', 'Image Compressor', 'Image Resizer', 'QR Generator', 'Meme Generator']
+    tools: ['Background Remover', 'Image Compressor', 'Image Resizer', 'QR Generator', 'Meme Generator', 'Format Converter', 'Image Cropper', 'AI Upscaler']
   },
   {
     id: 'developer',
@@ -117,7 +117,7 @@ const CATEGORIES = [
     accentColor: 'blue',
     accentClass: 'text-[#3b82f6] border-[#3b82f6]/20 bg-[#3b82f6]/5 hover:bg-[#3b82f6]/10',
     btnClass: 'bg-[#3b82f6] shadow-[#3b82f6]/20 hover:bg-[#2563eb]',
-    tools: ['JSON Formatter', 'Base64 Encoder/Decoder', 'Regex Tester', 'Code Minifier', 'UUID Generator']
+    tools: ['JSON Formatter', 'Base64 Encoder/Decoder', 'Regex Tester', 'Code Minifier', 'UUID Generator', 'Color Picker', 'Code Beautifier', 'Markdown Previewer']
   }
 ];
 

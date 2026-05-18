@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { Calculator, Percent, Clock, ArrowLeft, RotateCcw, FileText, Plus, Trash2, Download, RefreshCw, Landmark, Coins } from 'lucide-react';
+import { Calculator, Percent, Clock, ArrowLeft, RotateCcw, FileText, Plus, Trash2, Download, RefreshCw, Landmark, Coins, TrendingUp } from 'lucide-react';
 
 export default function CalculatorTools({ activeTool, onBack }) {
   const norm = activeTool.toLowerCase();
@@ -18,6 +18,9 @@ export default function CalculatorTools({ activeTool, onBack }) {
   }
   if (norm.includes('loan')) {
     return <LoanCalculator onBack={onBack} />;
+  }
+  if (norm.includes('sip') || norm.includes('systematic')) {
+    return <SipCalculator onBack={onBack} />;
   }
 
   return (
@@ -1011,6 +1014,230 @@ function LoanCalculator({ onBack }) {
           <div className="text-center text-xs text-slate-400 font-semibold pt-1">
             Standard Term: {totalMonths} months • Prepayment Term: {monthsPaid} months
           </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ==================== SIP CALCULATOR ====================
+function SipCalculator({ onBack }) {
+  const [monthlyInvestment, setMonthlyInvestment] = useState(5000);
+  const [expectedReturn, setExpectedReturn] = useState(12);
+  const [tenure, setTenure] = useState(10);
+
+  const P = parseFloat(monthlyInvestment) || 0;
+  const i = (parseFloat(expectedReturn) || 0) / 12 / 100;
+  const n = (parseInt(tenure) || 0) * 12;
+
+  let investedAmount = P * n;
+  let totalValue = 0;
+  let estReturns = 0;
+
+  if (P > 0 && i > 0 && n > 0) {
+    totalValue = P * ((Math.pow(1 + i, n) - 1) / i) * (1 + i);
+    estReturns = totalValue - investedAmount;
+  }
+
+  const investedRatio = totalValue > 0 ? (investedAmount / totalValue) * 100 : 0;
+  const returnsRatio = totalValue > 0 ? (estReturns / totalValue) * 100 : 0;
+
+  const sipGrowthProgression = [];
+  let cumulativeInvested = 0;
+  
+  for (let year = 1; year <= tenure; year++) {
+    const months = year * 12;
+    cumulativeInvested = P * months;
+    const yearValue = P * ((Math.pow(1 + i, months) - 1) / i) * (1 + i);
+    
+    sipGrowthProgression.push({
+      year,
+      invested: Math.round(cumulativeInvested),
+      returns: Math.max(0, Math.round(yearValue - cumulativeInvested)),
+      total: Math.round(yearValue)
+    });
+  }
+
+  return (
+    <div className="bg-white p-6 md:p-10 rounded-3xl border border-slate-200 shadow-xl max-w-4xl mx-auto animate-fade-in">
+      <button onClick={onBack} className="mb-6 flex items-center gap-2 text-slate-500 font-bold hover:text-slate-900 transition-colors">
+        <ArrowLeft className="w-5 h-5" /> Back to Habitation
+      </button>
+
+      <div className="flex items-center gap-3 mb-8">
+        <div className="p-3 bg-amber-100 text-amber-600 rounded-2xl">
+          <TrendingUp className="w-7 h-7" />
+        </div>
+        <div>
+          <h3 className="text-2xl font-black text-slate-900">Elephant's Systematic Investment Plan (SIP) Calculator</h3>
+          <p className="text-sm text-slate-500">Estimate compounding wealth creation from monthly mutual fund deposits client-side.</p>
+        </div>
+      </div>
+
+      <div className="grid md:grid-cols-2 gap-8 items-center border-b border-slate-100 pb-8 mb-8">
+        <div className="space-y-6">
+          <div>
+            <div className="flex justify-between items-center mb-2">
+              <label className="text-sm font-bold text-slate-700 uppercase">Monthly Deposit (₹)</label>
+              <input
+                type="number"
+                value={monthlyInvestment}
+                onChange={(e) => setMonthlyInvestment(e.target.value)}
+                className="w-32 px-3 py-1 bg-slate-50 border border-slate-200 rounded-lg text-right font-black text-slate-900 focus:border-amber-500 outline-none text-sm"
+              />
+            </div>
+            <input
+              type="range"
+              min="500"
+              max="100000"
+              step="500"
+              value={monthlyInvestment}
+              onChange={(e) => setMonthlyInvestment(e.target.value)}
+              className="w-full accent-amber-500"
+            />
+            <div className="flex justify-between text-[10px] text-slate-400 font-bold pt-1">
+              <span>₹500</span>
+              <span>₹50,000</span>
+              <span>₹1,00,000</span>
+            </div>
+          </div>
+
+          <div>
+            <div className="flex justify-between items-center mb-2">
+              <label className="text-sm font-bold text-slate-700 uppercase">Expected Return Rate (% p.a.)</label>
+              <input
+                type="number"
+                step="0.5"
+                value={expectedReturn}
+                onChange={(e) => setExpectedReturn(e.target.value)}
+                className="w-20 px-3 py-1 bg-slate-50 border border-slate-200 rounded-lg text-right font-black text-slate-900 focus:border-amber-500 outline-none text-sm"
+              />
+            </div>
+            <input
+              type="range"
+              min="1"
+              max="30"
+              step="0.5"
+              value={expectedReturn}
+              onChange={(e) => setExpectedReturn(e.target.value)}
+              className="w-full accent-amber-500"
+            />
+            <div className="flex justify-between text-[10px] text-slate-400 font-bold pt-1">
+              <span>1%</span>
+              <span>15%</span>
+              <span>30%</span>
+            </div>
+          </div>
+
+          <div>
+            <div className="flex justify-between items-center mb-2">
+              <label className="text-sm font-bold text-slate-700 uppercase">Time Period (Years)</label>
+              <input
+                type="number"
+                value={tenure}
+                onChange={(e) => setTenure(e.target.value)}
+                className="w-20 px-3 py-1 bg-slate-50 border border-slate-200 rounded-lg text-right font-black text-slate-900 focus:border-amber-500 outline-none text-sm"
+              />
+            </div>
+            <input
+              type="range"
+              min="1"
+              max="40"
+              step="1"
+              value={tenure}
+              onChange={(e) => setTenure(e.target.value)}
+              className="w-full accent-amber-500"
+            />
+            <div className="flex justify-between text-[10px] text-slate-400 font-bold pt-1">
+              <span>1 Yr</span>
+              <span>20 Yrs</span>
+              <span>40 Yrs</span>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-slate-50 p-6 rounded-3xl border border-slate-100 flex flex-col items-center">
+          <div className="text-center mb-5">
+            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Expected Wealth Value</p>
+            <h4 className="text-3xl font-black text-amber-500">
+              ₹{Math.round(totalValue).toLocaleString('en-IN')}
+            </h4>
+          </div>
+
+          <div className="relative w-40 h-40 mb-6">
+            <svg viewBox="0 0 36 36" className="w-full h-full transform -rotate-90">
+              <circle cx="18" cy="18" r="15.915" fill="none" stroke="#e2e8f0" strokeWidth="3" />
+              <circle
+                cx="18"
+                cy="18"
+                r="15.915"
+                fill="none"
+                stroke="#475569"
+                strokeWidth="3.5"
+                strokeDasharray={`${investedRatio} ${100 - investedRatio}`}
+                strokeDashoffset="0"
+                className="transition-all duration-500"
+              />
+              <circle
+                cx="18"
+                cy="18"
+                r="15.915"
+                fill="none"
+                stroke="#d97706"
+                strokeWidth="3.5"
+                strokeDasharray={`${returnsRatio} ${100 - returnsRatio}`}
+                strokeDashoffset={`-${investedRatio}`}
+                className="transition-all duration-500"
+              />
+            </svg>
+            <div className="absolute inset-0 flex flex-col items-center justify-center">
+              <span className="text-[10px] text-slate-400 font-bold uppercase">Growth</span>
+              <span className="text-base font-black text-slate-800">{Math.round(returnsRatio)}%</span>
+            </div>
+          </div>
+
+          <div className="w-full space-y-3 text-sm">
+            <div className="flex justify-between items-center">
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 bg-slate-500 rounded-full"></div>
+                <span className="text-slate-500 font-semibold">Invested Principal:</span>
+              </div>
+              <span className="font-bold text-slate-800">₹{investedAmount.toLocaleString('en-IN')}</span>
+            </div>
+            <div className="flex justify-between items-center">
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 bg-amber-600 rounded-full"></div>
+                <span className="text-slate-500 font-semibold">Wealth Gained:</span>
+              </div>
+              <span className="font-bold text-slate-800">₹{Math.round(estReturns).toLocaleString('en-IN')}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="space-y-4">
+        <h4 className="text-xs font-black text-slate-400 uppercase tracking-wider">SIP Compound Progression Chart</h4>
+        <div className="border border-slate-200 rounded-2xl overflow-hidden max-h-72 overflow-y-auto">
+          <table className="w-full text-xs text-left">
+            <thead className="bg-slate-50 border-b border-slate-200 font-bold text-slate-700 sticky top-0">
+              <tr>
+                <th className="px-4 py-3">Year</th>
+                <th className="px-4 py-3 text-right">Invested Principal</th>
+                <th className="px-4 py-3 text-right">Estimated Growth</th>
+                <th className="px-4 py-3 text-right">Total Net Worth</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100">
+              {sipGrowthProgression.map(row => (
+                <tr key={row.year} className="hover:bg-slate-50/50">
+                  <td className="px-4 py-2.5 font-bold text-slate-800">Year {row.year}</td>
+                  <td className="px-4 py-2.5 text-right font-semibold text-slate-700">₹{row.invested.toLocaleString('en-IN')}</td>
+                  <td className="px-4 py-2.5 text-right font-semibold text-slate-700">₹{row.returns.toLocaleString('en-IN')}</td>
+                  <td className="px-4 py-2.5 text-right font-black text-slate-900">₹{row.total.toLocaleString('en-IN')}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       </div>
     </div>

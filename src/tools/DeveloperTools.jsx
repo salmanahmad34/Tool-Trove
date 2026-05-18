@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Braces, Binary, Search, Code, Key, ArrowLeft, Copy, CheckCircle, AlertCircle, RefreshCw, Trash2, ArrowUpDown } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { Braces, Binary, Search, Code, Key, ArrowLeft, Copy, CheckCircle, AlertCircle, RefreshCw, Trash2, ArrowUpDown, Palette, Eye, FileCode } from 'lucide-react';
 
 export default function DeveloperTools({ activeTool, onBack }) {
   const norm = activeTool.toLowerCase();
@@ -18,6 +18,15 @@ export default function DeveloperTools({ activeTool, onBack }) {
   }
   if (norm.includes('uuid')) {
     return <UuidGenerator onBack={onBack} />;
+  }
+  if (norm.includes('color') || norm.includes('picker')) {
+    return <ColorPicker onBack={onBack} />;
+  }
+  if (norm.includes('beautify') || norm.includes('beautifier')) {
+    return <CodeBeautifier onBack={onBack} />;
+  }
+  if (norm.includes('markdown') || norm.includes('previewer')) {
+    return <MarkdownPreviewer onBack={onBack} />;
   }
 
   return (
@@ -700,3 +709,391 @@ function UuidGenerator({ onBack }) {
     </div>
   );
 }
+
+// ==================== COLOR PICKER ====================
+function ColorPicker({ onBack }) {
+  const [color, setColor] = useState('#ff6b00');
+  const [gradientType, setGradientType] = useState('linear');
+  const [angle, setAngle] = useState(135);
+  const [colorStop2, setColorStop2] = useState('#0f172a');
+  const [history, setHistory] = useState(['#ff6b00', '#0f172a', '#10b981', '#3b82f6']);
+  const [copied, setCopied] = useState(false);
+
+  const hexToRgb = (hex) => {
+    const r = parseInt(hex.slice(1, 3), 16) || 0;
+    const g = parseInt(hex.slice(3, 5), 16) || 0;
+    const b = parseInt(hex.slice(5, 7), 16) || 0;
+    return `rgb(${r}, ${g}, ${b})`;
+  };
+
+  const hexToHsl = (hex) => {
+    let r = (parseInt(hex.slice(1, 3), 16) || 0) / 255;
+    let g = (parseInt(hex.slice(3, 5), 16) || 0) / 255;
+    let b = (parseInt(hex.slice(5, 7), 16) || 0) / 255;
+    const max = Math.max(r, g, b), min = Math.min(r, g, b);
+    let h, s, l = (max + min) / 2;
+    if (max === min) {
+      h = s = 0;
+    } else {
+      const d = max - min;
+      s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+      switch (max) {
+        case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+        case g: h = (b - r) / d + 2; break;
+        case b: h = (r - g) / d + 4; break;
+      }
+      h /= 6;
+    }
+    return `hsl(${Math.round(h * 360)}°, ${Math.round(s * 100)}%, ${Math.round(l * 100)}%)`;
+  };
+
+  const handleSaveToHistory = () => {
+    if (!history.includes(color)) {
+      setHistory(prev => [color, ...prev.slice(0, 11)]);
+    }
+  };
+
+  const copyString = (str) => {
+    navigator.clipboard.writeText(str);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1500);
+  };
+
+  const gradientCode = `${gradientType}-gradient(${angle}deg, ${color}, ${colorStop2})`;
+
+  return (
+    <div className="bg-white p-6 md:p-10 rounded-3xl border border-slate-200 shadow-xl max-w-4xl mx-auto animate-fade-in">
+      <button onClick={onBack} className="mb-6 flex items-center gap-2 text-slate-500 font-bold hover:text-slate-900 transition-colors">
+        <ArrowLeft className="w-5 h-5" /> Back to Habitation
+      </button>
+
+      <div className="flex items-center gap-3 mb-8">
+        <div className="p-3 bg-orange-100 text-orange-600 rounded-2xl">
+          <Palette className="w-7 h-7" />
+        </div>
+        <div>
+          <h3 className="text-2xl font-black text-slate-900">Clever Fox Custom Color Picker & Gradient Creator</h3>
+          <p className="text-sm text-slate-500">Pick color parameters, read hex-rgb-hsl values, and compile custom gradients client-side.</p>
+        </div>
+      </div>
+
+      <div className="grid md:grid-cols-2 gap-8 items-start">
+        {/* Left Inputs Controls */}
+        <div className="space-y-6">
+          <div className="bg-slate-50 p-6 rounded-3xl border border-slate-100 space-y-4">
+            <h4 className="font-black text-slate-800 text-base">Select Color Tone</h4>
+            <div className="flex items-center gap-4">
+              <input
+                type="color"
+                value={color}
+                onChange={(e) => setColor(e.target.value)}
+                className="w-16 h-16 p-1 bg-white border border-slate-200 rounded-2xl cursor-pointer"
+              />
+              <div className="space-y-1.5 flex-1">
+                <label className="block text-xs font-bold text-slate-550 uppercase">Hex Value</label>
+                <input
+                  type="text"
+                  value={color}
+                  onChange={(e) => setColor(e.target.value)}
+                  className="w-full px-3 py-1.5 bg-white border border-slate-200 rounded-xl font-mono text-sm font-bold uppercase text-slate-800 outline-none focus:border-orange-550"
+                />
+              </div>
+            </div>
+            <button
+              onClick={handleSaveToHistory}
+              className="w-full py-2 bg-slate-900 hover:bg-orange-550 text-white font-bold rounded-xl text-xs transition-colors"
+            >
+              Log Color Swatch
+            </button>
+          </div>
+
+          {/* Color Values Output Cards */}
+          <div className="space-y-3">
+            <div className="flex justify-between items-center bg-slate-50 border border-slate-150 p-3 rounded-2xl">
+              <span className="text-xs font-black text-slate-500 uppercase">RGB Format</span>
+              <div className="flex items-center gap-2">
+                <span className="font-mono text-xs text-slate-800 font-bold">{hexToRgb(color)}</span>
+                <button onClick={() => copyString(hexToRgb(color))} className="p-1 hover:bg-slate-200 rounded transition-colors text-slate-500">
+                  <Copy className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            </div>
+            <div className="flex justify-between items-center bg-slate-50 border border-slate-150 p-3 rounded-2xl">
+              <span className="text-xs font-black text-slate-500 uppercase">HSL Format</span>
+              <div className="flex items-center gap-2">
+                <span className="font-mono text-xs text-slate-800 font-bold">{hexToHsl(color)}</span>
+                <button onClick={() => copyString(hexToHsl(color))} className="p-1 hover:bg-slate-200 rounded transition-colors text-slate-500">
+                  <Copy className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Color swatches history */}
+          <div className="space-y-2">
+            <span className="block text-xs font-bold text-slate-400 uppercase tracking-wider">Color History Logs</span>
+            <div className="flex flex-wrap gap-2">
+              {history.map((h, i) => (
+                <button
+                  key={i}
+                  onClick={() => setColor(h)}
+                  className="w-8 h-8 rounded-lg border border-slate-200 shadow-sm transition-transform hover:scale-110"
+                  style={{ backgroundColor: h }}
+                  title={h}
+                />
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Right Output Preview / Gradient Builder */}
+        <div className="space-y-6">
+          <div className="bg-slate-50 border border-slate-100 rounded-3xl p-6 space-y-4">
+            <h4 className="font-black text-slate-800 text-base">Linear Gradient Generator</h4>
+            <div
+              className="w-full h-44 rounded-2xl shadow-inner border border-slate-200/60"
+              style={{ background: gradientCode }}
+            />
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1.5">Color Stop 2</label>
+                <input
+                  type="color"
+                  value={colorStop2}
+                  onChange={(e) => setColorStop2(e.target.value)}
+                  className="w-full h-10 p-1 bg-white border border-slate-200 rounded-xl cursor-pointer"
+                />
+              </div>
+              <div>
+                <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1.5">Angle ({angle}°)</label>
+                <input
+                  type="range"
+                  min="0"
+                  max="360"
+                  value={angle}
+                  onChange={(e) => setAngle(parseInt(e.target.value))}
+                  className="w-full h-10 accent-orange-500"
+                />
+              </div>
+            </div>
+            <div className="bg-slate-900 text-slate-200 p-3 rounded-2xl font-mono text-[10px] flex justify-between items-center leading-relaxed">
+              <span className="truncate pr-4">{`background: ${gradientCode};`}</span>
+              <button
+                onClick={() => copyString(`background: ${gradientCode};`)}
+                className="px-2.5 py-1 bg-slate-800 hover:bg-orange-550 text-white rounded-lg transition-colors font-bold text-[9px] shrink-0"
+              >
+                {copied ? 'Copied!' : 'Copy CSS'}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ==================== CODE BEAUTIFIER ====================
+function CodeBeautifier({ onBack }) {
+  const [input, setInput] = useState(`function helloWorld() {\nconst list = [1,2,3];\nlist.forEach(item => {\nconsole.log(item);\n});\n}`);
+  const [output, setOutput] = useState('');
+  const [indent, setIndent] = useState(2);
+  const [copied, setCopied] = useState(false);
+
+  const beautifyCode = () => {
+    if (!input.trim()) {
+      setOutput('');
+      return;
+    }
+
+    const lines = input.split('\n');
+    let currentIndent = 0;
+    const spacer = ' '.repeat(indent);
+    const result = [];
+
+    lines.forEach(line => {
+      let trimmed = line.trim();
+      if (!trimmed) {
+        result.push('');
+        return;
+      }
+
+      if (trimmed.startsWith('}') || trimmed.startsWith(']') || trimmed.startsWith(')')) {
+        currentIndent = Math.max(0, currentIndent - 1);
+      }
+
+      result.push(spacer.repeat(currentIndent) + trimmed);
+
+      const openBraces = (trimmed.match(/[\{\[\(]/g) || []).length;
+      const closeBraces = (trimmed.match(/[\}\]\)]/g) || []).length;
+      currentIndent += (openBraces - closeBraces);
+      currentIndent = Math.max(0, currentIndent);
+    });
+
+    setOutput(result.join('\n'));
+  };
+
+  useEffect(() => {
+    beautifyCode();
+  }, [input, indent]);
+
+  return (
+    <div className="bg-white p-6 md:p-10 rounded-3xl border border-slate-200 shadow-xl max-w-5xl mx-auto animate-fade-in">
+      <button onClick={onBack} className="mb-6 flex items-center gap-2 text-slate-500 font-bold hover:text-slate-900 transition-colors">
+        <ArrowLeft className="w-5 h-5" /> Back to Habitation
+      </button>
+
+      <div className="flex items-center gap-3 mb-8">
+        <div className="p-3 bg-orange-100 text-orange-600 rounded-2xl">
+          <FileCode className="w-7 h-7" />
+        </div>
+        <div>
+          <h3 className="text-2xl font-black text-slate-900">Clever Fox Code Beautifier</h3>
+          <p className="text-sm text-slate-500">Auto-align JavaScript curly braces, HTML structures, and CSS templates instantly.</p>
+        </div>
+      </div>
+
+      <div className="grid lg:grid-cols-2 gap-6">
+        <div className="space-y-4">
+          <div className="flex justify-between items-center">
+            <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Raw Input Code</span>
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-slate-500 font-bold">Spaces:</span>
+              <select
+                value={indent}
+                onChange={(e) => setIndent(parseInt(e.target.value))}
+                className="px-2.5 py-1 bg-slate-50 border border-slate-200 rounded-lg text-xs font-bold text-slate-700 outline-none"
+              >
+                <option value="2">2 Spaces</option>
+                <option value="4">4 Spaces</option>
+                <option value="8">8 Spaces</option>
+              </select>
+            </div>
+          </div>
+          <textarea
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            placeholder="Paste code blocks here..."
+            className="w-full h-96 p-4 bg-slate-50 border border-slate-200 rounded-2xl font-mono text-xs focus:border-orange-550 focus:bg-white outline-none resize-none shadow-inner"
+          />
+        </div>
+
+        <div className="space-y-4">
+          <div className="flex justify-between items-center">
+            <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Beautified Result</span>
+            {output && (
+              <button
+                onClick={() => { navigator.clipboard.writeText(output); setCopied(true); setTimeout(() => setCopied(false), 2000); }}
+                className="px-3 py-1 border border-slate-200 text-slate-650 rounded-lg hover:bg-slate-950 hover:text-white text-xs font-bold transition-all flex items-center gap-1"
+              >
+                {copied ? <CheckCircle className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3.5 h-3.5" />}
+                <span>{copied ? 'Copied!' : 'Copy Code'}</span>
+              </button>
+            )}
+          </div>
+          <textarea
+            readOnly
+            value={output}
+            placeholder="Aligned source output will load here..."
+            className="w-full h-96 p-4 bg-slate-950 text-slate-200 border border-slate-850 rounded-2xl font-mono text-xs outline-none resize-none shadow-inner"
+          />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ==================== MARKDOWN PREVIEWER ====================
+function MarkdownPreviewer({ onBack }) {
+  const [markdown, setMarkdown] = useState(`# 🦊 Welcome to Clever Fox's Markdown Sandbox!
+
+This is a side-by-side **premium rendering engine** featuring glassmorphism elements.
+
+## Features:
+- Real-time client-side compiling.
+- Safe structured rendering.
+- Code syntax isolation.
+
+### Sample Code Block:
+\`\`\`javascript
+const test = "ToolTrove Rules!";
+console.log(test);
+\`\`\`
+
+Feel free to write and build documents locally!`);
+  const [previewHtml, setPreviewHtml] = useState('');
+
+  const parseMarkdown = (md) => {
+    let html = md;
+    
+    html = html
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;');
+
+    html = html.replace(/\`\`\`([\s\S]*?)\`\`\`/g, '<pre class="bg-slate-950 text-slate-200 p-4 rounded-xl font-mono text-xs my-3 overflow-x-auto">$1</pre>');
+    html = html.replace(/\`([^\`]+)\`/g, '<code class="bg-slate-100 text-orange-650 px-1.5 py-0.5 rounded font-mono text-xs">$1</code>');
+
+    html = html.replace(/^# (.*?)$/gm, '<h1 class="text-2xl font-black text-slate-950 mt-4 mb-2 border-b pb-1">$1</h1>');
+    html = html.replace(/^## (.*?)$/gm, '<h2 class="text-xl font-bold text-slate-900 mt-3 mb-1.5">$1</h2>');
+    html = html.replace(/^### (.*?)$/gm, '<h3 class="text-lg font-bold text-slate-800 mt-2 mb-1">$1</h3>');
+
+    html = html.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+    html = html.replace(/\*([^*]+)\*/g, '<em>$1</em>');
+
+    html = html.replace(/^- (.*?)$/gm, '<li class="ml-4 list-disc text-slate-700 py-0.5">$1</li>');
+
+    html = html.split('\n').map(line => {
+      if (line.trim().startsWith('<h') || line.trim().startsWith('<li') || line.trim().startsWith('<pre') || line.trim().startsWith('</pre>') || !line.trim()) {
+        return line;
+      }
+      return `<p class="text-slate-650 my-1.5 text-sm leading-relaxed">${line}</p>`;
+    }).join('\n');
+
+    setPreviewHtml(html);
+  };
+
+  useEffect(() => {
+    parseMarkdown(markdown);
+  }, [markdown]);
+
+  return (
+    <div className="bg-white p-6 md:p-10 rounded-3xl border border-slate-200 shadow-xl max-w-6xl mx-auto animate-fade-in">
+      <button onClick={onBack} className="mb-6 flex items-center gap-2 text-slate-500 font-bold hover:text-slate-900 transition-colors">
+        <ArrowLeft className="w-5 h-5" /> Back to Habitation
+      </button>
+
+      <div className="flex items-center gap-3 mb-8">
+        <div className="p-3 bg-orange-100 text-orange-600 rounded-2xl">
+          <Eye className="w-7 h-7" />
+        </div>
+        <div>
+          <h3 className="text-2xl font-black text-slate-900">Clever Fox Markdown Previewer</h3>
+          <p className="text-sm text-slate-500">Edit raw markdown syntax side-by-side with instantaneous HTML compiled visual renders.</p>
+        </div>
+      </div>
+
+      <div className="grid md:grid-cols-2 gap-6 items-stretch">
+        {/* Left editor */}
+        <div className="flex flex-col space-y-2">
+          <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider">Markdown Editor</label>
+          <textarea
+            value={markdown}
+            onChange={(e) => setMarkdown(e.target.value)}
+            placeholder="Type raw markdown text here..."
+            className="w-full flex-1 min-h-[350px] p-4 bg-slate-50 border border-slate-200 rounded-2xl font-mono text-xs focus:border-orange-550 focus:bg-white outline-none resize-none shadow-inner"
+          />
+        </div>
+
+        {/* Right Output HTML previewer */}
+        <div className="flex flex-col space-y-2">
+          <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider">HTML Canvas Preview</label>
+          <div
+            className="w-full flex-1 min-h-[350px] p-6 bg-slate-50/50 border border-slate-200 rounded-2xl overflow-y-auto shadow-inner"
+            dangerouslySetInnerHTML={{ __html: previewHtml }}
+          />
+        </div>
+      </div>
+    </div>
+  );
+}
+
