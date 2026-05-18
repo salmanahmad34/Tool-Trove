@@ -39,12 +39,13 @@ import { motion, AnimatePresence } from 'framer-motion';
 import axios from 'axios';
 
 // --- Local Imports ---
-import { OwlMascot, LionMascot, ElephantMascot, ChameleonMascot } from './components/Mascots';
+import { OwlMascot, LionMascot, ElephantMascot, ChameleonMascot, FoxMascot } from './components/Mascots';
 import ChatAssistant from './components/ChatAssistant';
 import DocumentTools from './tools/DocumentTools';
 import CalculatorTools from './tools/CalculatorTools';
 import MediaTools from './tools/MediaTools';
-import SportsTools from './tools/SportsTools';
+import SecurityTools from './tools/SecurityTools';
+import DeveloperTools from './tools/DeveloperTools';
 
 // --- Category Data Mapping ---
 const CATEGORIES = [
@@ -60,7 +61,7 @@ const CATEGORIES = [
     accentColor: 'orange',
     accentClass: 'text-[#ff5c1a] border-[#ff5c1a]/20 bg-[#ff5c1a]/5 hover:bg-[#ff5c1a]/10',
     btnClass: 'bg-[#ff5c1a] shadow-[#ff5c1a]/20 hover:bg-[#e04f13]',
-    tools: ['PDF Compressor', 'PDF to Word', 'E-Sign', 'OCR Tool', 'Merge PDF', 'AI Resume Builder', 'Paraphraser', 'Cold Email Writer', 'YouTube Script Writer', 'JSON Formatter', 'AI Translator', 'Word Counter', 'Plagiarism Checker', 'Markdown Editor', 'Signature Generator', 'Business Plan Writer', 'Case Converter']
+    tools: ['PDF Merge', 'PDF Split', 'PDF Compressor', 'PDF to Word', 'Image to PDF']
   },
   {
     id: 'business',
@@ -74,21 +75,21 @@ const CATEGORIES = [
     accentColor: 'amber',
     accentClass: 'text-[#d97706] border-[#d97706]/20 bg-[#d97706]/5 hover:bg-[#d97706]/10',
     btnClass: 'bg-[#d97706] shadow-[#d97706]/20 hover:bg-[#b45309]',
-    tools: ['GST Calculator', 'EMI Calculator', 'Invoice Generator', 'IFSC Finder', 'PAN Validator', 'Invoice Generator India', 'PAN Card Validator', 'Age Calculator', 'Currency Converter', 'Unit Converter', 'SEO Meta Generator', 'Keyword Checker', 'Meta Tag Generator', 'Pomodoro Timer', 'IP Lookup', 'URL Shortener']
+    tools: ['EMI Calculator', 'GST Calculator', 'Invoice Generator', 'Currency Converter', 'Loan Calculator']
   },
   {
     id: 'security',
     path: 'security',
     title: 'Security Tools',
-    description: 'Secure sandbox checks with the King of the Jungle.',
-    icon: <ShieldCheck className="text-[#7c3aed] w-6 h-6" />,
+    description: 'Secure credentials with the Jungle King.',
+    icon: <Lock className="text-[#7c3aed] w-6 h-6" />,
     mascot: <LionMascot />,
     color: 'bg-[#7c3aed]/10',
     borderColor: 'border-[#7c3aed]/30 hover:border-[#7c3aed]',
     accentColor: 'violet',
     accentClass: 'text-[#7c3aed] border-[#7c3aed]/20 bg-[#7c3aed]/5 hover:bg-[#7c3aed]/10',
     btnClass: 'bg-[#7c3aed] shadow-[#7c3aed]/20 hover:bg-[#6d28d9]',
-    tools: ['Password Generator', 'Hash Checker', 'Temp Email', 'URL Scanner', 'SSL Checker', 'Code Debugger', 'SQL Generator', 'Regex Tester']
+    tools: ['Password Generator', 'Hash Generator', 'URL Encoder', 'QR Scanner']
   },
   {
     id: 'media',
@@ -102,7 +103,21 @@ const CATEGORIES = [
     accentColor: 'emerald',
     accentClass: 'text-[#059669] border-[#059669]/20 bg-[#059669]/5 hover:bg-[#059669]/10',
     btnClass: 'bg-[#059669] shadow-[#059669]/20 hover:bg-[#047857]',
-    tools: ['Background Remover', 'AI Upscaler 4x', 'Format Converter', 'Meme Generator', 'Image Upscaler', 'Video Compressor', 'Color Palette', 'Crop & Resize', 'AI Enhancer']
+    tools: ['Background Remover', 'Image Compressor', 'Image Resizer', 'QR Generator', 'Meme Generator']
+  },
+  {
+    id: 'developer',
+    path: 'developer',
+    title: 'Developer Tools',
+    description: 'Clever programming snippets from the Clever Fox.',
+    icon: <Terminal className="text-[#3b82f6] w-6 h-6" />,
+    mascot: <FoxMascot />,
+    color: 'bg-[#3b82f6]/10',
+    borderColor: 'border-[#3b82f6]/30 hover:border-[#3b82f6]',
+    accentColor: 'blue',
+    accentClass: 'text-[#3b82f6] border-[#3b82f6]/20 bg-[#3b82f6]/5 hover:bg-[#3b82f6]/10',
+    btnClass: 'bg-[#3b82f6] shadow-[#3b82f6]/20 hover:bg-[#2563eb]',
+    tools: ['JSON Formatter', 'Base64 Encoder/Decoder', 'Regex Tester', 'Code Minifier', 'UUID Generator']
   }
 ];
 
@@ -113,25 +128,13 @@ const getCategoryByPath = (path) => {
   if (norm === 'image' || norm === 'media') return CATEGORIES.find(c => c.id === 'media');
   if (norm === 'business') return CATEGORIES.find(c => c.id === 'business');
   if (norm === 'security') return CATEGORIES.find(c => c.id === 'security');
+  if (norm === 'developer' || norm === 'dev') return CATEGORIES.find(c => c.id === 'developer');
   return CATEGORIES.find(c => c.id === path);
 };
 
 // Check if tool is custom-coded
 const checkIsImplemented = (catId, toolName) => {
-  const name = toolName.toLowerCase();
-  if (catId === 'docs') {
-    return name.includes('invoice') || name === 'image to pdf' || name === 'pdf compressor';
-  }
-  if (catId === 'business') {
-    return name.includes('emi') || name.includes('gst') || name.includes('age');
-  }
-  if (catId === 'media') {
-    return name === 'format converter' || name === 'compressor' || name === 'crop & resize' || name === 'ai enhancer';
-  }
-  if (catId === 'security') {
-    return name === 'fifa live tracker' || name === 'match history' || name === 'sports stats' || name.includes('password');
-  }
-  return false;
+  return ['docs', 'business', 'media', 'security', 'developer'].includes(catId);
 };
 
 // --- Auto Scroll to Top on Navigation ---
@@ -1068,7 +1071,10 @@ function ToolSandboxPage() {
               <MediaTools activeTool={decodedToolName} onBack={() => navigate(`/tools/${categoryPath}`)} />
             )}
             {cat.id === 'security' && (
-              <SportsTools activeTool={decodedToolName} onBack={() => navigate(`/tools/${categoryPath}`)} />
+              <SecurityTools activeTool={decodedToolName} onBack={() => navigate(`/tools/${categoryPath}`)} />
+            )}
+            {cat.id === 'developer' && (
+              <DeveloperTools activeTool={decodedToolName} onBack={() => navigate(`/tools/${categoryPath}`)} />
             )}
           </div>
         ) : (
