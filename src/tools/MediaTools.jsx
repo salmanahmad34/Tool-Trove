@@ -45,48 +45,118 @@ export default function MediaTools({ activeTool, onBack }) {
 }
 
 // ==================== BEFORE / AFTER INTERACTIVE SLIDER ====================
+// ==================== DYNAMIC MEDIA PIPE LOADING SINGLETON ====================
+let selfieSegmentationInstance = null;
+const loadMediaPipe = () => {
+  return new Promise((resolve, reject) => {
+    if (window.SelfieSegmentation) {
+      resolve(window.SelfieSegmentation);
+      return;
+    }
+    const script = document.createElement('script');
+    script.src = 'https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation/selfie_segmentation.js';
+    script.crossOrigin = 'anonymous';
+    script.onload = () => {
+      if (window.SelfieSegmentation) {
+        resolve(window.SelfieSegmentation);
+      } else {
+        reject(new Error('SelfieSegmentation not found on window'));
+      }
+    };
+    script.onerror = () => reject(new Error('Failed to load MediaPipe Selfie Segmentation library.'));
+    document.head.appendChild(script);
+  });
+};
+
+const getSelfieSegmentation = async () => {
+  if (selfieSegmentationInstance) return selfieSegmentationInstance;
+  const SelfieSegmentationClass = await loadMediaPipe();
+  const instance = new SelfieSegmentationClass({
+    locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation/${file}`
+  });
+  selfieSegmentationInstance = instance;
+  return instance;
+};
+
+const segmentImage = (imgElement, modelSelection = 1) => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      const model = await getSelfieSegmentation();
+      model.setOptions({ modelSelection });
+      model.onResults((results) => {
+        resolve(results);
+      });
+      await model.send({ image: imgElement });
+    } catch (err) {
+      reject(err);
+    }
+  });
+};
+
+// ==================== BEFORE / AFTER INTERACTIVE SLIDER ====================
 function BeforeAfterSlider({ original, processed }) {
   const [sliderPos, setSliderPos] = useState(50);
   const containerRef = useRef(null);
+  const isDragging = useRef(false);
 
-  const handleMove = (e) => {
+  const handleMove = (clientX) => {
     if (!containerRef.current) return;
     const rect = containerRef.current.getBoundingClientRect();
-    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
     const x = clientX - rect.left;
     const percentage = Math.max(0, Math.min(100, (x / rect.width) * 100));
     setSliderPos(percentage);
   };
 
+  const handleTouchMove = (e) => {
+    if (e.touches && e.touches[0]) {
+      handleMove(e.touches[0].clientX);
+    }
+  };
+
+  const handleMouseMove = (e) => {
+    if (isDragging.current) {
+      handleMove(e.clientX);
+    }
+  };
+
+  useEffect(() => {
+    const handleMouseUp = () => {
+      isDragging.current = false;
+    };
+    window.addEventListener('mouseup', handleMouseUp);
+    window.addEventListener('touchend', handleMouseUp);
+    return () => {
+      window.removeEventListener('mouseup', handleMouseUp);
+      window.removeEventListener('touchend', handleMouseUp);
+    };
+  }, []);
+
   return (
     <div 
       ref={containerRef}
-      onMouseMove={handleMove}
-      onTouchMove={handleMove}
+      onMouseDown={(e) => { e.preventDefault(); isDragging.current = true; handleMove(e.clientX); }}
+      onTouchStart={(e) => { isDragging.current = true; if (e.touches[0]) handleMove(e.touches[0].clientX); }}
+      onMouseMove={handleMouseMove}
+      onTouchMove={handleTouchMove}
       className="relative w-full aspect-square border border-slate-200 rounded-3xl overflow-hidden cursor-ew-resize bg-[url('data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2220%22 height=%2220%22 viewBox=%220 0 20 20%22><rect width=%2210%22 height=%2210%22 fill=%22%23f8fafc%22/><rect x=%2210%22 y=%2210%22 width=%2210%22 height=%2210%22 fill=%22%23f8fafc%22/><rect x=%2210%22 width=%2210%22 height=%2210%22 fill=%22%23ffffff%22/><rect y=%2210%22 width=%2210%22 height=%2210%22 fill=%22%23ffffff%22/></svg>')] bg-repeat select-none shadow-inner flex items-center justify-center"
     >
-      {/* Processed (Right Side / Full width background) */}
-      <img src={processed} alt="Processed" className="absolute inset-0 w-full h-full object-contain pointer-events-none p-1" />
+      {/* Processed (Background) */}
+      <img src={processed} alt="Processed" className="absolute inset-0 w-full h-full object-contain pointer-events-none p-1 z-10" />
 
-      {/* Original (Left Side / Clipped) */}
-      <div 
-        className="absolute inset-y-0 left-0 overflow-hidden pointer-events-none"
-        style={{ width: `${sliderPos}%` }}
-      >
-        <img 
-          src={original} 
-          alt="Original" 
-          className="absolute inset-0 w-full h-full object-contain p-1 max-w-none" 
-          style={{ width: containerRef.current?.getBoundingClientRect().width }} 
-        />
-      </div>
+      {/* Original (Clipped Foreground) */}
+      <img 
+        src={original} 
+        alt="Original" 
+        className="absolute inset-0 w-full h-full object-contain pointer-events-none p-1 z-20"
+        style={{ clipPath: `inset(0 ${100 - sliderPos}% 0 0)` }}
+      />
 
-      {/* Handle Divider */}
+      {/* Handle Divider Line */}
       <div 
-        className="absolute inset-y-0 w-0.5 bg-emerald-500 flex items-center justify-center pointer-events-none"
+        className="absolute inset-y-0 w-0.5 bg-emerald-550 pointer-events-none z-30"
         style={{ left: `${sliderPos}%` }}
       >
-        <div className="w-8 h-8 rounded-full bg-white border border-emerald-500 shadow-lg flex items-center justify-center font-black text-slate-800 text-[10px] scale-110">
+        <div className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-8 h-8 rounded-full bg-slate-900 border border-emerald-500 shadow-xl flex items-center justify-center font-black text-white text-[10px] scale-110">
           ↔
         </div>
       </div>
@@ -98,73 +168,180 @@ function BeforeAfterSlider({ original, processed }) {
 function BackgroundRemover({ onBack }) {
   const [image, setImage] = useState(null);
   const [preview, setPreview] = useState('');
-  const [tolerance, setTolerance] = useState(25);
   const [feather, setFeather] = useState(4);
+  const [bgMode, setBgMode] = useState('transparent');
+  const [customBgColor, setCustomBgColor] = useState('#3b82f6');
+  const [blurStrength, setBlurStrength] = useState(15);
+  const [modelSelection, setModelSelection] = useState(1);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [processStep, setProcessStep] = useState('');
   const [result, setResult] = useState('');
+  const [isDragOver, setIsDragOver] = useState(false);
+
   const fileInputRef = useRef(null);
+  const cachedMaskCanvasRef = useRef(null);
+  const originalImgRef = useRef(null);
 
   const handleFileChange = (e) => {
-    const file = e.target.files[0];
+    const file = e.target.files?.[0] || e.dataTransfer?.files?.[0];
     if (!file) return;
     setImage(file);
     setResult('');
+    cachedMaskCanvasRef.current = null;
+    originalImgRef.current = null;
     const reader = new FileReader();
     reader.onload = (event) => setPreview(event.target.result);
     reader.readAsDataURL(file);
   };
 
-  const handleRemove = () => {
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    setIsDragOver(true);
+  };
+
+  const handleDragLeave = () => {
+    setIsDragOver(false);
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    setIsDragOver(false);
+    handleFileChange(e);
+  };
+
+  const applyMaskAndBg = () => {
+    const originalImg = originalImgRef.current;
+    const cachedMask = cachedMaskCanvasRef.current;
+    if (!originalImg || !cachedMask) return;
+
+    const w = originalImg.naturalWidth || originalImg.width;
+    const h = originalImg.naturalHeight || originalImg.height;
+
+    // 1. Create a canvas for isolated subject
+    const subjectCanvas = document.createElement('canvas');
+    subjectCanvas.width = w;
+    subjectCanvas.height = h;
+    const subjectCtx = subjectCanvas.getContext('2d');
+
+    // 2. Draw feathered mask onto temporary mask canvas
+    const maskCanvas = document.createElement('canvas');
+    maskCanvas.width = w;
+    maskCanvas.height = h;
+    const maskCtx = maskCanvas.getContext('2d');
+    
+    if (feather > 0) {
+      maskCtx.filter = `blur(${feather}px)`;
+    }
+    maskCtx.drawImage(cachedMask, 0, 0, w, h);
+    maskCtx.filter = 'none';
+
+    // 3. Draw subject using source-in globalCompositeOperation
+    subjectCtx.drawImage(maskCanvas, 0, 0);
+    subjectCtx.globalCompositeOperation = 'source-in';
+    subjectCtx.drawImage(originalImg, 0, 0);
+    subjectCtx.globalCompositeOperation = 'source-over';
+
+    // 4. Create final canvas applying the selected background mode
+    const finalCanvas = document.createElement('canvas');
+    finalCanvas.width = w;
+    finalCanvas.height = h;
+    const finalCtx = finalCanvas.getContext('2d');
+
+    if (bgMode === 'transparent') {
+      finalCtx.drawImage(subjectCanvas, 0, 0);
+    } else if (bgMode === 'white') {
+      finalCtx.fillStyle = '#ffffff';
+      finalCtx.fillRect(0, 0, w, h);
+      finalCtx.drawImage(subjectCanvas, 0, 0);
+    } else if (bgMode === 'color') {
+      finalCtx.fillStyle = customBgColor;
+      finalCtx.fillRect(0, 0, w, h);
+      finalCtx.drawImage(subjectCanvas, 0, 0);
+    } else if (bgMode === 'blur') {
+      finalCtx.save();
+      if (blurStrength > 0) {
+        finalCtx.filter = `blur(${blurStrength}px)`;
+      }
+      finalCtx.drawImage(originalImg, -10, -10, w + 20, h + 20);
+      finalCtx.restore();
+      finalCtx.drawImage(subjectCanvas, 0, 0);
+    }
+
+    setResult(finalCanvas.toDataURL('image/png'));
+  };
+
+  const handleRemove = async () => {
     if (!preview) return;
     setIsProcessing(true);
+    setProcessStep('1. Loading AI segmentation library...');
 
-    // Actual local-first pixel transparency calculations!
-    setTimeout(() => {
-      setIsProcessing(false);
-      const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d');
+    try {
+      setProcessStep('2. Downloading WebAssembly engines...');
+      await loadMediaPipe();
+
+      setProcessStep('3. Scanning original features...');
       const img = new Image();
+      img.crossOrigin = 'anonymous';
       img.src = preview;
-      img.onload = () => {
-        canvas.width = img.width;
-        canvas.height = img.height;
-        ctx.drawImage(img, 0, 0);
+      
+      await new Promise((resolve, reject) => {
+        img.onload = resolve;
+        img.onerror = reject;
+      });
 
-        const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-        const data = imgData.data;
+      originalImgRef.current = img;
 
-        // Auto-detect background from top-left pixel color
-        const bgR = data[0];
-        const bgG = data[1];
-        const bgB = data[2];
-
-        // Linear tolerance metric
-        const maxDiff = (tolerance / 100) * 255 * 3;
-
-        for (let i = 0; i < data.length; i += 4) {
-          const r = data[i];
-          const g = data[i+1];
-          const b = data[i+2];
-
-          const diff = Math.abs(r - bgR) + Math.abs(g - bgG) + Math.abs(b - bgB);
-
-          if (diff < maxDiff) {
-            // Make matches fully transparent
-            data[i+3] = 0;
-          } else {
-            // Apply slight border smoothing if near edge
-            const distToEdge = diff - maxDiff;
-            if (distToEdge < feather * 4) {
-              data[i+3] = Math.round((distToEdge / (feather * 4)) * 255);
-            }
-          }
+      // Downscale input image for AI segmentation model only (keeps low-end mobile running smoothly)
+      const maxDimension = 720;
+      const w = img.naturalWidth || img.width;
+      const h = img.naturalHeight || img.height;
+      
+      let processWidth = w;
+      let processHeight = h;
+      
+      if (w > maxDimension || h > maxDimension) {
+        if (w > h) {
+          processWidth = maxDimension;
+          processHeight = Math.round((h / w) * maxDimension);
+        } else {
+          processHeight = maxDimension;
+          processWidth = Math.round((w / h) * maxDimension);
         }
+      }
 
-        ctx.putImageData(imgData, 0, 0);
-        setResult(canvas.toDataURL('image/png'));
-      };
-    }, 1500);
+      const processCanvas = document.createElement('canvas');
+      processCanvas.width = processWidth;
+      processCanvas.height = processHeight;
+      const processCtx = processCanvas.getContext('2d');
+      processCtx.drawImage(img, 0, 0, processWidth, processHeight);
+
+      setProcessStep('4. Executing client-side AI pass...');
+      const results = await segmentImage(processCanvas, modelSelection);
+
+      setProcessStep('5. Merging high-resolution layers...');
+      const cachedMaskCanvas = document.createElement('canvas');
+      cachedMaskCanvas.width = processWidth;
+      cachedMaskCanvas.height = processHeight;
+      const cachedMaskCtx = cachedMaskCanvas.getContext('2d');
+      
+      cachedMaskCtx.drawImage(results.segmentationMask, 0, 0, processWidth, processHeight);
+      cachedMaskCanvasRef.current = cachedMaskCanvas;
+
+      applyMaskAndBg();
+      setIsProcessing(false);
+    } catch (err) {
+      console.error(err);
+      alert(`Client-side AI Failed to load or execute: ${err.message}. Ensure internet connection is active to fetch public model weights.`);
+      setIsProcessing(false);
+    }
   };
+
+  // Re-run composition dynamically without repeating AI segmentations
+  useEffect(() => {
+    if (cachedMaskCanvasRef.current && originalImgRef.current) {
+      applyMaskAndBg();
+    }
+  }, [feather, bgMode, customBgColor, blurStrength]);
 
   return (
     <div className="bg-white p-6 md:p-10 rounded-3xl border border-slate-200 shadow-xl max-w-4xl mx-auto animate-fade-in">
@@ -174,18 +351,25 @@ function BackgroundRemover({ onBack }) {
 
       <div className="flex items-center gap-3 mb-8">
         <div className="p-3 bg-emerald-100 text-emerald-600 rounded-2xl">
-          <SlidersHorizontal className="w-7 h-7" />
+          <Wand2 className="w-7 h-7" />
         </div>
         <div>
-          <h3 className="text-2xl font-black text-slate-900">Chameleon's Background Remover</h3>
-          <p className="text-sm text-slate-500">Isolate foreground subjects and clear standard backdrops locally using HTML5 canvas arrays.</p>
+          <h3 className="text-2xl font-black text-slate-900">Chameleon's Professional AI Background Remover</h3>
+          <p className="text-sm text-slate-500">Isolate human subjects, clear backdrops, and replace environments 100% locally with client-side MediaPipe Selfie Segmentation.</p>
         </div>
       </div>
 
       {!preview ? (
         <div
           onClick={() => fileInputRef.current.click()}
-          className="border-3 border-dashed border-slate-200 hover:border-emerald-500 rounded-3xl p-12 text-center cursor-pointer bg-slate-50/50 hover:bg-emerald-50/10 transition-all group"
+          onDragOver={handleDragOver}
+          onDragLeave={handleDragLeave}
+          onDrop={handleDrop}
+          className={`border-3 border-dashed rounded-3xl p-12 text-center cursor-pointer transition-all group ${
+            isDragOver 
+              ? 'border-emerald-500 bg-emerald-50/20 scale-102' 
+              : 'border-slate-200 bg-slate-50/50 hover:border-emerald-500 hover:bg-emerald-50/10'
+          }`}
         >
           <input
             type="file"
@@ -198,8 +382,8 @@ function BackgroundRemover({ onBack }) {
             <div className="mx-auto w-16 h-16 bg-white border border-slate-100 rounded-2xl flex items-center justify-center text-slate-400 shadow-md group-hover:scale-110 transition-transform group-hover:text-emerald-500">
               <ImageIcon className="w-8 h-8" />
             </div>
-            <h4 className="text-slate-800 font-bold text-lg">Select Photo to Clean</h4>
-            <p className="text-slate-400 text-sm">Upload standard images (JPEG, PNG, WebP) to clear backgrounds.</p>
+            <h4 className="text-slate-800 font-bold text-lg">Drag & Drop or click to upload photo</h4>
+            <p className="text-slate-400 text-sm">Supports PNG, JPEG, WebP. Processes entirely on your machine for 100% privacy.</p>
           </div>
         </div>
       ) : (
@@ -215,9 +399,15 @@ function BackgroundRemover({ onBack }) {
               )}
 
               {isProcessing && (
-                <div className="absolute inset-0 bg-slate-950/80 flex flex-col items-center justify-center text-white space-y-3 font-bold text-xs animate-pulse">
-                  <RefreshCw className="w-8 h-8 animate-spin text-emerald-400" />
-                  <span>Scanning Backdrop Alpha Matrices...</span>
+                <div className="absolute inset-0 bg-slate-950/85 backdrop-blur-sm flex flex-col items-center justify-center text-white p-6 text-center space-y-4 z-40">
+                  <div className="relative w-16 h-16">
+                    <div className="absolute inset-0 border-4 border-emerald-500/20 rounded-full"></div>
+                    <div className="absolute inset-0 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin"></div>
+                  </div>
+                  <div className="space-y-1.5">
+                    <h5 className="font-black text-sm text-emerald-400 uppercase tracking-widest">AI Segmenter Engine Active</h5>
+                    <p className="text-xs text-slate-400 font-semibold">{processStep}</p>
+                  </div>
                 </div>
               )}
             </div>
@@ -225,7 +415,7 @@ function BackgroundRemover({ onBack }) {
             {result ? (
               <div className="flex gap-2.5">
                 <button
-                  onClick={() => setResult('')}
+                  onClick={() => { setResult(''); cachedMaskCanvasRef.current = null; }}
                   className="flex-1 py-3 border border-slate-200 text-slate-700 font-bold rounded-2xl hover:bg-slate-50 transition-colors text-sm"
                 >
                   Reset / Undo
@@ -237,7 +427,7 @@ function BackgroundRemover({ onBack }) {
                     link.download = `${image.name.replace(/\.[^/.]+$/, "")}_no_bg.png`;
                     link.click();
                   }}
-                  className="flex-1 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-2xl shadow-md transition-all flex items-center justify-center gap-1.5 hover:scale-102"
+                  className="flex-1 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-2xl shadow-md shadow-emerald-100 transition-all flex items-center justify-center gap-1.5 hover:scale-102"
                 >
                   <Download className="w-4 h-4" /> Save PNG
                 </button>
@@ -248,35 +438,107 @@ function BackgroundRemover({ onBack }) {
                 disabled={isProcessing}
                 className="w-full py-3.5 bg-slate-900 hover:bg-emerald-600 text-white font-bold rounded-2xl shadow-lg transition-all flex items-center justify-center gap-2 hover:scale-102 disabled:opacity-50"
               >
-                <span>Extract Isolated Subject</span>
+                <Sparkles className="w-4 h-4 text-emerald-400" />
+                <span>Remove Background</span>
               </button>
             )}
           </div>
 
           {/* Adjustments */}
           <div className="bg-slate-50 p-6 rounded-3xl border border-slate-100 space-y-6">
-            <h4 className="font-black text-slate-800 text-lg border-b border-slate-200 pb-3">Alpha Isolation Config</h4>
-            
+            <h4 className="font-black text-slate-800 text-lg border-b border-slate-200 pb-3">AI Layer Tuning Config</h4>
+
+            {/* Model Selection */}
             <div>
-              <div className="flex justify-between items-center mb-1">
-                <label className="text-xs font-bold text-slate-500 uppercase">Backdrop Color Tolerance</label>
-                <span className="text-xs font-black text-emerald-600 bg-white border border-slate-200 px-2 py-0.5 rounded">
-                  {tolerance}%
-                </span>
+              <label className="block text-xs font-bold text-slate-500 uppercase mb-2">AI Segmenter Sensitivity</label>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  onClick={() => setModelSelection(1)}
+                  className={`px-3 py-2 rounded-xl text-xs font-bold border transition-all ${
+                    modelSelection === 1 
+                      ? 'bg-emerald-550 text-white border-emerald-550 shadow-md shadow-emerald-100' 
+                      : 'bg-white text-slate-650 border-slate-200 hover:bg-slate-50'
+                  }`}
+                >
+                  Ultra Fast (Mobile)
+                </button>
+                <button
+                  onClick={() => setModelSelection(0)}
+                  className={`px-3 py-2 rounded-xl text-xs font-bold border transition-all ${
+                    modelSelection === 0 
+                      ? 'bg-emerald-550 text-white border-emerald-550 shadow-md shadow-emerald-100' 
+                      : 'bg-white text-slate-650 border-slate-200 hover:bg-slate-50'
+                  }`}
+                >
+                  Full Detail (HD)
+                </button>
               </div>
-              <input
-                type="range"
-                min="5"
-                max="85"
-                value={tolerance}
-                onChange={(e) => setTolerance(parseInt(e.target.value))}
-                className="w-full accent-emerald-500"
-              />
             </div>
 
+            {/* Background Mode Options */}
+            <div>
+              <label className="block text-xs font-bold text-slate-500 uppercase mb-2">Background Fill Style</label>
+              <div className="grid grid-cols-2 gap-2">
+                {['transparent', 'white', 'color', 'blur'].map((mode) => (
+                  <button
+                    key={mode}
+                    onClick={() => setBgMode(mode)}
+                    className={`px-3 py-2 rounded-xl text-xs font-bold border capitalize transition-all ${
+                      bgMode === mode 
+                        ? 'bg-emerald-500 text-white border-emerald-500 shadow-md' 
+                        : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
+                    }`}
+                  >
+                    {mode}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Conditional Adjustments */}
+            {bgMode === 'color' && (
+              <div>
+                <label className="block text-xs font-bold text-slate-500 uppercase mb-1.5">Custom Backdrop Color</label>
+                <div className="flex gap-2">
+                  <input
+                    type="color"
+                    value={customBgColor}
+                    onChange={(e) => setCustomBgColor(e.target.value)}
+                    className="w-10 h-10 p-1 bg-white border border-slate-250 rounded-xl cursor-pointer"
+                  />
+                  <input
+                    type="text"
+                    value={customBgColor}
+                    onChange={(e) => setCustomBgColor(e.target.value)}
+                    className="flex-1 px-3 py-2 border border-slate-250 rounded-xl text-xs font-mono font-bold uppercase outline-none focus:border-emerald-500"
+                  />
+                </div>
+              </div>
+            )}
+
+            {bgMode === 'blur' && (
+              <div>
+                <div className="flex justify-between items-center mb-1">
+                  <label className="text-xs font-bold text-slate-500 uppercase">Backdrop Blur Strength</label>
+                  <span className="text-xs font-black text-emerald-600 bg-white border border-slate-200 px-2 py-0.5 rounded">
+                    {blurStrength} px
+                  </span>
+                </div>
+                <input
+                  type="range"
+                  min="0"
+                  max="40"
+                  value={blurStrength}
+                  onChange={(e) => setBlurStrength(parseInt(e.target.value))}
+                  className="w-full accent-emerald-500"
+                />
+              </div>
+            )}
+
+            {/* Edge Feathering */}
             <div>
               <div className="flex justify-between items-center mb-1">
-                <label className="text-xs font-bold text-slate-500 uppercase">Border Edge Smoothing</label>
+                <label className="text-xs font-bold text-slate-500 uppercase">Border Edge Feathering</label>
                 <span className="text-xs font-black text-emerald-600 bg-white border border-slate-200 px-2 py-0.5 rounded">
                   {feather} px
                 </span>
@@ -284,7 +546,7 @@ function BackgroundRemover({ onBack }) {
               <input
                 type="range"
                 min="0"
-                max="20"
+                max="25"
                 value={feather}
                 onChange={(e) => setFeather(parseInt(e.target.value))}
                 className="w-full accent-emerald-500"
@@ -292,14 +554,10 @@ function BackgroundRemover({ onBack }) {
             </div>
 
             {result && (
-              <div className="text-xs text-slate-400 pl-1 font-semibold leading-relaxed">
-                💡 Slide the divider handle ↔ left and right on the preview box to inspect isolated subject contours.
+              <div className="text-[10px] text-slate-400 pl-1 font-bold leading-relaxed border-t border-slate-100 pt-3">
+                💡 TIP: Slider handles are fully touch and drag supported. Adjust parameters dynamically in real-time.
               </div>
             )}
-
-            <div className="p-4 bg-emerald-50/50 border border-emerald-100 rounded-2xl text-xs text-emerald-800 font-bold leading-relaxed">
-              * Note: High contrast subjects generate best results. All operations execute strictly client-side.
-            </div>
           </div>
         </div>
       )}
