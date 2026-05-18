@@ -678,9 +678,39 @@ function HomePage() {
             <h2 className="text-5xl md:text-7xl font-black leading-tight text-slate-900 mb-6">
               Master Your Digital <span className="text-orange-500 underline decoration-orange-200 decoration-8 underline-offset-8">Jungle.</span>
             </h2>
-            <p className="text-xl text-slate-600 mb-10 leading-relaxed max-w-lg">
+            <p className="text-xl text-slate-600 mb-6 leading-relaxed max-w-lg">
               ToolTrove offers a complete suite of powerful online tools designed to simplify your life. Fast, secure, client-side, and always free.
             </p>
+
+            {/* AI Assistant dynamic suggestion bar */}
+            <div className="mb-8 p-4 bg-orange-50/60 border border-orange-100 rounded-3xl flex items-center gap-3 max-w-lg shadow-sm animate-fade-in">
+              <div className="p-2.5 bg-white rounded-xl shadow-md shrink-0">
+                <Sparkles className="text-orange-500 w-4 h-4 animate-pulse" />
+              </div>
+              <p className="text-xs font-semibold text-slate-700 leading-relaxed">
+                <span className="font-black text-orange-600 uppercase tracking-widest text-[9px] block mb-0.5 animate-pulse">AI Smart Suggestion</span>
+                {(() => {
+                  const suggestions = [
+                    { text: "Pair EMI Loan Calculator with GST Calculator to audit corporate ledger margins instantly.", path: "/tools/business/GST Calculator" },
+                    { text: "Drafting corporate templates? Generate a 100% scannable brand logo QR Code now.", path: "/tools/image/QR Generator" },
+                    { text: "Wise Owl suggests OCR Document Scanner to copy selectable text directly from photos in seconds.", path: "/tools/pdf/OCR Document Scanner" },
+                    { text: "Clever Fox recommends running Code Minifier to boost website SEO scores before deployment.", path: "/tools/developer/Code Minifier" }
+                  ];
+                  const [index, setIndex] = useState(0);
+                  useEffect(() => {
+                    const timer = setInterval(() => setIndex(i => (i + 1) % suggestions.length), 5500);
+                    return () => clearInterval(timer);
+                  }, []);
+                  const current = suggestions[index];
+                  return (
+                    <span>
+                      {current.text} <button onClick={() => navigate(current.path)} className="text-orange-500 font-bold hover:underline">Launch Tool →</button>
+                    </span>
+                  );
+                })()}
+              </p>
+            </div>
+
             <div className="flex flex-wrap gap-4">
               <button 
                 onClick={handleScrollToCategories}
@@ -1358,7 +1388,240 @@ export default function App() {
 
         {/* Common Footer */}
         <Footer />
+
+        {/* Global AI Assistant Floating Mascot Widget */}
+        <GlobalAIAssistant />
       </div>
     </Router>
+  );
+}
+
+// ==================== GLOBAL AI FLOATING MASCOT ASSISTANT ====================
+function GlobalAIAssistant() {
+  const [isOpen, setIsOpen] = useState(false);
+  const location = useLocation();
+  const navigate = useNavigate();
+  const [search, setSearch] = useState('');
+  const [activeTab, setActiveTab] = useState('recommend'); // 'recommend' | 'search'
+
+  // Dynamic context-aware tips based on route
+  const getContextContent = () => {
+    const hash = window.location.hash || '';
+    if (hash.includes('/pdf') || hash.includes('/docs')) {
+      return {
+        mascot: <OwlMascot />,
+        title: "Wise Owl's Advisory",
+        tip: "Hoot! PDF merges compress much better if you convert embedded images to light WebP format first. Try our Chameleon Image Converter!",
+        rec: [
+          { name: "Image Compressor", path: "/tools/image/Image Compressor" },
+          { name: "Format Converter", path: "/tools/image/Format Converter" }
+        ]
+      };
+    }
+    if (hash.includes('/image') || hash.includes('/media')) {
+      return {
+        mascot: <ChameleonMascot />,
+        title: "Chameleon's Color Theory",
+        tip: "Hey! Transparent PNGs remove backgrounds cleanest when edge feathering is set around 4px to 8px. It blends soft alpha channels perfectly!",
+        rec: [
+          { name: "AI Upscaler", path: "/tools/image/AI Upscaler" },
+          { name: "QR Generator", path: "/tools/image/QR Generator" }
+        ]
+      };
+    }
+    if (hash.includes('/business')) {
+      return {
+        mascot: <ElephantMascot />,
+        title: "Mighty Elephant's Ledger",
+        tip: "Wealth compound calculations in the SIP Calculator run on real-time yearly formulas. Always double check GST slabs before exporting dynamic invoices!",
+        rec: [
+          { name: "Invoice Generator", path: "/tools/pdf/Invoice Generator" },
+          { name: "GST Calculator", path: "/tools/business/GST Calculator" }
+        ]
+      };
+    }
+    if (hash.includes('/developer') || hash.includes('/dev')) {
+      return {
+        mascot: <FoxMascot />,
+        title: "Clever Fox's Blueprint",
+        tip: "Code minifications can shrink asset size up to 45%! Ensure your JSON strings pass parsing validation first using the JSON Formatter.",
+        rec: [
+          { name: "JSON Formatter", path: "/tools/developer/JSON Formatter" },
+          { name: "Regex Tester", path: "/tools/developer/Regex Tester" }
+        ]
+      };
+    }
+    if (hash.includes('/security')) {
+      return {
+        mascot: <LionMascot />,
+        title: "King Lion's Safehouse",
+        tip: "Your private credentials stay 100% in local memory using the Web Crypto API. We recommend generating 16-character passwords for maximum secure entropy.",
+        rec: [
+          { name: "Password Generator", path: "/tools/security/Password Generator" },
+          { name: "Hash Generator", path: "/tools/security/Hash Generator" }
+        ]
+      };
+    }
+
+    return {
+      mascot: <Sparkles className="w-8 h-8 text-orange-500 animate-pulse" />,
+      title: "Jungle AI Smart Assistant",
+      tip: "Welcome to Wild ToolTrove! Type what you want to achieve (e.g. 'loan', 'convert', 'qr') and I will suggest the perfect tool for your workflow.",
+      rec: [
+        { name: "Invoice Generator", path: "/tools/pdf/Invoice Generator" },
+        { name: "AI Background Remover", path: "/tools/image/Background Remover" }
+      ]
+    };
+  };
+
+  const context = getContextContent();
+  const allTools = CATEGORIES.flatMap(cat => cat.tools.map(tool => ({ name: tool, path: cat.path })));
+  const searchResults = search.trim() === ''
+    ? []
+    : allTools.filter(t => t.name.toLowerCase().includes(search.toLowerCase()));
+
+  return (
+    <div className="fixed bottom-6 right-6 z-[99999] flex flex-col items-end">
+      {/* Expanded panel */}
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            initial={{ opacity: 0, y: 50, scale: 0.9 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 50, scale: 0.9 }}
+            className="w-80 md:w-96 bg-white/95 backdrop-blur-md rounded-3xl border border-slate-200 shadow-2xl p-6 mb-4 flex flex-col space-y-4 text-slate-800"
+          >
+            {/* Header */}
+            <div className="flex justify-between items-center border-b border-slate-100 pb-3">
+              <div className="flex items-center gap-2">
+                <div className="p-2 bg-orange-100 rounded-xl text-orange-600">
+                  <Sparkles className="w-5 h-5 animate-pulse" />
+                </div>
+                <div>
+                  <h4 className="font-black text-sm text-slate-900">ToolTrove Coprocessor</h4>
+                  <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Active Assistant</p>
+                </div>
+              </div>
+              <button 
+                onClick={() => setIsOpen(false)}
+                className="p-1.5 hover:bg-slate-100 rounded-lg text-slate-400 hover:text-slate-900 transition-colors"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Quick Tabs */}
+            <div className="grid grid-cols-2 gap-2 bg-slate-50 p-1 rounded-xl">
+              <button
+                onClick={() => setActiveTab('recommend')}
+                className={`py-1.5 rounded-lg text-xs font-bold transition-all ${
+                  activeTab === 'recommend' ? 'bg-white text-orange-600 shadow-sm' : 'text-slate-500 hover:text-slate-900'
+                }`}
+              >
+                Smart Recs
+              </button>
+              <button
+                onClick={() => setActiveTab('search')}
+                className={`py-1.5 rounded-lg text-xs font-bold transition-all ${
+                  activeTab === 'search' ? 'bg-white text-orange-600 shadow-sm' : 'text-slate-500 hover:text-slate-900'
+                }`}
+              >
+                Predictive Search
+              </button>
+            </div>
+
+            {/* Content Tabs */}
+            {activeTab === 'recommend' ? (
+              <div className="space-y-4">
+                {/* Mascot Bubble */}
+                <div className="p-4 bg-orange-50/50 border border-orange-100/50 rounded-2xl flex gap-3 items-start text-left">
+                  <div className="shrink-0 scale-95 p-1 bg-white rounded-xl shadow-inner">
+                    {context.mascot}
+                  </div>
+                  <div className="space-y-1">
+                    <h5 className="text-xs font-black text-slate-900">{context.title}</h5>
+                    <p className="text-[11px] text-slate-600 leading-relaxed font-semibold">
+                      "{context.tip}"
+                    </p>
+                  </div>
+                </div>
+
+                {/* Recommendations */}
+                <div>
+                  <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Smart Action Shortcuts</label>
+                  <div className="grid grid-cols-2 gap-2">
+                    {context.rec.map((r, i) => (
+                      <button
+                        key={i}
+                        onClick={() => { navigate(r.path); setIsOpen(false); }}
+                        className="p-2.5 bg-white border border-slate-200 rounded-xl text-[11px] font-bold text-slate-700 hover:border-orange-400 hover:text-orange-600 hover:shadow-sm text-left flex items-center justify-between group transition-all"
+                      >
+                        <span className="truncate">{r.name}</span>
+                        <ChevronRight className="w-3.5 h-3.5 shrink-0 text-slate-400 group-hover:translate-x-0.5 transition-transform" />
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
+                  <input
+                    type="text"
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    placeholder="Search tools with predictive AI..."
+                    className="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold outline-none focus:bg-white focus:border-orange-500 focus:shadow-inner transition-all"
+                  />
+                </div>
+
+                {/* Search outcomes */}
+                <div className="max-h-40 overflow-y-auto divide-y divide-slate-100 border border-slate-100 rounded-xl">
+                  {searchResults.length > 0 ? (
+                    searchResults.map((s, idx) => (
+                      <button
+                        key={idx}
+                        onClick={() => { navigate(`/tools/${s.path}/${encodeURIComponent(s.name)}`); setSearch(''); setIsOpen(false); }}
+                        className="w-full text-left p-2.5 hover:bg-orange-50/50 text-[11px] font-bold text-slate-700 flex items-center justify-between"
+                      >
+                        <span>{s.name}</span>
+                        <span className="text-[9px] text-orange-500 uppercase tracking-widest font-black shrink-0">Launch →</span>
+                      </button>
+                    ))
+                  ) : (
+                    <div className="p-4 text-center text-slate-400 text-xs font-semibold">
+                      {search.trim() === '' ? 'Type above to predict tools...' : 'No matching tools found.'}
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Quick status message */}
+            <div className="text-[10px] text-slate-400 text-center font-bold">
+              🔒 100% Client-Side Sandbox Security Enabled.
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Floating Button */}
+      <motion.button
+        onClick={() => setIsOpen(!isOpen)}
+        whileHover={{ scale: 1.05 }}
+        whileTap={{ scale: 0.95 }}
+        className="w-14 h-14 bg-gradient-to-tr from-slate-900 to-slate-800 hover:from-orange-500 hover:to-orange-400 text-white rounded-full flex items-center justify-center shadow-xl hover:shadow-orange-200 cursor-pointer transition-all border-2 border-white relative z-50 group"
+      >
+        <Sparkles className="w-6 h-6 animate-pulse group-hover:rotate-12 transition-transform" />
+        
+        {/* Small badge */}
+        {!isOpen && (
+          <span className="absolute -top-1 -right-1 w-4 h-4 bg-orange-500 text-white rounded-full text-[9px] font-black flex items-center justify-center animate-bounce border border-white">
+            !
+          </span>
+        )}
+      </motion.button>
+    </div>
   );
 }

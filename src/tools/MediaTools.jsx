@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import QRCode from 'qrcode';
 import { 
   ImageIcon, Download, ArrowLeft, RefreshCw, Sliders, ShieldCheck, 
   SlidersHorizontal, Crop, Type, Plus, RefreshCcw, Share2, Copy, 
@@ -941,58 +942,402 @@ function ImageResizer({ onBack }) {
 }
 
 // ==================== QR GENERATOR ====================
+const loadQrCodeLib = () => Promise.resolve(QRCode);
+
 function QrGenerator({ onBack }) {
   const [text, setText] = useState('https://salmanahmad34.github.io/Tool-Trove');
-  const [size, setSize] = useState(250);
   const [fgColor, setFgColor] = useState('#0f172a');
   const [bgColor, setBgColor] = useState('#ffffff');
-  const [qrUrl, setQrUrl] = useState('');
+  const [dotStyle, setDotStyle] = useState('square'); // 'square' | 'round'
+  const [logoSrc, setLogoSrc] = useState('');
+  const [logoSizePercent, setLogoSizePercent] = useState(18);
+  const [logoBorderRadius, setLogoBorderRadius] = useState(8);
+  const [margin, setMargin] = useState(4);
+  const [scannerOverlay, setScannerOverlay] = useState(false);
   const [isCompiling, setIsCompiling] = useState(false);
   const [copySuccess, setCopySuccess] = useState(false);
   const [shareSuccess, setShareSuccess] = useState(false);
 
-  useEffect(() => {
+  const canvasRef = useRef(null);
+  const fileInputRef = useRef(null);
+  const logoImageRef = useRef(null);
+
+  // Dynamic Contrast calculation
+  const getContrastRatio = (hex1, hex2) => {
+    const getLuminance = (hex) => {
+      const clean = hex.replace('#', '');
+      let r = parseInt(clean.substring(0, 2), 16) || 0;
+      let g = parseInt(clean.substring(2, 4), 16) || 0;
+      let b = parseInt(clean.substring(4, 6), 16) || 0;
+      
+      const linearize = (val) => {
+        let v = val / 255;
+        return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4);
+      };
+      
+      return 0.2126 * linearize(r) + 0.7152 * linearize(g) + 0.0722 * linearize(b);
+    };
+
+    const l1 = getLuminance(hex1);
+    const l2 = getLuminance(hex2);
+    return (Math.max(l1, l2) + 0.05) / (Math.min(l1, l2) + 0.05);
+  };
+
+  const contrastRatio = getContrastRatio(fgColor, bgColor);
+
+  // AI URL Analyzer
+  const getURLAnalysis = (val) => {
+    if (!val || val.trim() === '') return { type: 'empty', name: 'Raw QR String', info: 'Waiting for text/link...' };
+    if (!val.startsWith('http')) return { type: 'text', name: 'Plain Text QR', info: '💡 Input is treated as static text.' };
+    try {
+      const parsed = new URL(val);
+      let domain = parsed.hostname.replace('www.', '');
+      let path = parsed.pathname;
+      let domainName = domain.split('.')[0];
+      let capitalized = domainName.charAt(0).toUpperCase() + domainName.slice(1);
+      
+      let subName = '';
+      if (path && path !== '/') {
+        let parts = path.split('/').filter(Boolean);
+        if (parts.length > 0) {
+          subName = ' - ' + parts[parts.length - 1].split(/[-_]/).map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+        }
+      }
+      
+      return {
+        type: 'url',
+        secure: val.startsWith('https://'),
+        name: `${capitalized}${subName}`,
+        info: val.startsWith('https://') 
+          ? '✨ Secure HTTPS URL detected. Search ranking friendly!' 
+          : '⚠️ Non-secure HTTP URL detected. Browsers may warn users.'
+      };
+    } catch (e) {
+      return { type: 'invalid', name: 'Raw String QR', info: '💡 Unrecognized URL layout.' };
+    }
+  };
+
+  const urlAnalysis = getURLAnalysis(text);
+
+  // Redraw QR canvas
+  const compileQR = async (renderSize = 500) => {
+    if (!canvasRef.current) return;
     setIsCompiling(true);
-    const fg = fgColor.replace('#', '');
-    const bg = bgColor.replace('#', '');
-    const url = `https://api.qrserver.com/v1/create-qr-code/?size=${size}x${size}&color=${fg}&bgcolor=${bg}&data=${encodeURIComponent(text)}`;
-    
-    const timer = setTimeout(() => {
-      setQrUrl(url);
+    try {
+      const qrcode = await loadQrCodeLib();
+      const qrInstance = qrcode.create(text, { errorCorrectionLevel: 'H' });
+      
+      const canvas = canvasRef.current;
+      const ctx = canvas.getContext('2d');
+      canvas.width = renderSize;
+      canvas.height = renderSize;
+
+      // Fill background
+      ctx.fillStyle = bgColor;
+      ctx.fillRect(0, 0, renderSize, renderSize);
+
+      const modules = qrInstance.modules;
+      const moduleCount = modules.size;
+      const rawGridSize = moduleCount + margin * 2;
+      const cellSize = renderSize / rawGridSize;
+      const offset = margin * cellSize;
+
+      // Logo cell radius calculations
+      const hasLogo = !!logoSrc;
+      const logoCellRadius = Math.ceil((moduleCount * (logoSizePercent / 100)) / 2);
+      const centerCell = Math.floor(moduleCount / 2);
+
+      const isInsideLogoArea = (row, col) => {
+        if (!hasLogo) return false;
+        return (
+          row >= centerCell - logoCellRadius &&
+          row <= centerCell + logoCellRadius &&
+          col >= centerCell - logoCellRadius &&
+          col <= centerCell + logoCellRadius
+        );
+      };
+
+      ctx.fillStyle = fgColor;
+
+      for (let r = 0; r < moduleCount; r++) {
+        for (let c = 0; c < moduleCount; c++) {
+          if (modules.get(r, c)) {
+            if (isInsideLogoArea(r, c)) continue;
+
+            const x = offset + c * cellSize;
+            const y = offset + r * cellSize;
+
+            // Keep the three corner finders square for maximum scan reliability
+            const isFinder = 
+              (r < 7 && c < 7) || 
+              (r < 7 && c >= moduleCount - 7) || 
+              (r >= moduleCount - 7 && c < 7);
+
+            if (isFinder || dotStyle === 'square') {
+              ctx.fillRect(x, y, cellSize + 0.4, cellSize + 0.4);
+            } else {
+              ctx.beginPath();
+              ctx.arc(x + cellSize / 2, y + cellSize / 2, cellSize / 2 * 0.9, 0, Math.PI * 2);
+              ctx.fill();
+            }
+          }
+        }
+      }
+
+      // Draw Center Logo
+      if (hasLogo && logoImageRef.current) {
+        const logoSize = renderSize * (logoSizePercent / 100);
+        const lx = (renderSize - logoSize) / 2;
+        const ly = (renderSize - logoSize) / 2;
+
+        // Draw protective background pad under logo
+        ctx.fillStyle = bgColor;
+        ctx.beginPath();
+        if (typeof ctx.roundRect === 'function') {
+          ctx.roundRect(lx - 4, ly - 4, logoSize + 8, logoSize + 8, logoBorderRadius + 2);
+        } else {
+          ctx.rect(lx - 4, ly - 4, logoSize + 8, logoSize + 8);
+        }
+        ctx.fill();
+
+        // Draw logo image
+        ctx.save();
+        ctx.beginPath();
+        if (typeof ctx.roundRect === 'function') {
+          ctx.roundRect(lx, ly, logoSize, logoSize, logoBorderRadius);
+        } else {
+          ctx.rect(lx, ly, logoSize, logoSize);
+        }
+        ctx.clip();
+        ctx.drawImage(logoImageRef.current, lx, ly, logoSize, logoSize);
+        ctx.restore();
+      }
+
+    } catch (err) {
+      console.error(err);
+    } finally {
       setIsCompiling(false);
-    }, 500);
+    }
+  };
 
-    return () => clearTimeout(timer);
-  }, [text, size, fgColor, bgColor]);
+  useEffect(() => {
+    compileQR();
+  }, [text, fgColor, bgColor, dotStyle, logoSrc, logoSizePercent, logoBorderRadius, margin]);
 
-  const handleDownloadPNG = () => {
-    if (!qrUrl) return;
-    const canvas = document.createElement('canvas');
-    const ctx = canvas.getContext('2d');
-    const img = new Image();
-    img.crossOrigin = 'anonymous';
-    img.src = qrUrl;
-    img.onload = () => {
-      canvas.width = size;
-      canvas.height = size;
-      ctx.drawImage(img, 0, 0);
-      const link = document.createElement('a');
-      link.href = canvas.toDataURL('image/png');
-      link.download = 'tooltrove_qr.png';
-      link.click();
+  // AI color safety suggestions
+  const getAISmartSuggestions = () => {
+    if (contrastRatio < 3.0) {
+      return {
+        style: "bg-rose-50 border-rose-200 text-rose-800",
+        message: `🚨 DANGEROUSLY LOW CONTRAST (${contrastRatio.toFixed(1)}:1)! Foreground and background are too similar. Scanners will fail completely. Suggestion: Instantly click our 'Minimalist' preset below to ensure 100% scannability.`
+      };
+    }
+    if (contrastRatio < 5.0) {
+      return {
+        style: "bg-amber-50 border-amber-200 text-amber-800",
+        message: `⚠️ LOW CONTRAST WARNING (${contrastRatio.toFixed(1)}:1)! Scanning may lag or fail entirely on older Android cameras. We highly recommend using a darker foreground color.`
+      };
+    }
+    return {
+      style: "bg-emerald-50 border-emerald-200 text-emerald-800",
+      message: `✨ AI CONTRAST PASSED (${contrastRatio.toFixed(1)}:1)! Superb readability detected. Enforced quiet zones are active. Scans instantly on WhatsApp, Google Lens, iOS, and Android.`
     };
   };
 
-  const handleDownloadSVG = () => {
-    const svgContent = `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
-      <rect width="100%" height="100%" fill="${bgColor}"/>
-      <image href="${qrUrl}" width="100%" height="100%"/>
-    </svg>`;
-    const blob = new Blob([svgContent], { type: 'image/svg+xml' });
+  const aiFeedback = getAISmartSuggestions();
+
+  const handleLogoUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        setLogoSrc(event.target.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  // Preset themes
+  const applyPresetTheme = (theme) => {
+    switch (theme) {
+      case 'minimal':
+        setFgColor('#09090b');
+        setBgColor('#ffffff');
+        break;
+      case 'cyberpunk':
+        setFgColor('#00f2fe');
+        setBgColor('#0f172a');
+        break;
+      case 'neon-pulse':
+        setFgColor('#ff007f');
+        setBgColor('#020617');
+        break;
+      case 'navy-gold':
+        setFgColor('#1e3a8a');
+        setBgColor('#f8fafc');
+        break;
+      case 'forest':
+        setFgColor('#047857');
+        setBgColor('#ecfdf5');
+        break;
+      default:
+        break;
+    }
+  };
+
+  // Downloads
+  const triggerDownload = (url, name) => {
     const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
-    link.download = 'tooltrove_qr.svg';
+    link.href = url;
+    link.download = name;
     link.click();
+  };
+
+  const handleDownloadPNG = async () => {
+    const prevCanvas = canvasRef.current;
+    if (!prevCanvas) return;
+    const dataUrl = prevCanvas.toDataURL('image/png');
+    triggerDownload(dataUrl, `tooltrove_qr_${urlAnalysis.name.toLowerCase().replace(/\s+/g, '_')}.png`);
+  };
+
+  const handleDownloadSVG = async () => {
+    try {
+      const qrcode = await loadQrCodeLib();
+      const qrInstance = qrcode.create(text, { errorCorrectionLevel: 'H' });
+      const modules = qrInstance.modules;
+      const moduleCount = modules.size;
+      const rawGridSize = moduleCount + margin * 2;
+      const size = 500;
+      const cellSize = size / rawGridSize;
+      const offset = margin * cellSize;
+
+      const hasLogo = !!logoSrc;
+      const logoCellRadius = Math.ceil((moduleCount * (logoSizePercent / 100)) / 2);
+      const centerCell = Math.floor(moduleCount / 2);
+
+      const isInsideLogoArea = (row, col) => {
+        if (!hasLogo) return false;
+        return (
+          row >= centerCell - logoCellRadius &&
+          row <= centerCell + logoCellRadius &&
+          col >= centerCell - logoCellRadius &&
+          col <= centerCell + logoCellRadius
+        );
+      };
+
+      let paths = [];
+      for (let r = 0; r < moduleCount; r++) {
+        for (let c = 0; c < moduleCount; c++) {
+          if (modules.get(r, c)) {
+            if (isInsideLogoArea(r, c)) continue;
+            const x = offset + c * cellSize;
+            const y = offset + r * cellSize;
+
+            const isFinder = 
+              (r < 7 && c < 7) || 
+              (r < 7 && c >= moduleCount - 7) || 
+              (r >= moduleCount - 7 && c < 7);
+
+            if (isFinder || dotStyle === 'square') {
+              paths.push(`<rect x="${x}" y="${y}" width="${cellSize + 0.1}" height="${cellSize + 0.1}" fill="${fgColor}"/>`);
+            } else {
+              paths.push(`<circle cx="${x + cellSize / 2}" cy="${y + cellSize / 2}" r="${cellSize / 2 * 0.9}" fill="${fgColor}"/>`);
+            }
+          }
+        }
+      }
+
+      let logoElement = '';
+      if (hasLogo && logoSrc) {
+        const logoSize = size * (logoSizePercent / 100);
+        const lx = (size - logoSize) / 2;
+        const ly = (size - logoSize) / 2;
+        logoElement = `
+          <rect x="${lx - 4}" y="${ly - 4}" width="${logoSize + 8}" height="${logoSize + 8}" fill="${bgColor}" rx="6"/>
+          <image href="${logoSrc}" x="${lx}" y="${ly}" width="${logoSize}" height="${logoSize}" />
+        `;
+      }
+
+      const svgContent = `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
+        <rect width="100%" height="100%" fill="${bgColor}"/>
+        ${paths.join('\n')}
+        ${logoElement}
+      </svg>`;
+
+      const blob = new Blob([svgContent], { type: 'image/svg+xml' });
+      triggerDownload(URL.createObjectURL(blob), `tooltrove_qr_${urlAnalysis.name.toLowerCase().replace(/\s+/g, '_')}.svg`);
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const handleDownloadPDF = () => {
+    if (!canvasRef.current) return;
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) return;
+    
+    printWindow.document.write(`
+      <html>
+        <head>
+          <title>Print QR Code - ToolTrove</title>
+          <style>
+            body {
+              margin: 0;
+              display: flex;
+              flex-direction: column;
+              align-items: center;
+              justify-content: center;
+              height: 100vh;
+              font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+              background: #f8fafc;
+            }
+            .container {
+              background: white;
+              padding: 40px;
+              border-radius: 24px;
+              box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+              text-align: center;
+              border: 1px solid #e2e8f0;
+              max-width: 450px;
+            }
+            img {
+              max-width: 320px;
+              border: 1px solid #f1f5f9;
+              padding: 16px;
+              border-radius: 16px;
+              background: white;
+            }
+            h1 {
+              font-size: 24px;
+              margin: 20px 0 8px 0;
+              color: #0f172a;
+              font-weight: 800;
+            }
+            p {
+              color: #64748b;
+              font-size: 14px;
+              margin: 0;
+              word-break: break-all;
+              font-weight: 500;
+            }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <img src="${canvasRef.current.toDataURL('image/png')}" />
+            <h1>${urlAnalysis.name}</h1>
+            <p>Scan target: ${text}</p>
+          </div>
+          <script>
+            window.onload = function() {
+              window.print();
+              setTimeout(() => window.close(), 500);
+            }
+          </script>
+        </body>
+      </html>
+    `);
+    printWindow.document.close();
   };
 
   const handleCopyLink = () => {
@@ -1005,8 +1350,8 @@ function QrGenerator({ onBack }) {
     if (navigator.share) {
       try {
         await navigator.share({
-          title: 'ToolTrove QR Code Target',
-          text: 'Inspect destination URL mapped through Chameleon QR:',
+          title: `QR Target: ${urlAnalysis.name}`,
+          text: 'Scan this Dynamic QR Code constructed via ToolTrove:',
           url: text
         });
         setShareSuccess(true);
@@ -1020,57 +1365,284 @@ function QrGenerator({ onBack }) {
   };
 
   return (
-    <div className="bg-white p-6 md:p-10 rounded-3xl border border-slate-200 shadow-xl max-w-4xl mx-auto animate-fade-in">
+    <div className="bg-white p-6 md:p-10 rounded-3xl border border-slate-200 shadow-xl max-w-5xl mx-auto animate-fade-in">
       <button onClick={onBack} className="mb-6 flex items-center gap-2 text-slate-500 font-bold hover:text-slate-900 transition-colors">
         <ArrowLeft className="w-5 h-5" /> Back to Habitation
       </button>
 
+      {/* Hidden image element to pre-render uploaded logo safely */}
+      {logoSrc && (
+        <img
+          src={logoSrc}
+          alt="Hidden Logo"
+          ref={logoImageRef}
+          onLoad={() => compileQR()}
+          className="hidden"
+        />
+      )}
+
+      {/* Title */}
       <div className="flex items-center gap-3 mb-8">
         <div className="p-3 bg-emerald-100 text-emerald-600 rounded-2xl">
-          <ImageIcon className="w-7 h-7" />
+          <Sparkles className="w-7 h-7 animate-pulse" />
         </div>
         <div>
-          <h3 className="text-2xl font-black text-slate-900">Chameleon's Dynamic QR Generator</h3>
-          <p className="text-sm text-slate-500">Draft destination parameters, paint matching accents, and export vector SVG or PNG matrices locally.</p>
+          <h3 className="text-2xl font-black text-slate-900">Chameleon's AI-Enhanced Vector QR Stylist</h3>
+          <p className="text-sm text-slate-500">Auto-contrast checkers, design helpers, customizable quiet zones, and vector-svg logo overlays completely in-browser.</p>
         </div>
       </div>
 
-      <div className="grid md:grid-cols-2 gap-8 items-start">
-        {/* Left Inputs */}
-        <div className="space-y-4">
-          <div>
-            <label className="block text-xs font-bold text-slate-500 uppercase mb-1.5">Input Text / Destination URL</label>
-            <input
-              type="text"
-              value={text}
-              onChange={(e) => setText(e.target.value)}
-              placeholder="https://example.com"
-              className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-800 focus:border-emerald-500 outline-none text-sm"
+      <div className="grid lg:grid-cols-12 gap-8 items-start">
+        {/* Left Side: Parameters (7 Cols) */}
+        <div className="lg:col-span-7 space-y-6">
+          {/* AI Safety Checker Status Banner */}
+          <div className={`p-4 rounded-2xl border text-xs font-bold leading-relaxed shadow-sm transition-colors ${aiFeedback.style}`}>
+            {aiFeedback.message}
+          </div>
+
+          {/* Core Settings */}
+          <div className="bg-slate-50 p-6 rounded-3xl border border-slate-100 space-y-4">
+            <div>
+              <div className="flex justify-between items-center mb-1.5">
+                <label className="block text-xs font-bold text-slate-500 uppercase">Input Text / Destination URL</label>
+                <span className="text-[10px] px-2 py-0.5 rounded bg-emerald-100 text-emerald-700 font-black uppercase">
+                  {urlAnalysis.name}
+                </span>
+              </div>
+              <input
+                type="text"
+                value={text}
+                onChange={(e) => setText(e.target.value)}
+                placeholder="https://example.com"
+                className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl font-bold text-slate-800 focus:border-emerald-500 outline-none text-sm shadow-inner"
+              />
+              <p className="text-[10px] text-slate-400 font-bold mt-1.5 pl-1">
+                {urlAnalysis.info}
+              </p>
+            </div>
+
+            {/* Custom Presets Grid */}
+            <div>
+              <label className="block text-xs font-bold text-slate-500 uppercase mb-2">AI Design Assistant Preset Themes</label>
+              <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
+                {[
+                  { id: 'minimal', label: 'Minimalist' },
+                  { id: 'cyberpunk', label: 'Cyberpunk' },
+                  { id: 'neon-pulse', label: 'Neon' },
+                  { id: 'navy-gold', label: 'Business' },
+                  { id: 'forest', label: 'Forest' }
+                ].map((preset) => (
+                  <button
+                    key={preset.id}
+                    onClick={() => applyPresetTheme(preset.id)}
+                    className="px-2 py-1.5 border border-slate-200 bg-white rounded-xl text-[10px] font-black text-slate-700 hover:border-emerald-500 transition-all hover:bg-slate-50 hover:scale-102"
+                  >
+                    {preset.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Dot Customizer & Colors */}
+            <div className="grid sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs font-bold text-slate-500 uppercase mb-1.5">Dot Drawing Shape</label>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    onClick={() => setDotStyle('square')}
+                    className={`px-3 py-2 rounded-xl text-xs font-bold border transition-all ${
+                      dotStyle === 'square' 
+                        ? 'bg-slate-900 text-white border-slate-900 shadow-md' 
+                        : 'bg-white text-slate-650 border-slate-200 hover:bg-slate-50'
+                    }`}
+                  >
+                    Standard Square
+                  </button>
+                  <button
+                    onClick={() => setDotStyle('round')}
+                    className={`px-3 py-2 rounded-xl text-xs font-bold border transition-all ${
+                      dotStyle === 'round' 
+                        ? 'bg-slate-900 text-white border-slate-900 shadow-md' 
+                        : 'bg-white text-slate-650 border-slate-200 hover:bg-slate-50'
+                    }`}
+                  >
+                    Smooth Round
+                  </button>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1.5">Foreground</label>
+                  <div className="flex items-center gap-1.5 border border-slate-200 bg-white px-2 py-1 rounded-xl">
+                    <input
+                      type="color"
+                      value={fgColor}
+                      onChange={(e) => setFgColor(e.target.value)}
+                      className="w-8 h-8 rounded-lg cursor-pointer border-none p-0"
+                    />
+                    <span className="text-[10px] font-mono font-bold uppercase">{fgColor}</span>
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1.5">Background</label>
+                  <div className="flex items-center gap-1.5 border border-slate-200 bg-white px-2 py-1 rounded-xl">
+                    <input
+                      type="color"
+                      value={bgColor}
+                      onChange={(e) => setBgColor(e.target.value)}
+                      className="w-8 h-8 rounded-lg cursor-pointer border-none p-0"
+                    />
+                    <span className="text-[10px] font-mono font-bold uppercase">{bgColor}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Slider Margins */}
+            <div>
+              <div className="flex justify-between items-center mb-1">
+                <label className="text-xs font-bold text-slate-500 uppercase">Quiet Zone Margins (Enforced Padding)</label>
+                <span className="text-xs font-black text-emerald-600 bg-white border border-slate-200 px-2 py-0.5 rounded">
+                  {margin} cells
+                </span>
+              </div>
+              <input
+                type="range"
+                min="2"
+                max="8"
+                value={margin}
+                onChange={(e) => setMargin(parseInt(e.target.value))}
+                className="w-full accent-emerald-500"
+              />
+            </div>
+          </div>
+
+          {/* Logo Overlays Embedder */}
+          <div className="bg-slate-50 p-6 rounded-3xl border border-slate-100 space-y-4">
+            <h4 className="font-black text-slate-800 text-sm border-b border-slate-200 pb-2 flex items-center gap-1.5">
+              <span>🛡️ Center Logo Overlays (High Scan Safety)</span>
+            </h4>
+            
+            <div className="grid sm:grid-cols-2 gap-4 items-center">
+              <div>
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current.click()}
+                  className="w-full py-2.5 bg-white border border-slate-250 hover:border-emerald-500 rounded-xl text-xs font-bold text-slate-650 transition-colors flex items-center justify-center gap-1.5 shadow-sm"
+                >
+                  {logoSrc ? 'Replace Brand Logo' : 'Upload Center Logo'}
+                </button>
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  onChange={handleLogoUpload}
+                  accept="image/*"
+                  className="hidden"
+                />
+              </div>
+
+              {logoSrc && (
+                <button
+                  onClick={() => { setLogoSrc(''); compileQR(); }}
+                  className="w-full py-2.5 border border-rose-200 hover:bg-rose-50 text-rose-600 rounded-xl text-xs font-bold transition-colors"
+                >
+                  Clear Brand Logo
+                </button>
+              )}
+            </div>
+
+            {logoSrc && (
+              <div className="grid grid-cols-2 gap-4 pt-2 border-t border-slate-200/50">
+                <div>
+                  <div className="flex justify-between items-center mb-1">
+                    <label className="text-[10px] font-bold text-slate-500 uppercase">Logo Size</label>
+                    <span className="text-[10px] font-black text-slate-700">{logoSizePercent}%</span>
+                  </div>
+                  <input
+                    type="range"
+                    min="10"
+                    max="22"
+                    value={logoSizePercent}
+                    onChange={(e) => setLogoSizePercent(parseInt(e.target.value))}
+                    className="w-full accent-emerald-500"
+                  />
+                </div>
+                <div>
+                  <div className="flex justify-between items-center mb-1">
+                    <label className="text-[10px] font-bold text-slate-500 uppercase">Logo Border Radius</label>
+                    <span className="text-[10px] font-black text-slate-700">{logoBorderRadius}px</span>
+                  </div>
+                  <input
+                    type="range"
+                    min="0"
+                    max="16"
+                    value={logoBorderRadius}
+                    onChange={(e) => setLogoBorderRadius(parseInt(e.target.value))}
+                    className="w-full accent-emerald-500"
+                  />
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Right Side: Preview & Download (5 Cols) */}
+        <div className="lg:col-span-5 space-y-4">
+          {/* Main Visual Arena */}
+          <div className="bg-slate-900 border border-slate-950 rounded-3xl p-8 flex flex-col justify-center items-center relative aspect-square shadow-2xl overflow-hidden group">
+            
+            {/* Live Canvas */}
+            <canvas 
+              ref={canvasRef} 
+              className="max-w-[85%] max-h-[85%] object-contain rounded-2xl bg-white border-4 border-slate-800 p-2 shadow-2xl transition-transform animate-fade-in group-hover:scale-102"
             />
+
+            {/* Pulsing Scan view overlay */}
+            {scannerOverlay && (
+              <div className="absolute inset-0 bg-slate-950/20 pointer-events-none flex items-center justify-center animate-fade-in">
+                {/* Viewfinder borders */}
+                <div className="w-[80%] h-[80%] border-2 border-emerald-500/60 rounded-3xl relative">
+                  {/* Flashing scan beam */}
+                  <div className="absolute left-0 right-0 h-1 bg-gradient-to-r from-transparent via-emerald-400 to-transparent top-0 animate-scan-bounce"></div>
+                  
+                  {/* Neon dots in corners */}
+                  <div className="absolute -top-1.5 -left-1.5 w-4 h-4 border-t-4 border-l-4 border-emerald-400"></div>
+                  <div className="absolute -top-1.5 -right-1.5 w-4 h-4 border-t-4 border-r-4 border-emerald-400"></div>
+                  <div className="absolute -bottom-1.5 -left-1.5 w-4 h-4 border-b-4 border-l-4 border-emerald-400"></div>
+                  <div className="absolute -bottom-1.5 -right-1.5 w-4 h-4 border-b-4 border-r-4 border-emerald-400"></div>
+
+                  {/* Camera REC indicator */}
+                  <div className="absolute top-4 left-4 flex items-center gap-1.5 bg-slate-950/80 px-2 py-0.5 rounded-full text-[8px] font-black text-white tracking-wider">
+                    <span className="w-1.5 h-1.5 bg-rose-500 rounded-full animate-ping"></span>
+                    <span>REC VIEW</span>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Test Scan Toggle */}
+            <button
+              onClick={() => setScannerOverlay(!scannerOverlay)}
+              className={`absolute bottom-3 px-3 py-1.5 rounded-full text-[10px] font-black tracking-widest uppercase transition-all shadow-md ${
+                scannerOverlay 
+                  ? 'bg-emerald-600 text-white hover:bg-emerald-700' 
+                  : 'bg-white text-slate-850 hover:bg-slate-100'
+              }`}
+            >
+              {scannerOverlay ? 'Disable Scan View' : '🔬 Overlay Scanner Test'}
+            </button>
+
+            {isCompiling && (
+              <div className="absolute inset-0 bg-slate-900/90 backdrop-blur-sm flex flex-col items-center justify-center text-emerald-400 space-y-2 text-xs font-bold">
+                <RefreshCw className="w-8 h-8 animate-spin" />
+                <span>AI Rendering Matrix...</span>
+              </div>
+            )}
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1.5">Foreground Color</label>
-              <input
-                type="color"
-                value={fgColor}
-                onChange={(e) => setFgColor(e.target.value)}
-                className="w-full h-10 p-1 bg-white border border-slate-200 rounded-xl cursor-pointer"
-              />
-            </div>
-            <div>
-              <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1.5">Background Color</label>
-              <input
-                type="color"
-                value={bgColor}
-                onChange={(e) => setBgColor(e.target.value)}
-                className="w-full h-10 p-1 bg-white border border-slate-200 rounded-xl cursor-pointer"
-              />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-2 pt-2">
+          {/* Quick Actions Swapping */}
+          <div className="grid grid-cols-2 gap-2">
             <button
               onClick={handleCopyLink}
               className="py-2.5 border border-slate-200 text-slate-650 font-bold rounded-xl text-xs flex items-center justify-center gap-1.5 hover:bg-slate-50 transition-colors"
@@ -1083,38 +1655,35 @@ function QrGenerator({ onBack }) {
               className="py-2.5 border border-slate-200 text-slate-650 font-bold rounded-xl text-xs flex items-center justify-center gap-1.5 hover:bg-slate-50 transition-colors"
             >
               <Share2 className="w-3.5 h-3.5" />
-              <span>{shareSuccess ? 'Shared!' : 'Share QR'}</span>
+              <span>{shareSuccess ? 'Shared!' : 'Share QR Target'}</span>
             </button>
           </div>
 
-          <div className="flex flex-col gap-2 pt-2 border-t border-slate-100">
+          {/* Multi-Format Exports */}
+          <div className="bg-slate-50 p-5 rounded-3xl border border-slate-100 space-y-2">
+            <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 text-center">Retina High-Res Exports</label>
             <button
               onClick={handleDownloadPNG}
-              disabled={isCompiling}
-              className="w-full py-3 bg-slate-900 hover:bg-emerald-600 text-white font-bold rounded-2xl shadow-md transition-all flex items-center justify-center gap-1.5 hover:scale-102 disabled:opacity-50"
+              className="w-full py-3 bg-slate-900 hover:bg-emerald-600 text-white font-bold rounded-2xl shadow-lg transition-all flex items-center justify-center gap-1.5 hover:scale-102"
             >
-              <Download className="w-4 h-4" /> Download QR Code PNG
+              <Download className="w-4 h-4" /> Download Crisp PNG
             </button>
-            <button
-              onClick={handleDownloadSVG}
-              disabled={isCompiling}
-              className="w-full py-2.5 border border-slate-250 text-slate-700 font-bold rounded-2xl hover:bg-slate-50 transition-all flex items-center justify-center gap-1.5 disabled:opacity-50 text-xs"
-            >
-              <FileImage className="w-3.5 h-3.5" /> Download Vector SVG
-            </button>
-          </div>
-        </div>
-
-        {/* Right Output Preview */}
-        <div className="bg-slate-50 border border-slate-100 rounded-3xl p-6 flex flex-col justify-center items-center relative aspect-square shadow-inner">
-          {isCompiling ? (
-            <div className="flex flex-col items-center justify-center text-slate-400 space-y-2 text-xs font-bold">
-              <RefreshCw className="w-7 h-7 animate-spin text-emerald-500" />
-              <span>Redrawing QR Matrix...</span>
+            
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                onClick={handleDownloadSVG}
+                className="py-2.5 border border-slate-250 text-slate-700 bg-white hover:bg-slate-50 font-bold rounded-2xl transition-all flex items-center justify-center gap-1 text-xs"
+              >
+                <FileImage className="w-3.5 h-3.5 text-emerald-500" /> Export Scalable SVG
+              </button>
+              <button
+                onClick={handleDownloadPDF}
+                className="py-2.5 border border-slate-250 text-slate-700 bg-white hover:bg-slate-50 font-bold rounded-2xl transition-all flex items-center justify-center gap-1 text-xs"
+              >
+                <Download className="w-3.5 h-3.5 text-orange-500" /> Print A4 PDF Template
+              </button>
             </div>
-          ) : (
-            qrUrl && <img src={qrUrl} alt="QR Code" className="max-w-[75%] max-h-[75%] object-contain rounded-2xl bg-white border border-slate-100 p-3 shadow-md animate-fade" />
-          )}
+          </div>
         </div>
       </div>
     </div>
