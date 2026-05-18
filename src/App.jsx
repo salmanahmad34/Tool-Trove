@@ -28,7 +28,12 @@ import {
   Cpu,
   CornerDownRight,
   Copy,
-  Info
+  Info,
+  BookOpen,
+  TrendingUp,
+  Clock,
+  ArrowUpRight,
+  Lock
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import axios from 'axios';
@@ -332,6 +337,313 @@ function Footer() {
   );
 }
 
+// ==================== CHRONICLES & INSIGHTS ARTICLES DATA ====================
+const INSIGHTS_ARTICLES = [
+  {
+    id: "client-side-privacy",
+    title: "The Client-Side Revolution: Why Local Sandboxes are the Future of Web Tools",
+    excerpt: "Discover how client-side compilation and in-browser execution protect your sensitive files, documents, and credentials from cloud leaks.",
+    category: "Security & Privacy",
+    color: "text-[#7c3aed] bg-[#7c3aed]/10 border-[#7c3aed]/20",
+    iconName: "ShieldCheck",
+    readTime: "4 min read",
+    date: "May 18, 2026",
+    content: [
+      {
+        subtitle: "Privacy by Design: Keeping Data Where it Belongs",
+        paragraph: "In an era where personal documents are routinely harvested to train big AI models or target advertisements, data sovereignty has become a necessity rather than a luxury. Traditional web portals require you to upload your sensitive PDFs, private invoices, or corporate spreadsheets directly to their remote servers for basic processing. Once your file leaves your machine, you lose all control over its lifecycle, storage, and access permissions."
+      },
+      {
+        subtitle: "What is Client-Side Compilation?",
+        paragraph: "ToolTrove flips this paradigm entirely through Client-Side Web Utilities. By running compiled JavaScript and local browser memory spaces, tools like our PDF Compressor, CSV Formatter, and Hash Checkers execute entirely on your own CPU. Your financial transactions, passwords, and private resumes are processed instantly in a secure browser sandbox. No backend servers, no cloud caching, and absolutely zero risk of third-party leaks."
+      },
+      {
+        subtitle: "The Mathematical Proof of Absolute Privacy",
+        paragraph: "Because all calculations and modifications are bound strictly to your browser's window session, opening your browser developer tools confirms that no network payloads are dispatched to any external databases during operations. This local-first design not only guarantees 100% data confidentiality but also eliminates round-trip server latency. Work online or completely offline—your data remains entirely yours, secured by modern browser isolation."
+      }
+    ],
+    cta: "Secure Your Workflow",
+    toolLink: "/tools/security"
+  },
+  {
+    id: "business-calculators-growth",
+    title: "How Indian MSMEs are Eliminating Accounting Errors with Modern Dashboards",
+    excerpt: "Tax formulas and interest equations don't have to be overwhelming. Learn how micro-businesses leverage precise GST and EMI utilities.",
+    category: "Business Insights",
+    color: "text-[#d97706] bg-[#d97706]/10 border-[#d97706]/20",
+    iconName: "TrendingUp",
+    readTime: "5 min read",
+    date: "May 15, 2026",
+    content: [
+      {
+        subtitle: "The High Cost of Manual Interest and Tax Math",
+        paragraph: "For micro, small, and medium enterprises (MSMEs), accurate cash flow monitoring is the difference between thriving and closing down. Yet, thousands of local businesses continue to compute GST values, loan EMIs, and client invoices using simple handheld calculators or error-prone spreadsheet templates. A single misplaced decimal in an EMI interest rate or an incorrect tax slab can cascade into compliance fines or severe cash deficits."
+      },
+      {
+        subtitle: "Automating Financial Transparency",
+        paragraph: "Modern business intelligence relies on automated precision. By integrating dedicated calculators—like the GST Slab Estimator and the Loan Amortization Schedule tool—business owners can generate instant breakdowns of principal amount, total payable interest, and applicable IGST/CGST rules. This transparency is crucial when pitching to corporate clients or negotiating lines of credit with commercial banks."
+      },
+      {
+        subtitle: "Bridging the Gap from Estimation to Professional Invoicing",
+        paragraph: "The journey doesn't stop at calculations. Once EMI rates and tax amounts are finalized, translating those values into a legally-binding bill is key. ToolTrove’s integrated GST Invoice Generator lets business owners immediately port calculated numbers into clean, GST-compliant invoice templates. This structured automation elevates operational efficiency and signals deep professional authority to global partners."
+      }
+    ],
+    cta: "Calculate With Precision",
+    toolLink: "/tools/business"
+  },
+  {
+    id: "ai-coprocessor-creativity",
+    title: "AI Co-Processing: Scaling Professional Content Without Losing Your Voice",
+    excerpt: "Explore the modern synergy of specialized animal mascots helping creators craft flawless emails, scripts, and resumes in seconds.",
+    category: "AI & Creativity",
+    color: "text-[#ff5c1a] bg-[#ff5c1a]/10 border-[#ff5c1a]/20",
+    iconName: "Sparkles",
+    readTime: "3 min read",
+    date: "May 12, 2026",
+    content: [
+      {
+        subtitle: "Beyond the Generic AI Chatbox",
+        paragraph: "Generative AI has democratized content creation, but standard chatbots often produce dry, generic, and easily recognizable text patterns. Writing a high-converting cold sales pitch or a stand-out CV requires contextual nuance, structural formatting, and a clear call-to-action. Generic prompt interfaces struggle to deliver these specific creative standards without hours of complex prompt engineering."
+      },
+      {
+        subtitle: "Enter Mascot-Driven AI Co-Processors",
+        paragraph: "To solve this bottleneck, ToolTrove implements specialized mascot frameworks. By routing requests through localized, role-based guardians—such as the Wise Owl for editorial translations and Paraphrasing, or the Mighty Elephant for structured Business Plans—the client-side assistant receives tailored system prompts automatically. This allows you to generate robust resumes, cold emails, and video scripts that read naturally and communicate authentic value."
+      },
+      {
+        subtitle: "Unlocking Peak Productivity in 2026",
+        paragraph: "The objective of AI co-processing is not to replace human creativity, but to supercharge it. By letting our mascots handle the initial drafting, formatting, and proofreading, creators can skip the intimidating 'blank canvas' phase entirely. Refine the AI output, adjust tone sliders, and compile final products instantly, transforming time-consuming writing tasks into an enjoyable, creative partnership."
+      }
+    ],
+    cta: "Meet the Mascots",
+    toolLink: "/"
+  }
+];
+
+function InsightsSection() {
+  const [activeArticle, setActiveArticle] = useState(null);
+  const [copiedId, setCopiedId] = useState(null);
+  const navigate = useNavigate();
+
+  const handleShare = (e, article) => {
+    e.stopPropagation();
+    const shareUrl = `${window.location.origin}${window.location.pathname}#/article/${article.id}`;
+    navigator.clipboard.writeText(shareUrl);
+    setCopiedId(article.id);
+    setTimeout(() => setCopiedId(null), 2000);
+  };
+
+  const getIcon = (name) => {
+    switch (name) {
+      case 'ShieldCheck': return <ShieldCheck className="w-5 h-5" />;
+      case 'TrendingUp': return <TrendingUp className="w-5 h-5" />;
+      case 'Sparkles': return <Sparkles className="w-5 h-5" />;
+      default: return <BookOpen className="w-5 h-5" />;
+    }
+  };
+
+  return (
+    <section className="py-24 px-6 bg-gradient-to-b from-white to-[#FDFBF7]" id="insights">
+      <div className="max-w-7xl mx-auto">
+        
+        {/* Section Header */}
+        <div className="text-center max-w-3xl mx-auto mb-16">
+          <div className="inline-flex items-center gap-2 px-4 py-2 bg-orange-100/60 text-orange-700 rounded-full text-xs font-black uppercase tracking-wider mb-4">
+            <BookOpen className="w-4 h-4" /> ToolTrove Chronicles & Insights
+          </div>
+          <h2 className="text-4xl md:text-5xl font-black tracking-tight text-slate-900 mb-6">
+            Unlock Expert Knowledge & <span className="text-orange-500 underline decoration-orange-200 decoration-8 underline-offset-8">Strategies</span>
+          </h2>
+          <p className="text-slate-500 font-semibold leading-relaxed text-sm md:text-base">
+            Delve into our unique, deeply researched guides on modern data safety, local-first computing, financial engineering, and AI-enabled productivity hacks.
+          </p>
+        </div>
+
+        {/* Articles Grid */}
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {INSIGHTS_ARTICLES.map((article, idx) => (
+            <motion.div
+              key={article.id}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: idx * 0.15, duration: 0.5 }}
+              onClick={() => setActiveArticle(article)}
+              className="group cursor-pointer flex flex-col justify-between p-6 rounded-3xl bg-white border border-slate-200/80 shadow-md hover:shadow-2xl hover:border-orange-300 hover:-translate-y-2 transition-all duration-300 relative overflow-hidden"
+            >
+              {/* Top Details */}
+              <div>
+                <div className="flex justify-between items-center mb-6">
+                  <span className={`px-3 py-1 rounded-xl text-xs font-black border ${article.color} flex items-center gap-1.5`}>
+                    {getIcon(article.iconName)}
+                    {article.category}
+                  </span>
+                  <div className="flex items-center gap-1 text-xs text-slate-400 font-bold">
+                    <Clock className="w-3.5 h-3.5" />
+                    <span>{article.readTime}</span>
+                  </div>
+                </div>
+
+                <h3 className="text-xl font-black text-slate-900 leading-snug group-hover:text-orange-500 transition-colors mb-4">
+                  {article.title}
+                </h3>
+                <p className="text-slate-500 text-sm leading-relaxed mb-6 font-semibold line-clamp-3">
+                  {article.excerpt}
+                </p>
+              </div>
+
+              {/* Bottom Details */}
+              <div className="pt-4 border-t border-slate-100 flex items-center justify-between">
+                <span className="text-xs text-slate-400 font-bold">{article.date}</span>
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={(e) => handleShare(e, article)}
+                    className="p-2 rounded-xl border border-slate-200 text-slate-400 hover:text-slate-900 hover:bg-slate-50 transition-colors text-xs font-bold flex items-center justify-center"
+                    title="Share Article Link"
+                  >
+                    {copiedId === article.id ? (
+                      <span className="text-[10px] text-emerald-500 font-black px-1">Copied!</span>
+                    ) : (
+                      <Copy className="w-4 h-4" />
+                    )}
+                  </button>
+                  <button
+                    className="px-4 py-2 rounded-xl bg-slate-900 text-white text-xs font-bold hover:bg-orange-500 transition-colors flex items-center gap-1.5 shadow-sm group-hover:shadow-md"
+                  >
+                    Read More
+                    <ArrowUpRight className="w-3.5 h-3.5 group-hover:rotate-45 transition-transform" />
+                  </button>
+                </div>
+              </div>
+
+              {/* Ambient Glow */}
+              <div className="absolute -right-12 -top-12 w-24 h-24 bg-orange-100/30 rounded-full blur-2xl pointer-events-none group-hover:bg-orange-200/40 transition-colors"></div>
+            </motion.div>
+          ))}
+        </div>
+
+        {/* Interactive Article Modal Reader */}
+        <AnimatePresence>
+          {activeArticle && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-sm"
+              onClick={() => setActiveArticle(null)}
+            >
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                transition={{ type: "spring", duration: 0.5 }}
+                className="w-full max-w-3xl bg-[#FDFBF7] rounded-[2.5rem] border-2 border-slate-200 overflow-hidden shadow-2xl flex flex-col max-h-[85vh]"
+                onClick={(e) => e.stopPropagation()}
+              >
+                
+                {/* Modal Header */}
+                <div className="p-6 md:p-8 bg-white border-b border-slate-100 flex items-center justify-between shrink-0">
+                  <div className="flex items-center gap-3">
+                    <span className={`px-3 py-1.5 rounded-xl text-xs font-black border ${activeArticle.color} flex items-center gap-1.5`}>
+                      {getIcon(activeArticle.iconName)}
+                      {activeArticle.category}
+                    </span>
+                    <span className="text-xs text-slate-400 font-bold flex items-center gap-1">
+                      <Clock className="w-3.5 h-3.5" /> {activeArticle.readTime}
+                    </span>
+                  </div>
+                  
+                  <button
+                    onClick={() => setActiveArticle(null)}
+                    className="p-2 text-slate-400 hover:text-slate-900 hover:bg-slate-100 rounded-xl transition-all"
+                  >
+                    <X className="w-6 h-6" />
+                  </button>
+                </div>
+
+                {/* Modal Body (Scrollable) */}
+                <div className="p-6 md:p-10 overflow-y-auto space-y-8 flex-grow leading-relaxed">
+                  <div>
+                    <h3 className="text-2xl md:text-3xl font-black text-slate-900 mb-4 leading-tight">
+                      {activeArticle.title}
+                    </h3>
+                    <p className="text-slate-400 text-xs font-bold uppercase tracking-wider">
+                      Published on {activeArticle.date} • Written by ToolTrove Experts
+                    </p>
+                  </div>
+
+                  <div className="space-y-6">
+                    {activeArticle.content.map((sec, sIdx) => (
+                      <div key={sIdx} className="space-y-3">
+                        <h4 className="text-lg font-black text-slate-800 flex items-center gap-2">
+                          <CornerDownRight className="w-4 h-4 text-orange-500" />
+                          {sec.subtitle}
+                        </h4>
+                        <p className="text-slate-600 text-sm font-semibold leading-relaxed">
+                          {sec.paragraph}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Recommendation Card */}
+                  <div className="p-6 bg-orange-50/50 rounded-2xl border border-orange-100 flex flex-col sm:flex-row items-center justify-between gap-4">
+                    <div className="flex items-center gap-3 text-left">
+                      <div className="p-2.5 bg-orange-100 text-orange-600 rounded-xl">
+                        <Sparkles className="w-5 h-5 animate-pulse" />
+                      </div>
+                      <div>
+                        <h5 className="text-sm font-black text-slate-800">Ready to put this knowledge to work?</h5>
+                        <p className="text-xs text-slate-500 font-semibold">Explore our specialized online tools for free.</p>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => {
+                        setActiveArticle(null);
+                        navigate(activeArticle.toolLink);
+                        setTimeout(() => {
+                          const el = document.getElementById('habitats');
+                          if (el) el.scrollIntoView({ behavior: 'smooth' });
+                        }, 200);
+                      }}
+                      className="px-6 py-3 rounded-xl bg-orange-500 text-white text-xs font-black shadow-lg shadow-orange-100 hover:bg-orange-600 transition-colors shrink-0 cursor-pointer"
+                    >
+                      {activeArticle.cta} →
+                    </button>
+                  </div>
+                </div>
+
+                {/* Modal Footer */}
+                <div className="p-6 bg-white border-t border-slate-100 flex justify-between items-center shrink-0">
+                  <button
+                    onClick={(e) => handleShare(e, activeArticle)}
+                    className="px-4 py-2 border border-slate-200 text-slate-600 hover:text-slate-900 rounded-xl text-xs font-black transition-colors flex items-center gap-1.5"
+                  >
+                    {copiedId === activeArticle.id ? (
+                      <CheckCircle className="w-4 h-4 text-emerald-500" />
+                    ) : (
+                      <Copy className="w-4 h-4" />
+                    )}
+                    <span>{copiedId === activeArticle.id ? 'Link Copied!' : 'Share Article Link'}</span>
+                  </button>
+
+                  <button
+                    onClick={() => setActiveArticle(null)}
+                    className="px-6 py-2.5 bg-slate-950 text-white hover:bg-orange-500 rounded-xl text-xs font-black transition-colors"
+                  >
+                    Done Reading
+                  </button>
+                </div>
+
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+      </div>
+    </section>
+  );
+}
+
 // ==================== PAGE 1: HOME PAGE ====================
 function HomePage() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -549,6 +861,9 @@ function HomePage() {
           <ChatAssistant />
         </div>
       </section>
+
+      {/* Chronicles & Insights Blog Section */}
+      <InsightsSection />
 
       {/* Why Us section */}
       <section className="py-24 px-6 overflow-hidden bg-slate-950 text-white rounded-[3rem] mx-6" id="why-us">

@@ -79,3 +79,19 @@ export const ChameleonMascot = () => (
     />
   </motion.svg>
 );
+
+export const FoxMascot = () => (
+  <motion.svg 
+    viewBox="0 0 100 100" 
+    className="w-16 h-16 drop-shadow-md"
+    animate={{ rotate: [-3, 3, -3] }}
+    transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut" }}
+  >
+    <polygon points="50,15 20,55 80,55" fill="#E65100" />
+    <polygon points="50,45 20,55 80,55" fill="#F57C00" />
+    <polygon points="50,55 35,90 65,90" fill="#FFCC80" />
+    <polygon points="50,65 42,90 58,90" fill="#212121" />
+    <circle cx="40" cy="50" r="3" fill="#212121" />
+    <circle cx="60" cy="50" r="3" fill="#212121" />
+  </motion.svg>
+);
