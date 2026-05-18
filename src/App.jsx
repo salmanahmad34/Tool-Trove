@@ -46,6 +46,10 @@ import CalculatorTools from './tools/CalculatorTools';
 import MediaTools from './tools/MediaTools';
 import SecurityTools from './tools/SecurityTools';
 import DeveloperTools from './tools/DeveloperTools';
+import { BrandLogo, LogoIcon } from './components/BrandLogo';
+import { AboutPage, PrivacyPage, TermsPage, ContactPage, BlogPage, ArticlePage } from './pages/TrustPages';
+import { INSIGHTS_ARTICLES } from './components/BlogData';
+import ToolSEOContent from './components/ToolSEOContent';
 
 // --- Category Data Mapping ---
 const CATEGORIES = [
@@ -174,34 +178,16 @@ function Navbar() {
     <>
       <nav className={`fixed top-0 left-0 w-full z-[9999] transition-all duration-300 ${scrolled ? 'bg-white/95 backdrop-blur-md shadow-md py-3' : 'bg-white/90 backdrop-blur-md py-5'}`}>
         <div className="max-w-7xl mx-auto px-6 flex justify-between items-center">
-          <Link to="/" className="flex items-center gap-2.5 group cursor-pointer">
-            <div className="p-2 bg-orange-500 rounded-2xl shadow-lg shadow-orange-200 group-hover:rotate-12 transition-transform">
-              <Sparkles className="text-white w-6 h-6 animate-pulse" />
-            </div>
-            <h1 className="text-2xl font-black tracking-tight text-slate-900">
-              TOOL<span className="text-orange-500">TROVE</span>
-            </h1>
+          <Link to="/" className="group cursor-pointer">
+            <BrandLogo iconClassName="w-8 h-8" />
           </Link>
 
           <div className="hidden md:flex items-center gap-8 font-bold text-slate-600">
             <Link to="/" className="hover:text-orange-500 transition-colors">Home</Link>
             <button onClick={handleScrollToCategories} className="hover:text-orange-500 transition-colors">Tools</button>
-            <button onClick={() => {
-              const el = document.getElementById('why-us');
-              if (el) el.scrollIntoView({behavior:'smooth'});
-              else {
-                navigate('/');
-                setTimeout(() => document.getElementById('why-us')?.scrollIntoView({behavior:'smooth'}), 100);
-              }
-            }} className="hover:text-orange-500 transition-colors">About</button>
-            <button onClick={() => {
-              const el = document.getElementById('support-footer');
-              if (el) el.scrollIntoView({behavior:'smooth'});
-              else {
-                navigate('/');
-                setTimeout(() => document.getElementById('support-footer')?.scrollIntoView({behavior:'smooth'}), 100);
-              }
-            }} className="hover:text-orange-500 transition-colors">Contact</button>
+            <Link to="/about" className="hover:text-orange-500 transition-colors">About</Link>
+            <Link to="/blog" className="hover:text-orange-500 transition-colors">Blog</Link>
+            <Link to="/contact" className="hover:text-orange-500 transition-colors">Contact</Link>
             <button 
               onClick={handleScrollToCategories}
               className="px-6 py-2 bg-slate-900 text-white rounded-full hover:bg-orange-500 transition-all shadow-lg hover:shadow-orange-100 hover:scale-105"
@@ -227,24 +213,9 @@ function Navbar() {
           >
             <Link to="/" onClick={() => setIsMenuOpen(false)} className="text-left py-2 hover:text-orange-500 border-b border-slate-50">Home</Link>
             <button onClick={() => { handleScrollToCategories(); setIsMenuOpen(false); }} className="text-left py-2 hover:text-orange-500 border-b border-slate-50">Explore Tools</button>
-            <button onClick={() => {
-              setIsMenuOpen(false);
-              const el = document.getElementById('why-us');
-              if (el) el.scrollIntoView({behavior:'smooth'});
-              else {
-                navigate('/');
-                setTimeout(() => document.getElementById('why-us')?.scrollIntoView({behavior:'smooth'}), 100);
-              }
-            }} className="text-left py-2 hover:text-orange-500 border-b border-slate-50">About Us</button>
-            <button onClick={() => {
-              setIsMenuOpen(false);
-              const el = document.getElementById('support-footer');
-              if (el) el.scrollIntoView({behavior:'smooth'});
-              else {
-                navigate('/');
-                setTimeout(() => document.getElementById('support-footer')?.scrollIntoView({behavior:'smooth'}), 100);
-              }
-            }} className="text-left py-2 hover:text-orange-500">Contact Support</button>
+            <Link to="/about" onClick={() => setIsMenuOpen(false)} className="text-left py-2 hover:text-orange-500 border-b border-slate-50">About Us</Link>
+            <Link to="/blog" onClick={() => setIsMenuOpen(false)} className="text-left py-2 hover:text-orange-500 border-b border-slate-50">Blog Chronicles</Link>
+            <Link to="/contact" onClick={() => setIsMenuOpen(false)} className="text-left py-2 hover:text-orange-500">Contact Support</Link>
             <button 
               onClick={() => { handleScrollToCategories(); setIsMenuOpen(false); }}
               className="w-full py-3 bg-orange-500 text-white rounded-2xl text-center shadow-lg"
@@ -280,10 +251,7 @@ function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-16">
           <div className="col-span-1 lg:col-span-1">
             <div className="flex items-center gap-2 mb-6">
-              <div className="p-2 bg-orange-500 rounded-xl">
-                <Sparkles className="text-white w-5 h-5" />
-              </div>
-              <h1 className="text-xl font-black text-slate-900">TOOLTROVE</h1>
+              <BrandLogo iconClassName="w-7 h-7" />
             </div>
             <p className="text-slate-500 leading-relaxed text-sm">
               Your ultimate online destination for a vast array of free, high-quality web tools. Simplifying the digital jungle one tool at a time.
@@ -295,15 +263,10 @@ function Footer() {
             <ul className="space-y-4 text-slate-600 font-semibold text-sm">
               <li><Link to="/" className="hover:text-orange-500 transition-colors">Home Sandbox</Link></li>
               <li><button onClick={handleScrollToCategories} className="hover:text-orange-500 text-left transition-colors">Explore All Tools</button></li>
-              <li><button onClick={() => {
-                const el = document.getElementById('why-us');
-                if (el) el.scrollIntoView({behavior:'smooth'});
-                else { navigate('/'); setTimeout(() => document.getElementById('why-us')?.scrollIntoView({behavior:'smooth'}), 100); }
-              }} className="hover:text-orange-500 text-left transition-colors">About Us</button></li>
-              <li><button onClick={() => {
-                const el = document.getElementById('support-footer');
-                if (el) el.scrollIntoView({behavior:'smooth'});
-              }} className="hover:text-orange-500 text-left transition-colors">Contact Support</button></li>
+              <li><Link to="/about" className="hover:text-orange-500 transition-colors">About Us</Link></li>
+              <li><Link to="/privacy" className="hover:text-orange-500 transition-colors">Privacy Policy</Link></li>
+              <li><Link to="/terms" className="hover:text-orange-500 transition-colors">Terms of Service</Link></li>
+              <li><Link to="/contact" className="hover:text-orange-500 transition-colors">Contact Support</Link></li>
             </ul>
           </div>
 
@@ -340,96 +303,15 @@ function Footer() {
   );
 }
 
-// ==================== CHRONICLES & INSIGHTS ARTICLES DATA ====================
-const INSIGHTS_ARTICLES = [
-  {
-    id: "client-side-privacy",
-    title: "The Client-Side Revolution: Why Local Sandboxes are the Future of Web Tools",
-    excerpt: "Discover how client-side compilation and in-browser execution protect your sensitive files, documents, and credentials from cloud leaks.",
-    category: "Security & Privacy",
-    color: "text-[#7c3aed] bg-[#7c3aed]/10 border-[#7c3aed]/20",
-    iconName: "ShieldCheck",
-    readTime: "4 min read",
-    date: "May 18, 2026",
-    content: [
-      {
-        subtitle: "Privacy by Design: Keeping Data Where it Belongs",
-        paragraph: "In an era where personal documents are routinely harvested to train big AI models or target advertisements, data sovereignty has become a necessity rather than a luxury. Traditional web portals require you to upload your sensitive PDFs, private invoices, or corporate spreadsheets directly to their remote servers for basic processing. Once your file leaves your machine, you lose all control over its lifecycle, storage, and access permissions."
-      },
-      {
-        subtitle: "What is Client-Side Compilation?",
-        paragraph: "ToolTrove flips this paradigm entirely through Client-Side Web Utilities. By running compiled JavaScript and local browser memory spaces, tools like our PDF Compressor, CSV Formatter, and Hash Checkers execute entirely on your own CPU. Your financial transactions, passwords, and private resumes are processed instantly in a secure browser sandbox. No backend servers, no cloud caching, and absolutely zero risk of third-party leaks."
-      },
-      {
-        subtitle: "The Mathematical Proof of Absolute Privacy",
-        paragraph: "Because all calculations and modifications are bound strictly to your browser's window session, opening your browser developer tools confirms that no network payloads are dispatched to any external databases during operations. This local-first design not only guarantees 100% data confidentiality but also eliminates round-trip server latency. Work online or completely offline—your data remains entirely yours, secured by modern browser isolation."
-      }
-    ],
-    cta: "Secure Your Workflow",
-    toolLink: "/tools/security"
-  },
-  {
-    id: "business-calculators-growth",
-    title: "How Indian MSMEs are Eliminating Accounting Errors with Modern Dashboards",
-    excerpt: "Tax formulas and interest equations don't have to be overwhelming. Learn how micro-businesses leverage precise GST and EMI utilities.",
-    category: "Business Insights",
-    color: "text-[#d97706] bg-[#d97706]/10 border-[#d97706]/20",
-    iconName: "TrendingUp",
-    readTime: "5 min read",
-    date: "May 15, 2026",
-    content: [
-      {
-        subtitle: "The High Cost of Manual Interest and Tax Math",
-        paragraph: "For micro, small, and medium enterprises (MSMEs), accurate cash flow monitoring is the difference between thriving and closing down. Yet, thousands of local businesses continue to compute GST values, loan EMIs, and client invoices using simple handheld calculators or error-prone spreadsheet templates. A single misplaced decimal in an EMI interest rate or an incorrect tax slab can cascade into compliance fines or severe cash deficits."
-      },
-      {
-        subtitle: "Automating Financial Transparency",
-        paragraph: "Modern business intelligence relies on automated precision. By integrating dedicated calculators—like the GST Slab Estimator and the Loan Amortization Schedule tool—business owners can generate instant breakdowns of principal amount, total payable interest, and applicable IGST/CGST rules. This transparency is crucial when pitching to corporate clients or negotiating lines of credit with commercial banks."
-      },
-      {
-        subtitle: "Bridging the Gap from Estimation to Professional Invoicing",
-        paragraph: "The journey doesn't stop at calculations. Once EMI rates and tax amounts are finalized, translating those values into a legally-binding bill is key. ToolTrove’s integrated GST Invoice Generator lets business owners immediately port calculated numbers into clean, GST-compliant invoice templates. This structured automation elevates operational efficiency and signals deep professional authority to global partners."
-      }
-    ],
-    cta: "Calculate With Precision",
-    toolLink: "/tools/business"
-  },
-  {
-    id: "ai-coprocessor-creativity",
-    title: "AI Co-Processing: Scaling Professional Content Without Losing Your Voice",
-    excerpt: "Explore the modern synergy of specialized animal mascots helping creators craft flawless emails, scripts, and resumes in seconds.",
-    category: "AI & Creativity",
-    color: "text-[#ff5c1a] bg-[#ff5c1a]/10 border-[#ff5c1a]/20",
-    iconName: "Sparkles",
-    readTime: "3 min read",
-    date: "May 12, 2026",
-    content: [
-      {
-        subtitle: "Beyond the Generic AI Chatbox",
-        paragraph: "Generative AI has democratized content creation, but standard chatbots often produce dry, generic, and easily recognizable text patterns. Writing a high-converting cold sales pitch or a stand-out CV requires contextual nuance, structural formatting, and a clear call-to-action. Generic prompt interfaces struggle to deliver these specific creative standards without hours of complex prompt engineering."
-      },
-      {
-        subtitle: "Enter Mascot-Driven AI Co-Processors",
-        paragraph: "To solve this bottleneck, ToolTrove implements specialized mascot frameworks. By routing requests through localized, role-based guardians—such as the Wise Owl for editorial translations and Paraphrasing, or the Mighty Elephant for structured Business Plans—the client-side assistant receives tailored system prompts automatically. This allows you to generate robust resumes, cold emails, and video scripts that read naturally and communicate authentic value."
-      },
-      {
-        subtitle: "Unlocking Peak Productivity in 2026",
-        paragraph: "The objective of AI co-processing is not to replace human creativity, but to supercharge it. By letting our mascots handle the initial drafting, formatting, and proofreading, creators can skip the intimidating 'blank canvas' phase entirely. Refine the AI output, adjust tone sliders, and compile final products instantly, transforming time-consuming writing tasks into an enjoyable, creative partnership."
-      }
-    ],
-    cta: "Meet the Mascots",
-    toolLink: "/"
-  }
-];
+// ==================== CHRONICLES & INSIGHTS ARTICLES DATA REMOVED (IMPORTED FROM BlogData) ====================
 
 function InsightsSection() {
-  const [activeArticle, setActiveArticle] = useState(null);
   const [copiedId, setCopiedId] = useState(null);
   const navigate = useNavigate();
 
   const handleShare = (e, article) => {
     e.stopPropagation();
-    const shareUrl = `${window.location.origin}${window.location.pathname}#/article/${article.id}`;
+    const shareUrl = `${window.location.origin}${window.location.pathname}#/blog/${article.id}`;
     navigator.clipboard.writeText(shareUrl);
     setCopiedId(article.id);
     setTimeout(() => setCopiedId(null), 2000);
@@ -470,7 +352,7 @@ function InsightsSection() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: idx * 0.15, duration: 0.5 }}
-              onClick={() => setActiveArticle(article)}
+              onClick={() => navigate(`/blog/${article.id}`)}
               className="group cursor-pointer flex flex-col justify-between p-6 rounded-3xl bg-white border border-slate-200/80 shadow-md hover:shadow-2xl hover:border-orange-300 hover:-translate-y-2 transition-all duration-300 relative overflow-hidden"
             >
               {/* Top Details */}
@@ -523,125 +405,6 @@ function InsightsSection() {
             </motion.div>
           ))}
         </div>
-
-        {/* Interactive Article Modal Reader */}
-        <AnimatePresence>
-          {activeArticle && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-sm"
-              onClick={() => setActiveArticle(null)}
-            >
-              <motion.div
-                initial={{ opacity: 0, scale: 0.95, y: 20 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.95, y: 20 }}
-                transition={{ type: "spring", duration: 0.5 }}
-                className="w-full max-w-3xl bg-[#FDFBF7] rounded-[2.5rem] border-2 border-slate-200 overflow-hidden shadow-2xl flex flex-col max-h-[85vh]"
-                onClick={(e) => e.stopPropagation()}
-              >
-                
-                {/* Modal Header */}
-                <div className="p-6 md:p-8 bg-white border-b border-slate-100 flex items-center justify-between shrink-0">
-                  <div className="flex items-center gap-3">
-                    <span className={`px-3 py-1.5 rounded-xl text-xs font-black border ${activeArticle.color} flex items-center gap-1.5`}>
-                      {getIcon(activeArticle.iconName)}
-                      {activeArticle.category}
-                    </span>
-                    <span className="text-xs text-slate-400 font-bold flex items-center gap-1">
-                      <Clock className="w-3.5 h-3.5" /> {activeArticle.readTime}
-                    </span>
-                  </div>
-                  
-                  <button
-                    onClick={() => setActiveArticle(null)}
-                    className="p-2 text-slate-400 hover:text-slate-900 hover:bg-slate-100 rounded-xl transition-all"
-                  >
-                    <X className="w-6 h-6" />
-                  </button>
-                </div>
-
-                {/* Modal Body (Scrollable) */}
-                <div className="p-6 md:p-10 overflow-y-auto space-y-8 flex-grow leading-relaxed">
-                  <div>
-                    <h3 className="text-2xl md:text-3xl font-black text-slate-900 mb-4 leading-tight">
-                      {activeArticle.title}
-                    </h3>
-                    <p className="text-slate-400 text-xs font-bold uppercase tracking-wider">
-                      Published on {activeArticle.date} • Written by ToolTrove Experts
-                    </p>
-                  </div>
-
-                  <div className="space-y-6">
-                    {activeArticle.content.map((sec, sIdx) => (
-                      <div key={sIdx} className="space-y-3">
-                        <h4 className="text-lg font-black text-slate-800 flex items-center gap-2">
-                          <CornerDownRight className="w-4 h-4 text-orange-500" />
-                          {sec.subtitle}
-                        </h4>
-                        <p className="text-slate-600 text-sm font-semibold leading-relaxed">
-                          {sec.paragraph}
-                        </p>
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* Recommendation Card */}
-                  <div className="p-6 bg-orange-50/50 rounded-2xl border border-orange-100 flex flex-col sm:flex-row items-center justify-between gap-4">
-                    <div className="flex items-center gap-3 text-left">
-                      <div className="p-2.5 bg-orange-100 text-orange-600 rounded-xl">
-                        <Sparkles className="w-5 h-5 animate-pulse" />
-                      </div>
-                      <div>
-                        <h5 className="text-sm font-black text-slate-800">Ready to put this knowledge to work?</h5>
-                        <p className="text-xs text-slate-500 font-semibold">Explore our specialized online tools for free.</p>
-                      </div>
-                    </div>
-                    <button
-                      onClick={() => {
-                        setActiveArticle(null);
-                        navigate(activeArticle.toolLink);
-                        setTimeout(() => {
-                          const el = document.getElementById('habitats');
-                          if (el) el.scrollIntoView({ behavior: 'smooth' });
-                        }, 200);
-                      }}
-                      className="px-6 py-3 rounded-xl bg-orange-500 text-white text-xs font-black shadow-lg shadow-orange-100 hover:bg-orange-600 transition-colors shrink-0 cursor-pointer"
-                    >
-                      {activeArticle.cta} →
-                    </button>
-                  </div>
-                </div>
-
-                {/* Modal Footer */}
-                <div className="p-6 bg-white border-t border-slate-100 flex justify-between items-center shrink-0">
-                  <button
-                    onClick={(e) => handleShare(e, activeArticle)}
-                    className="px-4 py-2 border border-slate-200 text-slate-600 hover:text-slate-900 rounded-xl text-xs font-black transition-colors flex items-center gap-1.5"
-                  >
-                    {copiedId === activeArticle.id ? (
-                      <CheckCircle className="w-4 h-4 text-emerald-500" />
-                    ) : (
-                      <Copy className="w-4 h-4" />
-                    )}
-                    <span>{copiedId === activeArticle.id ? 'Link Copied!' : 'Share Article Link'}</span>
-                  </button>
-
-                  <button
-                    onClick={() => setActiveArticle(null)}
-                    className="px-6 py-2.5 bg-slate-950 text-white hover:bg-orange-500 rounded-xl text-xs font-black transition-colors"
-                  >
-                    Done Reading
-                  </button>
-                </div>
-
-              </motion.div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
       </div>
     </section>
   );
@@ -1110,6 +873,9 @@ function ToolSandboxPage() {
         ) : (
           <AiMascotSandbox cat={cat} toolName={decodedToolName} onBack={() => navigate(`/tools/${categoryPath}`)} />
         )}
+
+        {/* Dynamic Premium SEO Content & Guides Hub */}
+        <ToolSEOContent toolName={decodedToolName} category={cat} />
       </div>
     </div>
   );
@@ -1380,6 +1146,12 @@ export default function App() {
         <main className="flex-grow relative z-10">
           <Routes>
             <Route path="/" element={<HomePage />} />
+            <Route path="/about" element={<AboutPage />} />
+            <Route path="/privacy" element={<PrivacyPage />} />
+            <Route path="/terms" element={<TermsPage />} />
+            <Route path="/contact" element={<ContactPage />} />
+            <Route path="/blog" element={<BlogPage />} />
+            <Route path="/blog/:articleId" element={<ArticlePage />} />
             <Route path="/tools/:categoryPath" element={<CategoryPage />} />
             <Route path="/tools/:categoryPath/:toolName" element={<ToolSandboxPage />} />
             <Route path="*" element={<NotFoundPage />} />
