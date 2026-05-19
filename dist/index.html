@@ -2,13 +2,35 @@
 <html lang="en-IN">
 <head>
     <meta charset="UTF-8">
-    <script>
-        if (window.location.hostname.includes('github.io') && !window.location.pathname.includes('/dist/')) {
-            window.location.replace(window.location.pathname.replace(/\/$/, '') + '/dist/index.html');
+    <!-- Start Single Page Apps for GitHub Pages -->
+    <script type="text/javascript">
+      // Single Page Apps for GitHub Pages
+      // https://github.com/rafgraph/spa-github-pages
+      // Copyright (c) 2016 Rafael Pedicini, licensed under the MIT License
+      // ----------------------------------------------------------------------
+      // This script checks to see if a redirect is present in the query string
+      // and converts it back into the correct url and adds it to the
+      // browser's history using window.history.replaceState(...),
+      // which redirects the electron/browser back to the correct path
+      (function(l) {
+        if (l.search[1] === '/' ) {
+          var decoded = l.search.slice(1).split('&').map(function(s) {
+            return s.replace(/~and~/g, '&')
+          }).join('&');
+          window.history.replaceState(null, null,
+            l.pathname.slice(0, -1) + decoded + l.hash
+          );
         }
+      }(window.location));
     </script>
+    <!-- End Single Page Apps for GitHub Pages -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+    <!-- Preconnect & Fonts Optimization -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 
     <title>ToolTrove — 150+ Free Online Tools | PDF, AI Writing, Developer & More</title>
     <meta name="description" content="India's #1 free online tool platform. 150+ professional tools — PDF compressor, AI resume builder, background remover, GST calculator, code debugger and more. No signup needed.">
@@ -17,7 +39,44 @@
     <meta name="author" content="ToolTrove">
     <meta name="theme-color" content="#ff5c1a">
     <link rel="canonical" href="https://www.tooltrove.space">
-    <link rel="sitemap" type="application/xml" href="/Tool-Trove/dist/sitemap.xml">
+    <link rel="sitemap" type="application/xml" href="/Tool-Trove/sitemap.xml">
+
+    <!-- PWA Manifest & Touch Icons -->
+    <link rel="manifest" href="/Tool-Trove/manifest.json">
+    <link rel="apple-touch-icon" href="/Tool-Trove/favicon.svg">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="ToolTrove">
+
+    <!-- Service Worker Dynamic Caching Registrator -->
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/Tool-Trove/sw.js')
+            .then((reg) => console.log('[Service Worker] Scope Bound Registered:', reg.scope))
+            .catch((err) => console.error('[Service Worker] Registration Failed:', err));
+        });
+      }
+    </script>
+
+    <!-- Google Analytics (GA4) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-TOOLTROVE26"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      // Handled dynamically via React Router AnalyticsTracker to prevent duplicate triggers
+      gtag('config', 'G-TOOLTROVE26', { send_page_view: false });
+    </script>
+
+    <!-- Microsoft Clarity Integration -->
+    <script type="text/javascript">
+      (function(c,l,a,r,i,t,y){
+        c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
+        t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
+        y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
+      })(window,document,"clarity","script","clarity-project-id");
+    </script>
 
     <!-- Open Graph -->
     <meta property="og:type" content="website">
@@ -83,8 +142,8 @@
       ]
     }
     </script>
-  <script type="module" crossorigin src="/Tool-Trove/dist/assets/index-C1elmkeD.js"></script>
-  <link rel="stylesheet" crossorigin href="/Tool-Trove/dist/assets/index-BbONDY86.css">
+  <script type="module" crossorigin src="/Tool-Trove/assets/index-DZ-rE7YZ.js"></script>
+  <link rel="stylesheet" crossorigin href="/Tool-Trove/assets/index-DLgw4cAE.css">
 </head>
 <body>
     <div id="root"></div>

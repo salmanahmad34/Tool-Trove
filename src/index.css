@@ -1,5 +1,3 @@
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -79,4 +77,21 @@
 
 .animate-sway {
   animation: sway 5s ease-in-out infinite;
+}
+
+/* Mobile-first & GPU Performance Optimizations */
+.gpu-accelerated {
+  transform: translate3d(0, 0, 0);
+  backface-visibility: hidden;
+  perspective: 1000px;
+  will-change: transform;
+}
+
+.touch-latency-fix {
+  touch-action: manipulation;
+}
+
+.optimize-rendering {
+  content-visibility: auto;
+  contain-intrinsic-size: 1px 600px;
 }

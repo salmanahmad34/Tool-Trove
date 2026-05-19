@@ -142,13 +142,13 @@ function BeforeAfterSlider({ original, processed }) {
       className="relative w-full aspect-square border border-slate-200 rounded-3xl overflow-hidden cursor-ew-resize bg-[url('data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2220%22 height=%2220%22 viewBox=%220 0 20 20%22><rect width=%2210%22 height=%2210%22 fill=%22%23f8fafc%22/><rect x=%2210%22 y=%2210%22 width=%2210%22 height=%2210%22 fill=%22%23f8fafc%22/><rect x=%2210%22 width=%2210%22 height=%2210%22 fill=%22%23ffffff%22/><rect y=%2210%22 width=%2210%22 height=%2210%22 fill=%22%23ffffff%22/></svg>')] bg-repeat select-none shadow-inner flex items-center justify-center"
     >
       {/* Processed (Background) */}
-      <img src={processed} alt="Processed" className="absolute inset-0 w-full h-full object-contain pointer-events-none p-1 z-10" />
+      <img src={processed} alt="Processed" className="absolute inset-0 w-full h-full object-cover pointer-events-none p-1 z-10" />
 
       {/* Original (Clipped Foreground) */}
       <img 
         src={original} 
         alt="Original" 
-        className="absolute inset-0 w-full h-full object-contain pointer-events-none p-1 z-20"
+        className="absolute inset-0 w-full h-full object-cover pointer-events-none p-1 z-20"
         style={{ clipPath: `inset(0 ${100 - sliderPos}% 0 0)` }}
       />
 
@@ -325,7 +325,23 @@ function BackgroundRemover({ onBack }) {
       cachedMaskCanvas.height = processHeight;
       const cachedMaskCtx = cachedMaskCanvas.getContext('2d');
       
+      // Draw the raw mask first
       cachedMaskCtx.drawImage(results.segmentationMask, 0, 0, processWidth, processHeight);
+      
+      // Convert the greyscale/red WebGL probability mask into a high-fidelity alpha mask
+      const imgData = cachedMaskCtx.getImageData(0, 0, processWidth, processHeight);
+      const data = imgData.data;
+      
+      for (let i = 0; i < data.length; i += 4) {
+        const r = data[i]; // MediaPipe uses red channel for segmentation probability
+        
+        data[i] = 0;     // Red
+        data[i + 1] = 0; // Green
+        data[i + 2] = 0; // Blue
+        data[i + 3] = r; // Alpha becomes the probability (0 = transparent, 255 = fully opaque subject)
+      }
+      
+      cachedMaskCtx.putImageData(imgData, 0, 0);
       cachedMaskCanvasRef.current = cachedMaskCanvas;
 
       applyMaskAndBg();
@@ -963,27 +979,37 @@ function QrGenerator({ onBack }) {
   const logoImageRef = useRef(null);
 
   // Dynamic Contrast calculation
-  const getContrastRatio = (hex1, hex2) => {
-    const getLuminance = (hex) => {
-      const clean = hex.replace('#', '');
-      let r = parseInt(clean.substring(0, 2), 16) || 0;
-      let g = parseInt(clean.substring(2, 4), 16) || 0;
-      let b = parseInt(clean.substring(4, 6), 16) || 0;
-      
-      const linearize = (val) => {
-        let v = val / 255;
-        return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4);
-      };
-      
-      return 0.2126 * linearize(r) + 0.7152 * linearize(g) + 0.0722 * linearize(b);
+  const getLuminance = (hex) => {
+    const clean = hex.replace('#', '');
+    let r = parseInt(clean.substring(0, 2), 16) || 0;
+    let g = parseInt(clean.substring(2, 4), 16) || 0;
+    let b = parseInt(clean.substring(4, 6), 16) || 0;
+    
+    const linearize = (val) => {
+      let v = val / 255;
+      return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4);
     };
+    
+    return 0.2126 * linearize(r) + 0.7152 * linearize(g) + 0.0722 * linearize(b);
+  };
 
+  const getContrastRatio = (hex1, hex2) => {
     const l1 = getLuminance(hex1);
     const l2 = getLuminance(hex2);
     return (Math.max(l1, l2) + 0.05) / (Math.min(l1, l2) + 0.05);
   };
 
   const contrastRatio = getContrastRatio(fgColor, bgColor);
+
+  const handleAutoFixContrast = () => {
+    const isLightBg = getLuminance(bgColor) > 0.5;
+    if (isLightBg) {
+      setFgColor('#0f172a'); // enforce secure high-contrast dark slate
+    } else {
+      setBgColor('#ffffff');
+      setFgColor('#0f172a');
+    }
+  };
 
   // AI URL Analyzer
   const getURLAnalysis = (val) => {
@@ -1129,18 +1155,42 @@ function QrGenerator({ onBack }) {
     if (contrastRatio < 3.0) {
       return {
         style: "bg-rose-50 border-rose-200 text-rose-800",
-        message: `🚨 DANGEROUSLY LOW CONTRAST (${contrastRatio.toFixed(1)}:1)! Foreground and background are too similar. Scanners will fail completely. Suggestion: Instantly click our 'Minimalist' preset below to ensure 100% scannability.`
+        message: (
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+            <span>🚨 <strong>DANGEROUSLY LOW CONTRAST ({contrastRatio.toFixed(1)}:1)!</strong> Foreground and background are too similar. Scanners will fail completely.</span>
+            <button 
+              onClick={handleAutoFixContrast} 
+              className="px-3 py-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded-lg text-[10px] font-black uppercase transition-all shadow-md shrink-0 active:scale-95"
+            >
+              Auto-Fix Colors
+            </button>
+          </div>
+        )
       };
     }
     if (contrastRatio < 5.0) {
       return {
         style: "bg-amber-50 border-amber-200 text-amber-800",
-        message: `⚠️ LOW CONTRAST WARNING (${contrastRatio.toFixed(1)}:1)! Scanning may lag or fail entirely on older Android cameras. We highly recommend using a darker foreground color.`
+        message: (
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+            <span>⚠️ <strong>LOW CONTRAST WARNING ({contrastRatio.toFixed(1)}:1)!</strong> Scanning may lag or fail entirely on older Android cameras. We highly recommend using a darker foreground color.</span>
+            <button 
+              onClick={handleAutoFixContrast} 
+              className="px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white rounded-lg text-[10px] font-black uppercase transition-all shadow-md shrink-0 active:scale-95"
+            >
+              Auto-Fix Colors
+            </button>
+          </div>
+        )
       };
     }
     return {
       style: "bg-emerald-50 border-emerald-200 text-emerald-800",
-      message: `✨ AI CONTRAST PASSED (${contrastRatio.toFixed(1)}:1)! Superb readability detected. Enforced quiet zones are active. Scans instantly on WhatsApp, Google Lens, iOS, and Android.`
+      message: (
+        <div className="flex items-center gap-2">
+          <span>✨ <strong>AI CONTRAST PASSED ({contrastRatio.toFixed(1)}:1)!</strong> Superb readability detected. Enforced quiet zones are active. Scans instantly on WhatsApp, Google Lens, iOS, and Android.</span>
+        </div>
+      )
     };
   };
 
@@ -1253,8 +1303,8 @@ function QrGenerator({ onBack }) {
         const lx = (size - logoSize) / 2;
         const ly = (size - logoSize) / 2;
         logoElement = `
-          <rect x="${lx - 4}" y="${ly - 4}" width="${logoSize + 8}" height="${logoSize + 8}" fill="${bgColor}" rx="6"/>
-          <image href="${logoSrc}" x="${lx}" y="${ly}" width="${logoSize}" height="${logoSize}" />
+          <rect x="${lx - 4}" y="${ly - 4}" width="${logoSize + 8}" height="${logoSize + 8}" fill="${bgColor}" rx="${logoBorderRadius + 2}" ry="${logoBorderRadius + 2}"/>
+          <image href="${logoSrc}" x="${lx}" y="${ly}" width="${logoSize}" height="${logoSize}" rx="${logoBorderRadius}" ry="${logoBorderRadius}" />
         `;
       }
 

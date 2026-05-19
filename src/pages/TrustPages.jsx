@@ -1,13 +1,12 @@
 import React, { useState } from 'react';
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { 
   ShieldCheck, ShieldAlert, Award, Compass, Send, CheckCircle, 
   Mail, MessageSquare, MapPin, Sparkles, Clock, Globe, ArrowRight,
-  BookOpen, Calendar, ArrowLeft
+  BookOpen, Calendar, ArrowLeft, Heart, Terminal, Cpu, Info, HelpCircle
 } from 'lucide-react';
 import SEOManager from '../components/SEOManager';
 import { OwlMascot } from '../components/Mascots';
-import { INSIGHTS_ARTICLES } from '../components/BlogData';
 
 // ==================== 1. ABOUT PAGE ====================
 export function AboutPage() {
@@ -19,11 +18,17 @@ export function AboutPage() {
     { year: "2026", title: "Premium AI Co-Processing", desc: "Deployed local AI-assisted Presets, smart contrast engines, and mascot-driven guidance. ToolTrove is recognized as India's #1 secure browser utility suite." }
   ];
 
+  const values = [
+    { icon: <ShieldCheck className="text-emerald-500 w-7 h-7" />, title: "Data Sovereignty", desc: "Your files never leave your device. All operations execute strictly in your local browser sandbox, rendering cloud database leaks obsolete." },
+    { icon: <Cpu className="text-orange-500 w-7 h-7" />, title: "Serverless Speed", desc: "No upload queue lines and no delay. Utilizing modern browser CPUs and hardware WebGL allows instant rendering in milliseconds." },
+    { icon: <Award className="text-indigo-500 w-7 h-7" />, title: "100% Free Access", desc: "No subscription barriers, no hidden charges, and no account requirements. Premium, high-fidelity developer suites open to everyone." }
+  ];
+
   return (
     <div className="pt-36 pb-20 px-6 max-w-5xl mx-auto space-y-16">
       <SEOManager 
-        title="About Our Safe Sandbox — ToolTrove"
-        description="Learn about ToolTrove's mission to protect digital data sovereignty through local client-side processing. Meet our design philosophies and technology stack."
+        title="About Our Safe Offline Sandbox — ToolTrove"
+        description="Discover how ToolTrove protects your data privacy through 100% client-side serverless utilities. Learn about our mission, framework, and values."
       />
 
       {/* Hero Header */}
@@ -35,31 +40,29 @@ export function AboutPage() {
           Simplifying the Web with <span className="text-[#ff5c1a]">Local-First</span> Utilities
         </h1>
         <p className="text-slate-500 font-semibold leading-relaxed text-sm md:text-base">
-          ToolTrove is an innovative, high-fidelity platform offering over 50+ professional browser utility tools completely free of charge. No signups, no paid limits, and absolute privacy.
+          ToolTrove is a premium, high-fidelity utility platform offering professional browser tools completely free of charge. No signup walls, no limits, and absolute client-side privacy.
         </p>
       </div>
 
-      {/* Core Philosophies */}
+      {/* Core Values Cards */}
       <div className="grid md:grid-cols-3 gap-8">
-        {[
-          { icon: <ShieldCheck className="text-emerald-500 w-8 h-8" />, title: "Absolute Sovereignty", desc: "Your data is yours alone. Our local-first execution ensures no PDF files, invoices, photos, or passwords ever leave your machine." },
-          { icon: <Zap className="text-orange-500 w-8 h-8" />, title: "Instant Compilation", desc: "No backend upload delays, zero server wait queues. Tools process data instantly on your GPU/CPU for hyper-speed output." },
-          { icon: <Award className="text-violet-500 w-8 h-8" />, title: "100% Free Forever", desc: "We are committed to helping small businesses, MSMEs, creators, and developers build professional products with zero hidden fees." }
-        ].map((phil, i) => (
-          <div key={i} className="p-8 rounded-3xl bg-white border border-slate-200 shadow-md hover:shadow-xl hover:border-orange-200 transition-all space-y-4">
-            <div className="p-3 bg-slate-50 rounded-2xl w-max shadow-inner">{phil.icon}</div>
-            <h3 className="text-lg font-black text-slate-800">{phil.title}</h3>
-            <p className="text-slate-500 text-xs leading-relaxed font-semibold">{phil.desc}</p>
+        {values.map((v, i) => (
+          <div key={i} className="p-8 rounded-[2rem] bg-white border border-slate-200 shadow-md hover:shadow-xl hover:border-orange-200 transition-all space-y-4 relative overflow-hidden group">
+            <div className="absolute inset-0 bg-gradient-to-br from-orange-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+            <div className="p-3 bg-slate-50 rounded-2xl w-max shadow-inner relative z-10">{v.icon}</div>
+            <h3 className="text-lg font-black text-slate-800 relative z-10">{v.title}</h3>
+            <p className="text-slate-500 text-xs leading-relaxed font-semibold relative z-10">{v.desc}</p>
           </div>
         ))}
       </div>
 
       {/* Interactive Story Timeline */}
-      <div className="p-8 md:p-12 rounded-[2.5rem] bg-slate-950 text-white shadow-xl grid md:grid-cols-2 gap-12 items-center">
-        <div className="space-y-6">
+      <div className="p-8 md:p-12 rounded-[2.5rem] bg-slate-950 text-white shadow-xl grid md:grid-cols-2 gap-12 items-center relative overflow-hidden">
+        <div className="absolute -right-16 -bottom-16 w-64 h-64 bg-orange-500/10 rounded-full blur-3xl"></div>
+        <div className="space-y-6 relative z-10">
           <span className="text-xs font-bold text-orange-400 uppercase tracking-widest block">The Chronicle</span>
           <h2 className="text-3xl font-black">Our Journey to 2026</h2>
-          <p className="text-slate-400 text-xs leading-relaxed">
+          <p className="text-slate-400 text-xs leading-relaxed font-semibold">
             From a tiny sandbox script project to a trusted utility platform processing millions of local actions daily, ToolTrove represents the power of client-side computing.
           </p>
           <div className="flex gap-2">
@@ -67,7 +70,9 @@ export function AboutPage() {
               <button 
                 key={idx}
                 onClick={() => setActiveStory(idx)}
-                className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${activeStory === idx ? 'bg-orange-500 text-white' : 'bg-white/10 text-slate-400 hover:bg-white/20'}`}
+                className={`px-4 py-2.5 rounded-xl text-xs font-black transition-all cursor-pointer ${
+                  activeStory === idx ? 'bg-orange-500 text-white' : 'bg-white/10 text-slate-400 hover:bg-white/20'
+                }`}
               >
                 {item.year}
               </button>
@@ -75,10 +80,31 @@ export function AboutPage() {
           </div>
         </div>
 
-        <div className="p-8 bg-white/5 border border-white/10 rounded-3xl space-y-3 min-h-[160px] flex flex-col justify-center">
+        <div className="p-8 bg-white/5 border border-white/10 rounded-3xl space-y-3 min-h-[180px] flex flex-col justify-center relative z-10">
           <span className="text-orange-400 text-xs font-black uppercase tracking-wider">{timeline[activeStory].title}</span>
-          <p className="text-sm text-slate-200 leading-relaxed font-medium">
+          <p className="text-sm text-slate-200 leading-relaxed font-semibold">
             {timeline[activeStory].desc}
+          </p>
+        </div>
+      </div>
+
+      {/* Frameworks & Tech */}
+      <div className="bg-slate-50 border border-slate-200 rounded-[2rem] p-8 md:p-10 space-y-6">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-slate-200 pb-6">
+          <div>
+            <h3 className="text-xl font-black text-slate-900">Compliance & Performance</h3>
+            <p className="text-slate-400 text-xs font-semibold mt-1">Our serverless core executes with modern browser APIs.</p>
+          </div>
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-50 text-emerald-600 border border-emerald-100 rounded-full text-[10px] font-black uppercase tracking-wider">
+            ✓ GDPR & CCPA Ready
+          </span>
+        </div>
+        <div className="grid md:grid-cols-2 gap-8 text-xs font-semibold leading-relaxed text-slate-500">
+          <p>
+            By designing completely local pipelines, ToolTrove bypasses typical server vulnerability models. Traditional portals act as single points of database breach vectors, storing private documents and calculations in active caches. In contrast, our platform is structured as an isolated front-end sandbox utilizing modern browser sandboxes.
+          </p>
+          <p>
+            We process heavy image and segmentation tasks via optimized client-side neural libraries (MediaPipe/WebGL), parse open-xml spreadsheet cells natively using structured JavaScript arrays, and compute precise compound loans through native memory. This architecture yields lightning-fast outputs and ensures absolute confidentiality.
           </p>
         </div>
       </div>
@@ -91,8 +117,8 @@ export function PrivacyPage() {
   return (
     <div className="pt-36 pb-20 px-6 max-w-4xl mx-auto space-y-12">
       <SEOManager 
-        title="Privacy Guarantee & Data CCPA — ToolTrove"
-        description="Read ToolTrove's strict privacy framework. Discover how our client-side sandbox ensures no files, passwords, or images are ever uploaded to any database."
+        title="Privacy Policy & GDPR Compliance — ToolTrove"
+        description="Read ToolTrove's strict privacy policy. Learn how our local-first sandbox guarantees that no files, passwords, or personal data ever leave your device."
       />
 
       <div className="space-y-4 text-center max-w-2xl mx-auto">
@@ -103,11 +129,11 @@ export function PrivacyPage() {
           Privacy Policy
         </h1>
         <p className="text-slate-500 font-semibold text-xs leading-relaxed">
-          Last updated: May 18, 2026. Effective globally under GDPR & CCPA frameworks.
+          Last updated: May 19, 2026. Effective globally under GDPR & CCPA frameworks.
         </p>
       </div>
 
-      <div className="bg-emerald-50/50 border border-emerald-150 p-6 rounded-3xl text-emerald-800 text-xs font-semibold leading-relaxed space-y-2 max-w-3xl mx-auto">
+      <div className="bg-emerald-50/50 border border-emerald-100 p-6 rounded-3xl text-emerald-800 text-xs font-semibold leading-relaxed space-y-2 max-w-3xl mx-auto shadow-sm">
         <h4 className="font-black text-emerald-900 flex items-center gap-1.5 text-sm">
           <ShieldCheck className="w-5 h-5 shrink-0" /> Dynamic Client-Side Processing Statement
         </h4>
@@ -116,14 +142,14 @@ export function PrivacyPage() {
         </p>
       </div>
 
-      <div className="prose prose-slate max-w-none text-slate-600 text-sm leading-relaxed space-y-8">
+      <div className="prose prose-slate max-w-none text-slate-650 text-sm leading-relaxed space-y-8 font-semibold">
         
         <section className="space-y-3">
           <h2 className="text-lg font-black text-slate-900">1. Information We Never Collect</h2>
           <p>
-            Because our architecture operates without cloud backends, we do not, cannot, and will never collect or access:
+            Because our architecture operates without cloud backends, we do not, cannot, and will never collect, process, or access:
           </p>
-          <ul className="list-disc pl-5 space-y-2">
+          <ul className="list-disc pl-5 space-y-2 text-xs">
             <li>Any PDF files, invoices, or personal documents you merge, split, or compress.</li>
             <li>Any passwords, usernames, or key codes generated in our Security tools.</li>
             <li>Any images, headshots, or product photos cropped or background-segmented in our Canvas tools.</li>
@@ -139,23 +165,23 @@ export function PrivacyPage() {
         </section>
 
         <section className="space-y-3">
-          <h2 className="text-lg font-black text-slate-900">3. AdSense and Advertising Rules</h2>
+          <h2 className="text-lg font-black text-slate-900">3. AdSense and Advertising Disclosures</h2>
           <p>
             ToolTrove partners with Google AdSense to serve clean, responsive advertising placements. These placements utilize browser cookies to serve interest-based ads based on your generic browsing history. You may opt out of personalized advertisements at any time by visiting the official Google Ads Settings page.
           </p>
         </section>
 
         <section className="space-y-3">
-          <h2 className="text-lg font-black text-slate-900">4. Third-Party Links</h2>
+          <h2 className="text-lg font-black text-slate-900">4. CCPA & GDPR Compliance</h2>
           <p>
-            Our tools might include internal/external recommendations pointing to similar developers, or educational guides. We do not assume responsibility for the privacy practices of external domains. Always inspect third-party privacy guidelines.
+            Under global frameworks, users hold absolute rights regarding their digital privacy. Since our sandbox executes calculations locally, we do not compile databases of user identities, rendering standard requests for deletion or data transfers obsolete: your data stays completely within your device's memory control.
           </p>
         </section>
 
         <section className="space-y-3">
           <h2 className="text-lg font-black text-slate-900">5. Contact Our Privacy Officer</h2>
           <p>
-            If you have questions regarding our local sandboxing protocols or wish to request details about compliance under CCPA and GDPR rules, email us immediately at <span className="font-bold text-slate-900">privacy@tooltrove.space</span>.
+            If you have questions regarding our local sandboxing protocols or wish to request details about compliance under CCPA and GDPR rules, email us immediately at <span className="font-bold text-slate-950">privacy@tooltrove.space</span>.
           </p>
         </section>
       </div>
@@ -180,11 +206,11 @@ export function TermsPage() {
           Terms & Conditions
         </h1>
         <p className="text-slate-500 font-semibold text-xs leading-relaxed">
-          Effective Date: May 18, 2026
+          Effective Date: May 19, 2026
         </p>
       </div>
 
-      <div className="prose prose-slate max-w-none text-slate-600 text-sm leading-relaxed space-y-8">
+      <div className="prose prose-slate max-w-none text-slate-650 text-sm leading-relaxed space-y-8 font-semibold">
         
         <section className="space-y-3">
           <h2 className="text-lg font-black text-slate-900">1. Acceptance of Terms</h2>
@@ -216,6 +242,13 @@ export function TermsPage() {
           <h2 className="text-lg font-black text-slate-900">4. Intellectual Property</h2>
           <p>
             All custom components, custom brand logos, CSS tokens, assets, mascot graphics, and written educational articles are the protected intellectual property of ToolTrove.
+          </p>
+        </section>
+
+        <section className="space-y-3">
+          <h2 className="text-lg font-black text-slate-900">5. Governing Law</h2>
+          <p>
+            These terms are governed by and construed in accordance with the laws of India, without regard to conflicts of law provisions. Any legal actions must be resolved in courts located in Bengaluru, Karnataka, India.
           </p>
         </section>
       </div>
@@ -316,7 +349,7 @@ export function ContactPage() {
                 </p>
                 <button 
                   onClick={() => { setSuccess(false); setForm({ name:'', email:'', subject:'', message:'' }); }}
-                  className="px-6 py-2.5 bg-slate-900 text-white font-bold rounded-xl hover:bg-orange-500 transition-colors"
+                  className="px-6 py-2.5 bg-slate-900 text-white font-bold rounded-xl hover:bg-orange-500 transition-colors cursor-pointer"
                 >
                   Send Another Message
                 </button>
@@ -395,147 +428,75 @@ export function ContactPage() {
   );
 }
 
-// ==================== 5. BLOG OVERVIEW PAGE ====================
-export function BlogPage() {
-  const navigate = useNavigate();
-
+// ==================== 5. DISCLAIMER PAGE ====================
+export function DisclaimerPage() {
   return (
-    <div className="pt-36 pb-20 px-6 max-w-6xl mx-auto space-y-16">
+    <div className="pt-36 pb-20 px-6 max-w-4xl mx-auto space-y-12">
       <SEOManager 
-        title="ToolTrove Chronicles & Professional Guides"
-        description="Unlock expert strategies in tech security, data safety, Indian tax GSTR filings, and client-side design hacks."
+        title="Legal Disclaimer & Liability Limits — ToolTrove"
+        description="Read ToolTrove's legal disclaimer. Understand our computational warranties, tax estimates advice, and local browser execution limitations."
       />
 
-      <div className="text-center max-w-3xl mx-auto space-y-4">
-        <span className="inline-flex items-center gap-1.5 px-3.5 py-1 bg-orange-50 text-orange-600 border border-orange-100 rounded-full text-xs font-black uppercase tracking-wider">
-          <BookOpen className="w-3.5 h-3.5" /> ToolTrove Chronicles
+      <div className="space-y-4 text-center max-w-2xl mx-auto">
+        <span className="inline-flex items-center gap-1.5 px-3.5 py-1 bg-amber-50 text-amber-600 border border-amber-100 rounded-full text-xs font-black uppercase tracking-wider">
+          <ShieldAlert className="w-3.5 h-3.5" /> Standard Legal Disclosures
         </span>
-        <h1 className="text-4xl md:text-6xl font-black tracking-tight text-slate-900">
-          Knowledge & <span className="text-[#ff5c1a]">Tech Strategies</span>
+        <h1 className="text-4xl md:text-5xl font-black tracking-tight text-slate-900 leading-tight">
+          Legal Disclaimer
         </h1>
-        <p className="text-slate-500 font-semibold leading-relaxed text-sm md:text-base">
-          Read deeply researched guides on local browser security frameworks, business accounting structures, and smart utility hacks.
+        <p className="text-slate-500 font-semibold text-xs leading-relaxed">
+          Effective Date: May 19, 2026. Reviewed for Google Adsense & Legal Compliance.
         </p>
       </div>
 
-      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-        {INSIGHTS_ARTICLES.map((article) => (
-          <div
-            key={article.id}
-            onClick={() => navigate(`/blog/${article.id}`)}
-            className="group cursor-pointer flex flex-col justify-between p-6 rounded-3xl bg-white border border-slate-200/80 shadow-md hover:shadow-xl hover:border-orange-300 hover:-translate-y-1.5 transition-all duration-300 relative overflow-hidden"
-          >
-            <div>
-              <div className="flex justify-between items-center mb-6">
-                <span className={`px-3 py-1 rounded-xl text-[10px] font-black border ${article.color}`}>
-                  {article.category}
-                </span>
-                <span className="flex items-center gap-1 text-[10px] text-slate-400 font-bold">
-                  <Clock className="w-3.5 h-3.5" /> {article.readTime}
-                </span>
-              </div>
-              <h3 className="text-lg font-black text-slate-900 leading-snug group-hover:text-orange-500 transition-colors mb-3">
-                {article.title}
-              </h3>
-              <p className="text-slate-400 text-xs font-medium leading-relaxed mb-6 line-clamp-3">
-                {article.excerpt}
-              </p>
-            </div>
-            <div className="pt-4 border-t border-slate-100 flex items-center justify-between text-xs font-bold">
-              <span className="text-slate-400">{article.date}</span>
-              <span className="text-[#ff5c1a] group-hover:translate-x-1 transition-transform flex items-center gap-1">
-                Read Guide <ArrowRight className="w-3.5 h-3.5" />
-              </span>
-            </div>
-          </div>
-        ))}
+      <div className="bg-amber-50/50 border border-amber-100 p-6 rounded-3xl text-amber-800 text-xs font-semibold leading-relaxed space-y-2 max-w-3xl mx-auto shadow-sm">
+        <h4 className="font-black text-amber-900 flex items-center gap-1.5 text-sm">
+          <Info className="w-5 h-5 shrink-0" /> Important Informational Purpose Declaration
+        </h4>
+        <p>
+          All information and utilities (calculators, conversion scripts, background removers, OCR scans) offered on ToolTrove are served purely for educational, informational, and general utility purposes. ToolTrove does not represent professional financial, tax, or legal consulting services.
+        </p>
+      </div>
+
+      <div className="prose prose-slate max-w-none text-slate-650 text-sm leading-relaxed space-y-8 font-semibold">
+        
+        <section className="space-y-3">
+          <h2 className="text-lg font-black text-slate-900">1. Accuracy of Calculations & GST/EMI</h2>
+          <p>
+            While our GST slab and EMI interest schedulers have been precisely coded to execute perfect arithmetic decimal calculations, we do not guarantee the completeness or absolute applicability of results to specific business structures. Financial slabs, tax codes, and compound compounding rules are subject to localized changes. Always consult with a certified public accountant (CPA) or licensed legal consultant before submitting official corporate filings or bank contracts.
+          </p>
+        </section>
+
+        <section className="space-y-3">
+          <h2 className="text-lg font-black text-slate-900">2. No Liability Warranty</h2>
+          <p>
+            In no event shall ToolTrove, its developers, or editorial teams be liable for any direct, indirect, special, consequential, or incidental losses arising from the use of calculations, conversion sheets, cropped visuals, or system presets. Use of these utilities is entirely at your own risk.
+          </p>
+        </section>
+
+        <section className="space-y-3">
+          <h2 className="text-lg font-black text-slate-900">3. Third-Party Placements and Adsense</h2>
+          <p>
+            ToolTrove may display Google Adsense contextual ads or recommendations for external tools. These external targets are governed by their respective licenses and privacy structures. We do not inspect, endorse, or assume responsibility for external contents or corporate operations.
+          </p>
+        </section>
+
+        <section className="space-y-3">
+          <h2 className="text-lg font-black text-slate-900">4. Client-Side Software Performance</h2>
+          <p>
+            Because all file modifications (such as high-fidelity human portrait masking and local script compilation) execute strictly inside your local device's memory via WebGL/HTML5, performance depends on your local hardware specs (GPU, RAM, CPU). ToolTrove is not responsible for temporary browser hangs, session timeouts, or memory limitations.
+          </p>
+        </section>
+
+        <section className="space-y-3">
+          <h2 className="text-lg font-black text-slate-900">5. Clarifications & Questions</h2>
+          <p>
+            If you have questions regarding these legal liability thresholds or need support regarding our local-first warranties, contact us at <span className="font-bold text-slate-950">legal@tooltrove.space</span>.
+          </p>
+        </section>
       </div>
     </div>
   );
 }
 
-// ==================== 6. SINGLE ARTICLE PAGE ====================
-export function ArticlePage() {
-  const { articleId } = useParams();
-  const navigate = useNavigate();
-
-  const article = INSIGHTS_ARTICLES.find(a => a.id === articleId);
-
-  if (!article) {
-    return (
-      <div className="pt-40 pb-20 text-center space-y-6">
-        <h2 className="text-3xl font-black text-slate-800">Article Not Found</h2>
-        <p className="text-slate-400">The requested educational chronicle does not exist or has been archived.</p>
-        <button 
-          onClick={() => navigate('/blog')}
-          className="px-6 py-2.5 bg-slate-950 text-white font-bold rounded-xl"
-        >
-          Back to Chronicles
-        </button>
-      </div>
-    );
-  }
-
-  return (
-    <div className="pt-36 pb-20 px-6 max-w-4xl mx-auto space-y-8">
-      <SEOManager 
-        title={article.title}
-        description={article.excerpt}
-      />
-
-      {/* Breadcrumbs */}
-      <div className="flex items-center gap-2 text-xs font-bold text-slate-400 mb-6 uppercase tracking-widest">
-        <Link to="/" className="hover:text-orange-500 transition-colors">Home</Link>
-        <span className="text-slate-300">/</span>
-        <Link to="/blog" className="hover:text-orange-500 transition-colors">Blog</Link>
-        <span className="text-slate-300">/</span>
-        <span className="text-slate-600 truncate max-w-[200px]">{article.title}</span>
-      </div>
-
-      <button 
-        onClick={() => navigate('/blog')}
-        className="inline-flex items-center gap-2 text-xs font-black text-slate-500 hover:text-orange-500 transition-colors"
-      >
-        <ArrowLeft className="w-4 h-4" /> Back to Chronicles
-      </button>
-
-      {/* Title & Metadata */}
-      <div className="space-y-4">
-        <span className={`inline-block px-3 py-1 rounded-xl text-xs font-black border ${article.color}`}>
-          {article.category}
-        </span>
-        <h1 className="text-3xl md:text-5xl font-black tracking-tight text-slate-900 leading-tight">
-          {article.title}
-        </h1>
-        <div className="flex flex-wrap items-center gap-6 text-xs text-slate-400 font-bold border-y border-slate-100 py-4">
-          <span className="flex items-center gap-1.5"><Calendar className="w-4 h-4" /> {article.date}</span>
-          <span className="flex items-center gap-1.5"><Clock className="w-4 h-4" /> {article.readTime}</span>
-        </div>
-      </div>
-
-      {/* Article Content Body */}
-      <div className="space-y-10 text-slate-600 text-sm md:text-base leading-relaxed font-medium pt-4">
-        {article.content.map((sec, idx) => (
-          <div key={idx} className="space-y-3">
-            <h3 className="text-lg md:text-xl font-black text-slate-800">{sec.subtitle}</h3>
-            <p className="text-slate-650">{sec.paragraph}</p>
-          </div>
-        ))}
-      </div>
-
-      {/* Action CTA box linking to category */}
-      <div className="p-8 rounded-3xl bg-slate-50 border border-slate-150 flex flex-col md:flex-row items-center justify-between gap-6 mt-12">
-        <div>
-          <h4 className="font-black text-slate-900 text-lg">Put this knowledge into practice!</h4>
-          <p className="text-slate-400 text-xs font-semibold mt-1">Unlock seamless client-side speeds in our custom toolbox.</p>
-        </div>
-        <button 
-          onClick={() => navigate(article.toolLink)}
-          className="px-8 py-3.5 bg-orange-500 text-white font-bold rounded-2xl shadow-lg hover:scale-105 transition-all text-xs"
-        >
-          {article.cta} →
-        </button>
-      </div>
-    </div>
-  );
-}
+// Blog pages have been migrated to the dedicated BlogPages.jsx file to optimize splitting and modular maintenance.

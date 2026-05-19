@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, lazy, Suspense } from 'react';
 import { 
-  HashRouter as Router, 
+  BrowserRouter as Router, 
   Routes, 
   Route, 
   Link, 
@@ -41,15 +41,28 @@ import axios from 'axios';
 // --- Local Imports ---
 import { OwlMascot, LionMascot, ElephantMascot, ChameleonMascot, FoxMascot } from './components/Mascots';
 import ChatAssistant from './components/ChatAssistant';
-import DocumentTools from './tools/DocumentTools';
-import CalculatorTools from './tools/CalculatorTools';
-import MediaTools from './tools/MediaTools';
-import SecurityTools from './tools/SecurityTools';
-import DeveloperTools from './tools/DeveloperTools';
 import { BrandLogo, LogoIcon } from './components/BrandLogo';
-import { AboutPage, PrivacyPage, TermsPage, ContactPage, BlogPage, ArticlePage } from './pages/TrustPages';
 import { INSIGHTS_ARTICLES } from './components/BlogData';
 import ToolSEOContent from './components/ToolSEOContent';
+import PwaInstallPrompt from './components/PwaInstallPrompt';
+import AnalyticsTracker from './components/AnalyticsTracker';
+
+// --- Dynamically Imported Tool Components (Code Splitting) ---
+const DocumentTools = lazy(() => import('./tools/DocumentTools'));
+const CalculatorTools = lazy(() => import('./tools/CalculatorTools'));
+const MediaTools = lazy(() => import('./tools/MediaTools'));
+const SecurityTools = lazy(() => import('./tools/SecurityTools'));
+const DeveloperTools = lazy(() => import('./tools/DeveloperTools'));
+
+// --- Dynamically Imported Trust Pages ---
+const AboutPage = lazy(() => import('./pages/TrustPages').then(m => ({ default: m.AboutPage })));
+const PrivacyPage = lazy(() => import('./pages/TrustPages').then(m => ({ default: m.PrivacyPage })));
+const TermsPage = lazy(() => import('./pages/TrustPages').then(m => ({ default: m.TermsPage })));
+const ContactPage = lazy(() => import('./pages/TrustPages').then(m => ({ default: m.ContactPage })));
+const DisclaimerPage = lazy(() => import('./pages/TrustPages').then(m => ({ default: m.DisclaimerPage })));
+const BlogPage = lazy(() => import('./pages/BlogPages').then(m => ({ default: m.BlogPage })));
+const ArticlePage = lazy(() => import('./pages/BlogPages').then(m => ({ default: m.ArticlePage })));
+
 
 // --- Category Data Mapping ---
 const CATEGORIES = [
@@ -141,6 +154,28 @@ const checkIsImplemented = (catId, toolName) => {
   return ['docs', 'business', 'media', 'security', 'developer'].includes(catId);
 };
 
+// Helper to get clean path from tool name
+export const getToolPath = (toolName) => {
+  if (!toolName) return '';
+  return toolName
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/(^-|-$)/g, '');
+};
+
+// Helper to find a tool by its clean path
+export const findToolByPath = (cleanPath) => {
+  if (!cleanPath) return null;
+  const norm = cleanPath.toLowerCase();
+  for (const cat of CATEGORIES) {
+    const foundTool = cat.tools.find(tool => getToolPath(tool) === norm);
+    if (foundTool) {
+      return { category: cat, toolName: foundTool };
+    }
+  }
+  return null;
+};
+
 // --- Auto Scroll to Top on Navigation ---
 function ScrollToTop() {
   const { pathname } = useLocation();
@@ -148,6 +183,47 @@ function ScrollToTop() {
     window.scrollTo(0, 0);
   }, [pathname]);
   return null;
+}
+
+// --- Premium Theme-Accurate pulsing Skeleton Loader placeholder ---
+function SkeletonLoader() {
+  return (
+    <div className="w-full max-w-4xl mx-auto pt-32 pb-20 px-6 animate-pulse touch-latency-fix">
+      {/* Breadcrumbs Skeleton */}
+      <div className="flex items-center gap-2 mb-8">
+        <div className="h-4 w-12 bg-slate-200 rounded-lg"></div>
+        <div className="h-3.5 w-3.5 bg-slate-200 rounded-full"></div>
+        <div className="h-4 w-24 bg-slate-200 rounded-lg"></div>
+        <div className="h-3.5 w-3.5 bg-slate-200 rounded-full"></div>
+        <div className="h-4 w-32 bg-slate-200 rounded-lg"></div>
+      </div>
+      
+      {/* Tool Container Skeleton */}
+      <div className="bg-white p-6 md:p-10 rounded-3xl border border-slate-200 shadow-xl space-y-6">
+        <div className="flex items-center gap-4 border-b border-slate-100 pb-6">
+          <div className="w-16 h-16 bg-slate-100 rounded-2xl shrink-0 flex items-center justify-center">
+            <Sparkles className="w-8 h-8 text-slate-300 animate-spin-slow" />
+          </div>
+          <div className="space-y-2 flex-grow">
+            <div className="h-6 w-1/3 bg-slate-200 rounded-xl"></div>
+            <div className="h-4 w-2/3 bg-slate-150 rounded-xl"></div>
+          </div>
+        </div>
+        
+        <div className="space-y-4">
+          <div className="h-44 w-full bg-slate-50 border border-dashed border-slate-200 rounded-3xl flex items-center justify-center">
+            <div className="text-center space-y-2">
+              <div className="mx-auto w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-sm">
+                <RefreshCw className="w-5 h-5 text-slate-300 animate-spin" />
+              </div>
+              <div className="h-3.5 w-36 bg-slate-200 rounded-lg mx-auto"></div>
+            </div>
+          </div>
+          <div className="h-12 w-full bg-slate-900/5 rounded-2xl"></div>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 // ==================== SHARED LAYOUT: NAVBAR ====================
@@ -264,8 +340,10 @@ function Footer() {
               <li><Link to="/" className="hover:text-orange-500 transition-colors">Home Sandbox</Link></li>
               <li><button onClick={handleScrollToCategories} className="hover:text-orange-500 text-left transition-colors">Explore All Tools</button></li>
               <li><Link to="/about" className="hover:text-orange-500 transition-colors">About Us</Link></li>
+              <li><Link to="/blog" className="hover:text-orange-500 transition-colors">Blog Chronicles</Link></li>
               <li><Link to="/privacy" className="hover:text-orange-500 transition-colors">Privacy Policy</Link></li>
               <li><Link to="/terms" className="hover:text-orange-500 transition-colors">Terms of Service</Link></li>
+              <li><Link to="/disclaimer" className="hover:text-orange-500 transition-colors">Legal Disclaimer</Link></li>
               <li><Link to="/contact" className="hover:text-orange-500 transition-colors">Contact Support</Link></li>
             </ul>
           </div>
@@ -273,10 +351,10 @@ function Footer() {
           <div>
             <h5 className="font-black text-slate-900 mb-6 uppercase tracking-wider text-sm">Popular Tools</h5>
             <ul className="space-y-4 text-slate-600 font-semibold text-sm">
-              <li><Link to="/tools/pdf/Invoice Generator" className="hover:text-orange-500 transition-colors">Premium Invoice Generator</Link></li>
-              <li><Link to="/tools/image/Format Converter" className="hover:text-orange-500 transition-colors">Format Converter & Compressor</Link></li>
-              <li><Link to="/tools/business/EMI Calculator" className="hover:text-orange-500 transition-colors">EMI Loan Calculator</Link></li>
-              <li><Link to="/tools/security/FIFA Live Tracker" className="hover:text-orange-500 transition-colors">FIFA Live Match Tracker</Link></li>
+              <li><Link to="/invoice-generator" className="hover:text-orange-500 transition-colors">Premium Invoice Generator</Link></li>
+              <li><Link to="/format-converter" className="hover:text-orange-500 transition-colors">Format Converter & Compressor</Link></li>
+              <li><Link to="/emi-calculator" className="hover:text-orange-500 transition-colors">EMI Loan Calculator</Link></li>
+              <li><Link to="/fifa-live-tracker" className="hover:text-orange-500 transition-colors">FIFA Live Match Tracker</Link></li>
             </ul>
           </div>
 
@@ -454,10 +532,10 @@ function HomePage() {
                 <span className="font-black text-orange-600 uppercase tracking-widest text-[9px] block mb-0.5 animate-pulse">AI Smart Suggestion</span>
                 {(() => {
                   const suggestions = [
-                    { text: "Pair EMI Loan Calculator with GST Calculator to audit corporate ledger margins instantly.", path: "/tools/business/GST Calculator" },
-                    { text: "Drafting corporate templates? Generate a 100% scannable brand logo QR Code now.", path: "/tools/image/QR Generator" },
-                    { text: "Wise Owl suggests OCR Document Scanner to copy selectable text directly from photos in seconds.", path: "/tools/pdf/OCR Document Scanner" },
-                    { text: "Clever Fox recommends running Code Minifier to boost website SEO scores before deployment.", path: "/tools/developer/Code Minifier" }
+                    { text: "Pair EMI Loan Calculator with GST Calculator to audit corporate ledger margins instantly.", path: "/gst-calculator" },
+                    { text: "Drafting corporate templates? Generate a 100% scannable brand logo QR Code now.", path: "/qr-generator" },
+                    { text: "Wise Owl suggests OCR Document Scanner to copy selectable text directly from photos in seconds.", path: "/ocr-document-scanner" },
+                    { text: "Clever Fox recommends running Code Minifier to boost website SEO scores before deployment.", path: "/code-minifier" }
                   ];
                   const [index, setIndex] = useState(0);
                   useEffect(() => {
@@ -507,28 +585,28 @@ function HomePage() {
               
               <div className="grid grid-cols-2 gap-8 relative z-10">
                 <div 
-                  onClick={() => navigate('/tools/pdf/Invoice Generator')}
+                  onClick={() => navigate('/invoice-generator')}
                   className="bg-white p-6 rounded-3xl shadow-xl border border-slate-100 flex flex-col items-center cursor-pointer hover:border-orange-400 hover:scale-105 transition-all"
                 >
                   <OwlMascot />
                   <span className="mt-2 font-bold text-slate-500 text-sm">Invoice Gen</span>
                 </div>
                 <div 
-                  onClick={() => navigate('/tools/business/EMI Calculator')}
+                  onClick={() => navigate('/emi-calculator')}
                   className="bg-white p-6 rounded-3xl shadow-xl border border-slate-100 flex flex-col items-center cursor-pointer hover:border-orange-400 hover:scale-105 transition-all"
                 >
                   <ElephantMascot />
                   <span className="mt-2 font-bold text-slate-500 text-sm">EMI Calculator</span>
                 </div>
                 <div 
-                  onClick={() => navigate('/tools/image/Format Converter')}
+                  onClick={() => navigate('/format-converter')}
                   className="bg-white p-6 rounded-3xl shadow-xl border border-slate-100 flex flex-col items-center cursor-pointer hover:border-orange-400 hover:scale-105 transition-all"
                 >
                   <ChameleonMascot />
                   <span className="mt-2 font-bold text-slate-500 text-sm">Compressor</span>
                 </div>
                 <div 
-                  onClick={() => navigate('/tools/security/Password Generator')}
+                  onClick={() => navigate('/password-generator')}
                   className="bg-white p-6 rounded-3xl shadow-xl border border-slate-100 flex flex-col items-center cursor-pointer hover:border-orange-400 hover:scale-105 transition-all"
                 >
                   <LionMascot />
@@ -564,7 +642,7 @@ function HomePage() {
       </div>
 
       {/* Categories Grid */}
-      <section className="py-24 px-6 bg-slate-50/50" id="habitats">
+      <section className="py-24 px-6 bg-slate-50/50 optimize-rendering" id="habitats">
         <div className="max-w-7xl mx-auto">
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-16">
             <div>
@@ -589,7 +667,7 @@ function HomePage() {
                   {filteredTools.map((t, i) => (
                     <button
                       key={i}
-                      onClick={() => { navigate(`/tools/${t.path}/${encodeURIComponent(t.name)}`); setSearchQuery(''); }}
+                      onClick={() => { navigate(`/${getToolPath(t.name)}`); setSearchQuery(''); }}
                       className="w-full text-left px-4 py-3 hover:bg-orange-50 text-xs font-bold text-slate-700 flex items-center justify-between"
                     >
                       <span>{t.name}</span>
@@ -628,7 +706,7 @@ function HomePage() {
                     {cat.tools.slice(0, 5).map(tool => (
                       <button 
                         key={tool} 
-                        onClick={(e) => { e.stopPropagation(); navigate(`/tools/${cat.path}/${encodeURIComponent(tool)}`); }}
+                        onClick={(e) => { e.stopPropagation(); navigate(`/${getToolPath(tool)}`); }}
                         className="w-full text-left flex items-center gap-2 text-xs font-bold text-slate-600 hover:text-orange-500 transition-colors"
                       >
                         <div className="w-1.5 h-1.5 rounded-full bg-orange-400"></div>
@@ -689,16 +767,16 @@ function HomePage() {
             
             <div className="relative flex justify-center">
               <div className="w-64 h-64 md:w-80 md:h-80 bg-white/5 rounded-full flex items-center justify-center border border-white/10 relative animate-spin-slow">
-                <div className="absolute -top-6 bg-orange-500 p-4 rounded-2xl shadow-lg cursor-pointer" onClick={() => navigate('/tools/pdf/Invoice Generator')}>
+                <div className="absolute -top-6 bg-orange-500 p-4 rounded-2xl shadow-lg cursor-pointer" onClick={() => navigate('/invoice-generator')}>
                   <OwlMascot />
                 </div>
-                <div className="absolute -bottom-6 bg-orange-500 p-4 rounded-2xl shadow-lg cursor-pointer" onClick={() => navigate('/tools/security/Password Generator')}>
+                <div className="absolute -bottom-6 bg-orange-500 p-4 rounded-2xl shadow-lg cursor-pointer" onClick={() => navigate('/password-generator')}>
                   <LionMascot />
                 </div>
-                <div className="absolute -left-6 bg-orange-500 p-4 rounded-2xl shadow-lg cursor-pointer" onClick={() => navigate('/tools/business/EMI Calculator')}>
+                <div className="absolute -left-6 bg-orange-500 p-4 rounded-2xl shadow-lg cursor-pointer" onClick={() => navigate('/emi-calculator')}>
                   <ElephantMascot />
                 </div>
-                <div className="absolute -right-6 bg-orange-500 p-4 rounded-2xl shadow-lg cursor-pointer" onClick={() => navigate('/tools/image/Format Converter')}>
+                <div className="absolute -right-6 bg-orange-500 p-4 rounded-2xl shadow-lg cursor-pointer" onClick={() => navigate('/format-converter')}>
                   <ChameleonMascot />
                 </div>
                 <div className="w-1/2 h-1/2 bg-white/10 rounded-full blur-xl"></div>
@@ -787,7 +865,7 @@ function CategoryPage() {
                   initial={{ opacity: 0, y: 15 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: idx * 0.02 }}
-                  onClick={() => navigate(`/tools/${categoryPath}/${encodeURIComponent(tool)}`)}
+                  onClick={() => navigate(`/${getToolPath(tool)}`)}
                   className={`group p-6 rounded-3xl bg-white border border-slate-200 shadow-md hover:shadow-xl hover:border-orange-300 hover:-translate-y-1 transition-all cursor-pointer flex flex-col justify-between h-48`}
                 >
                   <div>
@@ -827,11 +905,22 @@ function CategoryPage() {
 
 // ==================== PAGE 3: TOOL SANDBOX PAGE ====================
 function ToolSandboxPage() {
-  const { categoryPath, toolName } = useParams();
+  const { categoryPath, toolName, toolPath } = useParams();
   const navigate = useNavigate();
 
-  const decodedToolName = decodeURIComponent(toolName);
-  const cat = getCategoryByPath(categoryPath);
+  let decodedToolName = '';
+  let cat = null;
+
+  if (toolPath) {
+    const match = findToolByPath(toolPath);
+    if (match) {
+      cat = match.category;
+      decodedToolName = match.toolName;
+    }
+  } else {
+    decodedToolName = decodeURIComponent(toolName);
+    cat = getCategoryByPath(categoryPath);
+  }
 
   if (!cat || !cat.tools.includes(decodedToolName)) {
     return <NotFoundPage />;
@@ -851,28 +940,30 @@ function ToolSandboxPage() {
           <span className="text-slate-600">{decodedToolName}</span>
         </div>
 
-        {/* Dynamic Sandbox Mount */}
-        {isImplemented ? (
-          <div>
-            {cat.id === 'docs' && (
-              <DocumentTools activeTool={decodedToolName} onBack={() => navigate(`/tools/${categoryPath}`)} />
-            )}
-            {cat.id === 'business' && (
-              <CalculatorTools activeTool={decodedToolName} onBack={() => navigate(`/tools/${categoryPath}`)} />
-            )}
-            {cat.id === 'media' && (
-              <MediaTools activeTool={decodedToolName} onBack={() => navigate(`/tools/${categoryPath}`)} />
-            )}
-            {cat.id === 'security' && (
-              <SecurityTools activeTool={decodedToolName} onBack={() => navigate(`/tools/${categoryPath}`)} />
-            )}
-            {cat.id === 'developer' && (
-              <DeveloperTools activeTool={decodedToolName} onBack={() => navigate(`/tools/${categoryPath}`)} />
-            )}
-          </div>
-        ) : (
-          <AiMascotSandbox cat={cat} toolName={decodedToolName} onBack={() => navigate(`/tools/${categoryPath}`)} />
-        )}
+        {/* Dynamic Sandbox Mount wrapped in internal Suspense boundary */}
+        <Suspense fallback={<SkeletonLoader />}>
+          {isImplemented ? (
+            <div>
+              {cat.id === 'docs' && (
+                <DocumentTools activeTool={decodedToolName} onBack={() => navigate(`/tools/${categoryPath}`)} />
+              )}
+              {cat.id === 'business' && (
+                <CalculatorTools activeTool={decodedToolName} onBack={() => navigate(`/tools/${categoryPath}`)} />
+              )}
+              {cat.id === 'media' && (
+                <MediaTools activeTool={decodedToolName} onBack={() => navigate(`/tools/${categoryPath}`)} />
+              )}
+              {cat.id === 'security' && (
+                <SecurityTools activeTool={decodedToolName} onBack={() => navigate(`/tools/${categoryPath}`)} />
+              )}
+              {cat.id === 'developer' && (
+                <DeveloperTools activeTool={decodedToolName} onBack={() => navigate(`/tools/${categoryPath}`)} />
+              )}
+            </div>
+          ) : (
+            <AiMascotSandbox cat={cat} toolName={decodedToolName} onBack={() => navigate(`/tools/${categoryPath}`)} />
+          )}
+        </Suspense>
 
         {/* Dynamic Premium SEO Content & Guides Hub */}
         <ToolSEOContent toolName={decodedToolName} category={cat} />
@@ -1133,7 +1224,7 @@ function NotFoundPage() {
 // ==================== MAIN ROUTER SWITCH ====================
 export default function App() {
   return (
-    <Router>
+    <Router basename={import.meta.env.BASE_URL}>
       <ScrollToTop />
       <div className="min-h-screen bg-[#FDFBF7] text-slate-800 font-sans selection:bg-orange-200 textured-bg flex flex-col justify-between relative">
         {/* Texture Layer */}
@@ -1142,20 +1233,24 @@ export default function App() {
         {/* Common Navigation */}
         <Navbar />
 
-        {/* Dynamic Route Pages */}
+        {/* Dynamic Route Pages wrapped in master Suspense boundary */}
         <main className="flex-grow relative z-10">
-          <Routes>
-            <Route path="/" element={<HomePage />} />
-            <Route path="/about" element={<AboutPage />} />
-            <Route path="/privacy" element={<PrivacyPage />} />
-            <Route path="/terms" element={<TermsPage />} />
-            <Route path="/contact" element={<ContactPage />} />
-            <Route path="/blog" element={<BlogPage />} />
-            <Route path="/blog/:articleId" element={<ArticlePage />} />
-            <Route path="/tools/:categoryPath" element={<CategoryPage />} />
-            <Route path="/tools/:categoryPath/:toolName" element={<ToolSandboxPage />} />
-            <Route path="*" element={<NotFoundPage />} />
-          </Routes>
+          <Suspense fallback={<SkeletonLoader />}>
+            <Routes>
+              <Route path="/" element={<HomePage />} />
+              <Route path="/about" element={<AboutPage />} />
+              <Route path="/privacy" element={<PrivacyPage />} />
+              <Route path="/terms" element={<TermsPage />} />
+              <Route path="/contact" element={<ContactPage />} />
+              <Route path="/disclaimer" element={<DisclaimerPage />} />
+              <Route path="/blog" element={<BlogPage />} />
+              <Route path="/blog/:articleId" element={<ArticlePage />} />
+              <Route path="/tools/:categoryPath" element={<CategoryPage />} />
+              <Route path="/tools/:categoryPath/:toolName" element={<ToolSandboxPage />} />
+              <Route path="/:toolPath" element={<ToolSandboxPage />} />
+              <Route path="*" element={<NotFoundPage />} />
+            </Routes>
+          </Suspense>
         </main>
 
         {/* Common Footer */}
@@ -1163,6 +1258,12 @@ export default function App() {
 
         {/* Global AI Assistant Floating Mascot Widget */}
         <GlobalAIAssistant />
+
+        {/* PWA Floating Install Prompter Banner */}
+        <PwaInstallPrompt />
+
+        {/* Global Analytics Tracking Listener */}
+        <AnalyticsTracker />
       </div>
     </Router>
   );
@@ -1178,59 +1279,65 @@ function GlobalAIAssistant() {
 
   // Dynamic context-aware tips based on route
   const getContextContent = () => {
-    const hash = window.location.hash || '';
-    if (hash.includes('/pdf') || hash.includes('/docs')) {
+    const pathname = location.pathname;
+    
+    // Resolve tool category dynamically if on a clean path
+    const toolPath = pathname.replace(/^\//, '');
+    const match = findToolByPath(toolPath);
+    const currentCategory = match ? match.category.id : null;
+
+    if (currentCategory === 'docs' || pathname.includes('/pdf') || pathname.includes('/docs')) {
       return {
         mascot: <OwlMascot />,
         title: "Wise Owl's Advisory",
         tip: "Hoot! PDF merges compress much better if you convert embedded images to light WebP format first. Try our Chameleon Image Converter!",
         rec: [
-          { name: "Image Compressor", path: "/tools/image/Image Compressor" },
-          { name: "Format Converter", path: "/tools/image/Format Converter" }
+          { name: "Image Compressor", path: "/image-compressor" },
+          { name: "Format Converter", path: "/format-converter" }
         ]
       };
     }
-    if (hash.includes('/image') || hash.includes('/media')) {
+    if (currentCategory === 'media' || pathname.includes('/image') || pathname.includes('/media')) {
       return {
         mascot: <ChameleonMascot />,
         title: "Chameleon's Color Theory",
         tip: "Hey! Transparent PNGs remove backgrounds cleanest when edge feathering is set around 4px to 8px. It blends soft alpha channels perfectly!",
         rec: [
-          { name: "AI Upscaler", path: "/tools/image/AI Upscaler" },
-          { name: "QR Generator", path: "/tools/image/QR Generator" }
+          { name: "AI Upscaler", path: "/ai-upscaler" },
+          { name: "QR Generator", path: "/qr-generator" }
         ]
       };
     }
-    if (hash.includes('/business')) {
+    if (currentCategory === 'business' || pathname.includes('/business')) {
       return {
         mascot: <ElephantMascot />,
         title: "Mighty Elephant's Ledger",
         tip: "Wealth compound calculations in the SIP Calculator run on real-time yearly formulas. Always double check GST slabs before exporting dynamic invoices!",
         rec: [
-          { name: "Invoice Generator", path: "/tools/pdf/Invoice Generator" },
-          { name: "GST Calculator", path: "/tools/business/GST Calculator" }
+          { name: "Invoice Generator", path: "/invoice-generator" },
+          { name: "GST Calculator", path: "/gst-calculator" }
         ]
       };
     }
-    if (hash.includes('/developer') || hash.includes('/dev')) {
+    if (currentCategory === 'developer' || pathname.includes('/developer') || pathname.includes('/dev')) {
       return {
         mascot: <FoxMascot />,
         title: "Clever Fox's Blueprint",
         tip: "Code minifications can shrink asset size up to 45%! Ensure your JSON strings pass parsing validation first using the JSON Formatter.",
         rec: [
-          { name: "JSON Formatter", path: "/tools/developer/JSON Formatter" },
-          { name: "Regex Tester", path: "/tools/developer/Regex Tester" }
+          { name: "JSON Formatter", path: "/json-formatter" },
+          { name: "Regex Tester", path: "/regex-tester" }
         ]
       };
     }
-    if (hash.includes('/security')) {
+    if (currentCategory === 'security' || pathname.includes('/security')) {
       return {
         mascot: <LionMascot />,
         title: "King Lion's Safehouse",
         tip: "Your private credentials stay 100% in local memory using the Web Crypto API. We recommend generating 16-character passwords for maximum secure entropy.",
         rec: [
-          { name: "Password Generator", path: "/tools/security/Password Generator" },
-          { name: "Hash Generator", path: "/tools/security/Hash Generator" }
+          { name: "Password Generator", path: "/password-generator" },
+          { name: "Hash Generator", path: "/hash-generator" }
         ]
       };
     }
@@ -1240,8 +1347,8 @@ function GlobalAIAssistant() {
       title: "Jungle AI Smart Assistant",
       tip: "Welcome to Wild ToolTrove! Type what you want to achieve (e.g. 'loan', 'convert', 'qr') and I will suggest the perfect tool for your workflow.",
       rec: [
-        { name: "Invoice Generator", path: "/tools/pdf/Invoice Generator" },
-        { name: "AI Background Remover", path: "/tools/image/Background Remover" }
+        { name: "Invoice Generator", path: "/invoice-generator" },
+        { name: "AI Background Remover", path: "/background-remover" }
       ]
     };
   };
@@ -1261,7 +1368,7 @@ function GlobalAIAssistant() {
             initial={{ opacity: 0, y: 50, scale: 0.9 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 50, scale: 0.9 }}
-            className="w-80 md:w-96 bg-white/95 backdrop-blur-md rounded-3xl border border-slate-200 shadow-2xl p-6 mb-4 flex flex-col space-y-4 text-slate-800"
+            className="w-80 md:w-96 bg-white/95 backdrop-blur-md rounded-3xl border border-slate-200 shadow-2xl p-6 mb-4 flex flex-col space-y-4 text-slate-800 gpu-accelerated touch-latency-fix"
           >
             {/* Header */}
             <div className="flex justify-between items-center border-b border-slate-100 pb-3">
