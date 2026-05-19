@@ -1,11 +1,12 @@
 const CACHE_NAME = 'tooltrove-cache-v2';
+const basePath = self.location.pathname.substring(0, self.location.pathname.lastIndexOf('/') + 1);
 const PRECACHE_ASSETS = [
-  '/Tool-Trove/',
-  '/Tool-Trove/index.html',
-  '/Tool-Trove/favicon.svg',
-  '/Tool-Trove/manifest.json',
-  '/Tool-Trove/robots.txt',
-  '/Tool-Trove/sitemap.xml'
+  basePath,
+  basePath + 'index.html',
+  basePath + 'favicon.svg',
+  basePath + 'manifest.json',
+  basePath + 'robots.txt',
+  basePath + 'sitemap.xml'
 ];
 
 // --- 1. INSTALL EVENT: Pre-cache stable app shell resources ---
@@ -78,7 +79,7 @@ self.addEventListener('fetch', (event) => {
         .catch(() => {
           // If network fails completely and request is for page routing (HTML), fall back to core offline index.html
           if (event.request.mode === 'navigate') {
-            return caches.match('/Tool-Trove/index.html');
+            return caches.match(basePath + 'index.html');
           }
         });
     })
