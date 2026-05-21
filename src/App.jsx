@@ -33,7 +33,8 @@ import {
   TrendingUp,
   Clock,
   ArrowUpRight,
-  Lock
+  Lock,
+  RefreshCw
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import axios from 'axios';
@@ -46,6 +47,7 @@ import { INSIGHTS_ARTICLES } from './components/BlogData';
 import ToolSEOContent from './components/ToolSEOContent';
 import PwaInstallPrompt from './components/PwaInstallPrompt';
 import AnalyticsTracker from './components/AnalyticsTracker';
+import { TrendingToolsSection, PersonalizedActivitySection, RecentBlogsBar } from './components/PersonalizedHome';
 
 // --- Dynamically Imported Tool Components (Code Splitting) ---
 const DocumentTools = lazy(() => import('./tools/DocumentTools'));
@@ -389,7 +391,7 @@ function InsightsSection() {
 
   const handleShare = (e, article) => {
     e.stopPropagation();
-    const shareUrl = `${window.location.origin}${window.location.pathname}#/blog/${article.id}`;
+    const shareUrl = `${window.location.origin}/Tool-Trove/blog/${article.id}`;
     navigator.clipboard.writeText(shareUrl);
     setCopiedId(article.id);
     setTimeout(() => setCopiedId(null), 2000);
@@ -488,6 +490,34 @@ function InsightsSection() {
   );
 }
 
+// ==================== AI SUGGESTION BAR SUB-COMPONENT ====================
+const AI_HOME_SUGGESTIONS = [
+  { text: "Pair EMI Loan Calculator with GST Calculator to audit corporate ledger margins instantly.", path: "/gst-calculator" },
+  { text: "Drafting corporate templates? Generate a 100% scannable brand logo QR Code now.", path: "/qr-generator" },
+  { text: "Wise Owl suggests OCR Document Scanner to copy selectable text directly from photos in seconds.", path: "/ocr-document-scanner" },
+  { text: "Clever Fox recommends running Code Minifier to boost website SEO scores before deployment.", path: "/code-minifier" }
+];
+
+function AISuggestionBar() {
+  const [index, setIndex] = useState(0);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const timer = setInterval(() => setIndex(i => (i + 1) % AI_HOME_SUGGESTIONS.length), 5500);
+    return () => clearInterval(timer);
+  }, []);
+
+  const current = AI_HOME_SUGGESTIONS[index];
+  return (
+    <span>
+      {current.text}{' '}
+      <button onClick={() => navigate(current.path)} className="text-orange-500 font-bold hover:underline">
+        Launch Tool →
+      </button>
+    </span>
+  );
+}
+
 // ==================== PAGE 1: HOME PAGE ====================
 function HomePage() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -530,25 +560,7 @@ function HomePage() {
               </div>
               <p className="text-xs font-semibold text-slate-700 leading-relaxed">
                 <span className="font-black text-orange-600 uppercase tracking-widest text-[9px] block mb-0.5 animate-pulse">AI Smart Suggestion</span>
-                {(() => {
-                  const suggestions = [
-                    { text: "Pair EMI Loan Calculator with GST Calculator to audit corporate ledger margins instantly.", path: "/gst-calculator" },
-                    { text: "Drafting corporate templates? Generate a 100% scannable brand logo QR Code now.", path: "/qr-generator" },
-                    { text: "Wise Owl suggests OCR Document Scanner to copy selectable text directly from photos in seconds.", path: "/ocr-document-scanner" },
-                    { text: "Clever Fox recommends running Code Minifier to boost website SEO scores before deployment.", path: "/code-minifier" }
-                  ];
-                  const [index, setIndex] = useState(0);
-                  useEffect(() => {
-                    const timer = setInterval(() => setIndex(i => (i + 1) % suggestions.length), 5500);
-                    return () => clearInterval(timer);
-                  }, []);
-                  const current = suggestions[index];
-                  return (
-                    <span>
-                      {current.text} <button onClick={() => navigate(current.path)} className="text-orange-500 font-bold hover:underline">Launch Tool →</button>
-                    </span>
-                  );
-                })()}
+                <AISuggestionBar />
               </p>
             </div>
 
@@ -640,6 +652,9 @@ function HomePage() {
           ))}
         </motion.div>
       </div>
+
+      {/* 📰 Recent Blogs Bar — dark strip */}
+      <RecentBlogsBar />
 
       {/* Categories Grid */}
       <section className="py-24 px-6 bg-slate-50/50 optimize-rendering" id="habitats">
@@ -735,6 +750,12 @@ function HomePage() {
           <ChatAssistant />
         </div>
       </section>
+
+      {/* 🔥 Trending / Popular Tools Section */}
+      <TrendingToolsSection />
+
+      {/* 👤 Personalized Activity Section (shows only if user has used tools) */}
+      <PersonalizedActivitySection />
 
       {/* Chronicles & Insights Blog Section */}
       <InsightsSection />
@@ -1146,7 +1167,7 @@ Provide a professional, clean, clear, and highly organized response output. If c
                 onClick={() => setInputText(getSuggestion())}
                 className="text-left text-xs text-slate-600 font-bold hover:text-orange-500 transition-colors w-full cursor-pointer leading-relaxed border border-dashed border-slate-200 bg-white p-2.5 rounded-xl block"
               >
-                "{getSuggestion()}"
+                &ldquo;{getSuggestion()}&rdquo;
               </button>
             </div>
 
@@ -1257,7 +1278,7 @@ export default function App() {
         {/* Common Footer */}
         <Footer />
 
-        {/* Global AI Assistant Floating Mascot Widget */}
+        {/* Global AI Assistant Floating Mascot Widget - inside Router for useLocation() */}
         <GlobalAIAssistant />
 
         {/* PWA Floating Install Prompter Banner */}
