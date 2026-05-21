@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, lazy, Suspense } from 'react';
 import { 
-  BrowserRouter as Router, 
+  HashRouter as Router, 
   Routes, 
   Route, 
   Link, 
@@ -1244,9 +1244,8 @@ function NotFoundPage() {
 
 // ==================== MAIN ROUTER SWITCH ====================
 export default function App() {
-  const routerBasename = import.meta.env.BASE_URL.replace(/\/$/, '');
   return (
-    <Router basename={routerBasename}>
+    <Router>
       <ScrollToTop />
       <div className="min-h-screen bg-[#FDFBF7] text-slate-800 font-sans selection:bg-orange-200 textured-bg flex flex-col justify-between relative">
         {/* Texture Layer */}
