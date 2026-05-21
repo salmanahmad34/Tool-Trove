@@ -333,12 +333,17 @@ function BackgroundRemover({ onBack }) {
       const data = imgData.data;
       
       for (let i = 0; i < data.length; i += 4) {
-        const r = data[i]; // MediaPipe uses red channel for segmentation probability
+        const r = data[i];
+        const g = data[i + 1];
+        const b = data[i + 2];
+        const a = data[i + 3];
+        // Channel-agnostic probability: take maximum across R, G, B, and A to handle different WebGL outputs safely.
+        const prob = Math.max(r, g, b, a);
         
         data[i] = 0;     // Red
         data[i + 1] = 0; // Green
         data[i + 2] = 0; // Blue
-        data[i + 3] = r; // Alpha becomes the probability (0 = transparent, 255 = fully opaque subject)
+        data[i + 3] = prob; // Alpha becomes the probability (0 = transparent, 255 = fully opaque subject)
       }
       
       cachedMaskCtx.putImageData(imgData, 0, 0);
@@ -1145,6 +1150,18 @@ function QrGenerator({ onBack }) {
       setIsCompiling(false);
     }
   };
+
+  useEffect(() => {
+    const ratio = getContrastRatio(fgColor, bgColor);
+    if (ratio < 3.0) {
+      const isLightBg = getLuminance(bgColor) > 0.5;
+      if (isLightBg) {
+        setFgColor('#0f172a');
+      } else {
+        setFgColor('#ffffff');
+      }
+    }
+  }, [fgColor, bgColor]);
 
   useEffect(() => {
     compileQR();
