@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Sparkles, Bot, Terminal, Cpu, Brain, Layers } from 'lucide-react';
+import { Sparkles, Bot, Terminal, Brain, Layers } from 'lucide-react';
+import { LogoIcon } from './BrandLogo';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const ROTATING_DEMOS = [
@@ -209,7 +210,7 @@ export default function ChatAssistant() {
               {step >= 1 && (
                 <div className="space-y-2">
                   <div className="flex items-center gap-2 text-[10px] text-amber-500 font-bold uppercase tracking-wider">
-                    <Cpu className="w-3.5 h-3.5 animate-spin" /> In-Browser Calculation
+                    <LogoIcon className="w-3.5 h-3.5 animate-pulse" /> In-Browser Calculation
                   </div>
                   <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 text-slate-400 space-y-1.5">
                     <div className="flex items-center gap-2">

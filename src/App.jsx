@@ -899,8 +899,8 @@ function CategoryPage() {
                           Interactive Sandbox
                         </span>
                       ) : (
-                        <span className="px-2.5 py-0.5 bg-orange-50 text-orange-700 rounded-lg text-[9px] font-black uppercase tracking-wider">
-                          AI Coprocessor
+                        <span className="px-2.5 py-0.5 bg-orange-50 text-orange-700 rounded-lg text-[9px] font-black uppercase tracking-wider flex items-center gap-1">
+                          <LogoIcon className="w-2.5 h-2.5 animate-pulse" /> AI Coprocessor
                         </span>
                       )}
                     </div>
@@ -1112,7 +1112,7 @@ Provide a professional, clean, clear, and highly organized response output. If c
           <ArrowLeft className="w-5 h-5" /> Back to Habitat
         </button>
         <span className="px-3 py-1 bg-orange-50 border border-orange-200 text-orange-600 rounded-full text-xs font-black uppercase tracking-wider flex items-center gap-1.5">
-          <Cpu className="w-3.5 h-3.5 animate-pulse" /> AI Coprocessor Active
+          <LogoIcon className="w-3.5 h-3.5 animate-pulse" /> AI Coprocessor Active
         </span>
       </div>
 
@@ -1183,7 +1183,7 @@ Provide a professional, clean, clear, and highly organized response output. If c
                 </>
               ) : (
                 <>
-                  <Cpu className="w-5 h-5 animate-pulse" />
+                  <LogoIcon className="w-5 h-5 animate-pulse" />
                   <span>Compute AI Outcome</span>
                 </>
               )}
