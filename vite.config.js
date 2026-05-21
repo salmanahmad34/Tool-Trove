@@ -6,14 +6,20 @@ export default defineConfig({
     react(),
     {
       name: 'inject-entrypoint',
-      transformIndexHtml(html) {
-        return html.replace(
-          '</body>',
-          '<script type="module" src="/src/main.jsx"></script></body>'
-        );
+      transformIndexHtml(html, ctx) {
+        // For development server, inject entrypoint dynamically into HTML stream
+        if (ctx.server) {
+          return html.replace(
+            '</body>',
+            '<script type="module" src="/src/main.jsx"></script></body>'
+          );
+        }
+        return html;
       }
     }
   ],
   base: '/Tool-Trove/'
 })
+
+
 
