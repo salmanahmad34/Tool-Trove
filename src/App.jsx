@@ -256,7 +256,7 @@ function Navbar() {
     <>
       <nav className={`fixed top-0 left-0 w-full z-[9999] transition-all duration-300 ${scrolled ? 'bg-white/95 backdrop-blur-md shadow-md py-3' : 'bg-white/90 backdrop-blur-md py-5'}`}>
         <div className="max-w-7xl mx-auto px-6 flex justify-between items-center">
-          <Link to="/" className="group cursor-pointer">
+          <Link to="/" className="group cursor-pointer flex-shrink-0 overflow-visible flex items-center">
             <BrandLogo iconClassName="w-8 h-8" />
           </Link>
 

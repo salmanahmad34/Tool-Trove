@@ -32,11 +32,11 @@ export function LogoIcon({ className = "w-10 h-10", pulse = false }) {
  * Main horizontal BrandLogo Component
  * Renders the custom Icon side-by-side with premium typography.
  */
-export function BrandLogo({ className = "h-8", iconClassName = "w-8 h-8", lightMode = false }) {
+export function BrandLogo({ className = "", iconClassName = "w-8 h-8", lightMode = false }) {
   return (
-    <div className="flex items-center gap-2 select-none">
-      <LogoIcon className={iconClassName} />
-      <span className="text-xl font-black tracking-tighter uppercase font-sans flex items-center leading-none">
+    <div className={`flex items-center gap-2 select-none flex-shrink-0 overflow-visible ${className}`}>
+      <LogoIcon className={`${iconClassName} flex-shrink-0`} />
+      <span className="text-xl font-black tracking-tighter uppercase font-sans flex items-center leading-none flex-shrink-0">
         <span className={lightMode ? 'text-white' : 'text-slate-950 dark:text-slate-100'}>TOOL</span>
         <span className="text-[#EA580C]">TROVE</span>
       </span>
