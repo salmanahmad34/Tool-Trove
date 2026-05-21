@@ -1,6 +1,16 @@
 <!DOCTYPE html>
 <html lang="en-IN">
 <head>
+    <!-- Live GitHub Pages Redirection Guard to Compiled Distribution -->
+    <script>
+      if (window.location.hostname.indexOf('github.io') !== -1 && 
+          (window.location.pathname === '/Tool-Trove' || 
+           window.location.pathname === '/Tool-Trove/' || 
+           window.location.pathname === '/Tool-Trove/index.html')) {
+        window.location.replace('/Tool-Trove/dist/index.html' + window.location.hash + window.location.search);
+      }
+    </script>
+
     <meta charset="UTF-8">
 
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -25,7 +35,9 @@
     <link rel="canonical" href="https://salmanahmad34.github.io/Tool-Trove/">
     <link rel="sitemap" type="application/xml" href="/Tool-Trove/sitemap.xml">
 
-    <link rel="apple-touch-icon" href="/Tool-Trove/favicon.svg">
+    <link rel="icon" type="image/svg+xml" href="/Tool-Trove/favicon.svg">
+    <link rel="shortcut icon" href="/Tool-Trove/favicon.ico">
+    <link rel="apple-touch-icon" sizes="180x180" href="/Tool-Trove/apple-touch-icon.png">
 
     <!-- Google Analytics (GA4) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-TOOLTROVE26"></script>
@@ -101,8 +113,8 @@
       ]
     }
     </script>
-  <script type="module" crossorigin src="/Tool-Trove/assets/index-BUUji2Oc.js"></script>
-  <link rel="stylesheet" crossorigin href="/Tool-Trove/assets/index-B4mLAOdO.css">
+  <script type="module" crossorigin src="/Tool-Trove/dist/assets/index.js"></script>
+  <link rel="stylesheet" crossorigin href="/Tool-Trove/dist/assets/index.css">
 </head>
 <body>
     <div id="root"></div>
