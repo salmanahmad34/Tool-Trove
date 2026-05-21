@@ -440,6 +440,10 @@ function InvoiceGenerator({ onBack }) {
 
   const handlePrint = () => {
     const printWindow = window.open('', '_blank');
+    if (!printWindow) {
+      alert("Popup blocker active! Please allow popups for ToolTrove to export your invoice.");
+      return;
+    }
     printWindow.document.write(`
       <html>
         <head>

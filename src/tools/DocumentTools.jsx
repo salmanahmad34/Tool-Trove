@@ -730,6 +730,10 @@ function ImageToPDF({ onBack }) {
     if (!images.length) return;
 
     const printWindow = window.open('', '_blank');
+    if (!printWindow) {
+      alert("Popup blocker active! Please allow popups for ToolTrove to download/print your PDF.");
+      return;
+    }
     printWindow.document.write(`
       <html>
         <head>
@@ -1119,7 +1123,8 @@ function OcrViewer({ onBack }) {
     const img = new Image();
     img.src = imageSrc;
     img.onload = () => {
-      canvas.width = canvas.parentElement.clientWidth || 500;
+      const parentWidth = canvas.parentElement ? canvas.parentElement.clientWidth : 500;
+      canvas.width = parentWidth || 500;
       const aspect = img.height / img.width;
       canvas.height = canvas.width * aspect;
       
@@ -1315,6 +1320,10 @@ function ResumeBuilder({ onBack }) {
 
   const handlePrint = () => {
     const printWindow = window.open('', '_blank');
+    if (!printWindow) {
+      alert("Popup blocker active! Please allow popups for ToolTrove to print your resume.");
+      return;
+    }
     const headerColor = theme === 'charcoal' ? '#1e293b' : theme === 'navy' ? '#0f172a' : '#b45309';
     const accentColor = theme === 'charcoal' ? '#64748b' : theme === 'navy' ? '#ff5c1a' : '#f59e0b';
     

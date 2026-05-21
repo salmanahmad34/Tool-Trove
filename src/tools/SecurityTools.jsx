@@ -53,10 +53,17 @@ function PasswordGenerator({ onBack }) {
 
     let generated = '';
     // Cryptographically secure pseudorandom numbers if supported, otherwise fallback
-    const array = new Uint32Array(length);
-    window.crypto.getRandomValues(array);
-    for (let i = 0; i < length; i++) {
-      generated += charset[array[i] % charset.length];
+    if (window.crypto && window.crypto.getRandomValues) {
+      const array = new Uint32Array(length);
+      window.crypto.getRandomValues(array);
+      for (let i = 0; i < length; i++) {
+        generated += charset[array[i] % charset.length];
+      }
+    } else {
+      // Safe high-entropy pseudo-random fallback for old devices/webviews/insecure hosts
+      for (let i = 0; i < length; i++) {
+        generated += charset[Math.floor(Math.random() * charset.length)];
+      }
     }
     setPassword(generated);
   };

@@ -1341,7 +1341,10 @@ function QrGenerator({ onBack }) {
   const handleDownloadPDF = () => {
     if (!canvasRef.current) return;
     const printWindow = window.open('', '_blank');
-    if (!printWindow) return;
+    if (!printWindow) {
+      alert("Popup blocker active! Please allow popups for ToolTrove to export your QR Code PDF.");
+      return;
+    }
     
     printWindow.document.write(`
       <html>
