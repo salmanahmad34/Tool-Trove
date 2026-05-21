@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Sparkles, Bot, Terminal, Brain, Layers } from 'lucide-react';
 import { LogoIcon } from './BrandLogo';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -55,6 +55,8 @@ const ROTATING_DEMOS = [
 ];
 
 export default function ChatAssistant() {
+  const containerRef = useRef(null);
+  const [isInView, setIsInView] = useState(true);
   const [demoIndex, setDemoIndex] = useState(0);
   const [typedQuery, setTypedQuery] = useState("");
   const [step, setStep] = useState(0); // 0: typing query, 1: thinking, 2: completed outcome
@@ -63,8 +65,28 @@ export default function ChatAssistant() {
 
   const activeDemo = ROTATING_DEMOS[demoIndex];
 
+  // Intersection Observer to pause execution loops when scrolled out of view
+  useEffect(() => {
+    if (!window.IntersectionObserver) {
+      setIsInView(true);
+      return;
+    }
+    const observer = new IntersectionObserver(([entry]) => {
+      setIsInView(entry.isIntersecting);
+    }, { threshold: 0.05 });
+
+    if (containerRef.current) {
+      observer.observe(containerRef.current);
+    }
+    return () => {
+      observer.disconnect();
+    };
+  }, []);
+
   // Rotate between demonstrations automatically
   useEffect(() => {
+    if (!isInView) return; // Freeze CPU loop if not in viewport
+
     let queryInterval, thinkingTimeout, outcomeInterval, nextDemoTimeout;
     setStep(0);
     setTypedQuery("");
@@ -123,10 +145,10 @@ export default function ChatAssistant() {
       clearInterval(outcomeInterval);
       clearTimeout(nextDemoTimeout);
     };
-  }, [demoIndex]);
+  }, [demoIndex, isInView]);
 
   return (
-    <div className="bg-slate-950 rounded-[2.5rem] p-6 md:p-12 text-white relative overflow-hidden shadow-2xl border border-slate-800 animate-fade-in">
+    <div ref={containerRef} className="bg-slate-950 rounded-[2.5rem] p-6 md:p-12 text-white relative overflow-hidden shadow-2xl border border-slate-800 animate-fade-in gpu-accelerated">
       {/* Background Orbs & Lights */}
       <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-orange-500/10 blur-[120px] rounded-full pointer-events-none"></div>
       <div className="absolute bottom-0 left-0 w-[300px] h-[300px] bg-blue-500/5 blur-[100px] rounded-full pointer-events-none"></div>

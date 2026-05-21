@@ -41,10 +41,8 @@ import axios from 'axios';
 
 // --- Local Imports ---
 import { OwlMascot, LionMascot, ElephantMascot, ChameleonMascot, FoxMascot } from './components/Mascots';
-import ChatAssistant from './components/ChatAssistant';
 import { BrandLogo, LogoIcon } from './components/BrandLogo';
 import { INSIGHTS_ARTICLES } from './components/BlogData';
-import ToolSEOContent from './components/ToolSEOContent';
 import AnalyticsTracker from './components/AnalyticsTracker';
 import { TrendingToolsSection, PersonalizedActivitySection, RecentBlogsBar } from './components/PersonalizedHome';
 import ErrorBoundary from './components/ErrorBoundary';
@@ -55,6 +53,8 @@ const CalculatorTools = lazy(() => import('./tools/CalculatorTools'));
 const MediaTools = lazy(() => import('./tools/MediaTools'));
 const SecurityTools = lazy(() => import('./tools/SecurityTools'));
 const DeveloperTools = lazy(() => import('./tools/DeveloperTools'));
+const ChatAssistant = lazy(() => import('./components/ChatAssistant'));
+const ToolSEOContent = lazy(() => import('./components/ToolSEOContent'));
 
 // --- Dynamically Imported Trust Pages ---
 const AboutPage = lazy(() => import('./pages/TrustPages').then(m => ({ default: m.AboutPage })));
@@ -703,7 +703,7 @@ function HomePage() {
                 viewport={{ once: true }}
                 transition={{ delay: idx * 0.1 }}
                 onClick={() => navigate(`/tools/${cat.path}`)}
-                className={`group p-1 rounded-3xl bg-gradient-to-br from-white to-slate-100 border-2 ${cat.borderColor} shadow-xl hover:shadow-2xl hover:-translate-y-2 transition-all cursor-pointer`}
+                className={`group p-1 rounded-3xl bg-gradient-to-br from-white to-slate-100 border-2 ${cat.borderColor} shadow-xl hover:shadow-2xl hover:-translate-y-2 transition-all cursor-pointer gpu-accelerated touch-latency-fix`}
               >
                 <div className="p-8 rounded-[1.4rem] h-full flex flex-col justify-between">
                   <div>
@@ -747,7 +747,9 @@ function HomePage() {
       {/* Google Gemma AI Chat assistant */}
       <section className="py-10 px-6">
         <div className="max-w-7xl mx-auto">
-          <ChatAssistant />
+          <Suspense fallback={<div className="h-96 w-full bg-slate-900/40 rounded-[2.5rem] animate-pulse"></div>}>
+            <ChatAssistant />
+          </Suspense>
         </div>
       </section>
 
@@ -987,7 +989,9 @@ function ToolSandboxPage() {
         </Suspense>
 
         {/* Dynamic Premium SEO Content & Guides Hub */}
-        <ToolSEOContent toolName={decodedToolName} category={cat} />
+        <Suspense fallback={null}>
+          <ToolSEOContent toolName={decodedToolName} category={cat} />
+        </Suspense>
       </div>
     </div>
   );
