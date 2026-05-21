@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Download, Sparkles, Smartphone, X, CheckCircle } from 'lucide-react';
+import { Download, Sparkles, X, CheckCircle } from 'lucide-react';
 import { OwlMascot } from './Mascots';
+import { LogoIcon } from './BrandLogo';
 
 export default function PwaInstallPrompt() {
   const [deferredPrompt, setDeferredPrompt] = useState(null);
@@ -82,7 +83,7 @@ export default function PwaInstallPrompt() {
             <div className="flex justify-between items-start gap-2">
               <div className="flex items-center gap-2">
                 <div className="p-2 bg-orange-500 text-white rounded-xl shadow-md">
-                  <Smartphone className="w-4 h-4 animate-pulse" />
+                  <LogoIcon className="w-4 h-4 text-white animate-pulse" />
                 </div>
                 <div>
                   <h5 className="font-black text-slate-800 text-xs uppercase tracking-wider">Install ToolTrove</h5>

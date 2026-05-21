@@ -204,7 +204,7 @@ function SkeletonLoader() {
       <div className="bg-white p-6 md:p-10 rounded-3xl border border-slate-200 shadow-xl space-y-6">
         <div className="flex items-center gap-4 border-b border-slate-100 pb-6">
           <div className="w-16 h-16 bg-slate-100 rounded-2xl shrink-0 flex items-center justify-center">
-            <Sparkles className="w-8 h-8 text-slate-300 animate-spin-slow" />
+            <LogoIcon className="w-8 h-8 text-slate-300 animate-pulse" />
           </div>
           <div className="space-y-2 flex-grow">
             <div className="h-6 w-1/3 bg-slate-200 rounded-xl"></div>
@@ -1512,7 +1512,7 @@ function GlobalAIAssistant() {
         whileTap={{ scale: 0.95 }}
         className="w-14 h-14 bg-gradient-to-tr from-slate-900 to-slate-800 hover:from-orange-500 hover:to-orange-400 text-white rounded-full flex items-center justify-center shadow-xl hover:shadow-orange-200 cursor-pointer transition-all border-2 border-white relative z-50 group"
       >
-        <Sparkles className="w-6 h-6 animate-pulse group-hover:rotate-12 transition-transform" />
+        <LogoIcon className="w-6 h-6 text-white animate-pulse group-hover:rotate-12 transition-transform" />
         
         {/* Small badge */}
         {!isOpen && (

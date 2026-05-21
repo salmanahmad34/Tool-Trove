@@ -6,12 +6,15 @@ import React from 'react';
  * Perfect for a high-end, trusted, startup-grade AI platform.
  */
 export function LogoIcon({ className = "w-10 h-10", pulse = false }) {
+  const hasTextColor = className.includes('text-');
+  const finalClass = `${className} ${pulse ? 'animate-pulse' : ''} transition-all duration-300 hover:scale-105 ${hasTextColor ? '' : 'text-slate-950 dark:text-white'}`;
+
   return (
     <svg 
       viewBox="0 0 100 100" 
       fill="none" 
       xmlns="http://www.w3.org/2000/svg" 
-      className={`${className} ${pulse ? 'animate-pulse' : ''} transition-all duration-300 hover:scale-105 text-slate-950 dark:text-white`}
+      className={finalClass}
     >
       {/* Clean top bar */}
       <rect x="20" y="20" width="60" height="12" rx="2.5" fill="currentColor" />
@@ -31,10 +34,11 @@ export function LogoIcon({ className = "w-10 h-10", pulse = false }) {
  */
 export function BrandLogo({ className = "h-8", iconClassName = "w-8 h-8", lightMode = false }) {
   return (
-    <div className={`flex items-center gap-2.5 select-none ${lightMode ? 'text-white' : 'text-slate-950 dark:text-white'}`}>
+    <div className="flex items-center gap-2 select-none">
       <LogoIcon className={iconClassName} />
-      <span className="text-lg font-extrabold tracking-[0.15em] uppercase font-sans">
-        TOOL<span className="text-[#EA580C]">TROVE</span>
+      <span className="text-xl font-black tracking-tighter uppercase font-sans flex items-center leading-none">
+        <span className={lightMode ? 'text-white' : 'text-slate-950 dark:text-slate-100'}>TOOL</span>
+        <span className="text-[#EA580C]">TROVE</span>
       </span>
     </div>
   );
