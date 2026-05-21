@@ -45,7 +45,6 @@ import ChatAssistant from './components/ChatAssistant';
 import { BrandLogo, LogoIcon } from './components/BrandLogo';
 import { INSIGHTS_ARTICLES } from './components/BlogData';
 import ToolSEOContent from './components/ToolSEOContent';
-import PwaInstallPrompt from './components/PwaInstallPrompt';
 import AnalyticsTracker from './components/AnalyticsTracker';
 import { TrendingToolsSection, PersonalizedActivitySection, RecentBlogsBar } from './components/PersonalizedHome';
 
@@ -1279,9 +1278,6 @@ export default function App() {
 
         {/* Global AI Assistant Floating Mascot Widget - inside Router for useLocation() */}
         <GlobalAIAssistant />
-
-        {/* PWA Floating Install Prompter Banner */}
-        <PwaInstallPrompt />
 
         {/* Global Analytics Tracking Listener */}
         <AnalyticsTracker />
