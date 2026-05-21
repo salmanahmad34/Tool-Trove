@@ -56,6 +56,13 @@ const DeveloperTools = lazy(() => import('./tools/DeveloperTools'));
 const ChatAssistant = lazy(() => import('./components/ChatAssistant'));
 const ToolSEOContent = lazy(() => import('./components/ToolSEOContent'));
 
+// --- Dynamically Imported Premium Identity Core Pages ---
+const LinkInBio = lazy(() => import('./pages/LinkInBio'));
+const GithubReadme = lazy(() => import('./pages/GithubReadme'));
+const ResumeBuilder = lazy(() => import('./pages/ResumeBuilder'));
+const UtilityTools = lazy(() => import('./pages/UtilityTools'));
+const Dashboard = lazy(() => import('./pages/Dashboard'));
+
 // --- Dynamically Imported Trust Pages ---
 const AboutPage = lazy(() => import('./pages/TrustPages').then(m => ({ default: m.AboutPage })));
 const PrivacyPage = lazy(() => import('./pages/TrustPages').then(m => ({ default: m.PrivacyPage })));
@@ -64,6 +71,7 @@ const ContactPage = lazy(() => import('./pages/TrustPages').then(m => ({ default
 const DisclaimerPage = lazy(() => import('./pages/TrustPages').then(m => ({ default: m.DisclaimerPage })));
 const BlogPage = lazy(() => import('./pages/BlogPages').then(m => ({ default: m.BlogPage })));
 const ArticlePage = lazy(() => import('./pages/BlogPages').then(m => ({ default: m.ArticlePage })));
+
 
 
 // --- Category Data Mapping ---
@@ -240,41 +248,30 @@ function Navbar() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const handleScrollToCategories = () => {
-    const el = document.getElementById('habitats');
-    if (el) {
-      el.scrollIntoView({ behavior: 'smooth' });
-    } else {
-      navigate('/');
-      setTimeout(() => {
-        document.getElementById('habitats')?.scrollIntoView({ behavior: 'smooth' });
-      }, 100);
-    }
-  };
-
   return (
     <>
       <nav className={`fixed top-0 left-0 w-full z-[9999] transition-all duration-300 ${scrolled ? 'bg-white/95 backdrop-blur-md shadow-md py-3' : 'bg-white/90 backdrop-blur-md py-5'}`}>
         <div className="max-w-7xl mx-auto px-6 flex justify-between items-center">
-          <Link to="/" className="group cursor-pointer flex-shrink-0 overflow-visible flex items-center">
-            <BrandLogo iconClassName="w-8 h-8" />
+          <Link to="/" className="group cursor-pointer flex-shrink-0 overflow-visible flex items-center min-w-[200px]">
+            <BrandLogo iconClassName="w-8 h-8 flex-shrink-0" />
           </Link>
 
-          <div className="hidden md:flex items-center gap-8 font-bold text-slate-600">
+          <div className="hidden lg:flex items-center gap-6 font-bold text-slate-600 text-sm">
             <Link to="/" className="hover:text-orange-500 transition-colors">Home</Link>
-            <button onClick={handleScrollToCategories} className="hover:text-orange-500 transition-colors">Tools</button>
-            <Link to="/about" className="hover:text-orange-500 transition-colors">About</Link>
-            <Link to="/blog" className="hover:text-orange-500 transition-colors">Blog</Link>
-            <Link to="/contact" className="hover:text-orange-500 transition-colors">Contact</Link>
+            <Link to="/link-in-bio" className="hover:text-orange-500 transition-colors">Link in Bio</Link>
+            <Link to="/github-readme" className="hover:text-orange-500 transition-colors">README</Link>
+            <Link to="/resume-builder" className="hover:text-orange-500 transition-colors">Resume</Link>
+            <Link to="/tools" className="hover:text-orange-500 transition-colors">Utilities</Link>
+            <Link to="/dashboard" className="hover:text-orange-500 transition-colors">Dashboard</Link>
             <button 
-              onClick={handleScrollToCategories}
-              className="px-6 py-2 bg-slate-900 text-white rounded-full hover:bg-orange-500 transition-all shadow-lg hover:shadow-orange-100 hover:scale-105"
+              onClick={() => navigate('/dashboard')}
+              className="px-5 py-2 bg-slate-900 text-white rounded-full hover:bg-orange-500 transition-all shadow-md hover:scale-105"
             >
               Get Started
             </button>
           </div>
 
-          <button className="md:hidden p-2 text-slate-700 bg-white shadow rounded-xl" onClick={() => setIsMenuOpen(!isMenuOpen)}>
+          <button className="lg:hidden p-2 text-slate-700 bg-white shadow rounded-xl flex-shrink-0" onClick={() => setIsMenuOpen(!isMenuOpen)}>
             {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
           </button>
         </div>
@@ -287,15 +284,16 @@ function Navbar() {
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
-            className="fixed top-16 left-0 w-full bg-white z-[9998] shadow-xl border-b border-slate-100 p-6 flex flex-col gap-4 font-bold text-slate-600 md:hidden"
+            className="fixed top-16 left-0 w-full bg-white z-[9998] shadow-xl border-b border-slate-100 p-6 flex flex-col gap-4 font-bold text-slate-600 lg:hidden"
           >
             <Link to="/" onClick={() => setIsMenuOpen(false)} className="text-left py-2 hover:text-orange-500 border-b border-slate-50">Home</Link>
-            <button onClick={() => { handleScrollToCategories(); setIsMenuOpen(false); }} className="text-left py-2 hover:text-orange-500 border-b border-slate-50">Explore Tools</button>
-            <Link to="/about" onClick={() => setIsMenuOpen(false)} className="text-left py-2 hover:text-orange-500 border-b border-slate-50">About Us</Link>
-            <Link to="/blog" onClick={() => setIsMenuOpen(false)} className="text-left py-2 hover:text-orange-500 border-b border-slate-50">Blog Chronicles</Link>
-            <Link to="/contact" onClick={() => setIsMenuOpen(false)} className="text-left py-2 hover:text-orange-500">Contact Support</Link>
+            <Link to="/link-in-bio" onClick={() => setIsMenuOpen(false)} className="text-left py-2 hover:text-orange-500 border-b border-slate-50">Link in Bio</Link>
+            <Link to="/github-readme" onClick={() => setIsMenuOpen(false)} className="text-left py-2 hover:text-orange-500 border-b border-slate-50">README Builder</Link>
+            <Link to="/resume-builder" onClick={() => setIsMenuOpen(false)} className="text-left py-2 hover:text-orange-500 border-b border-slate-50">Resume Builder</Link>
+            <Link to="/tools" onClick={() => setIsMenuOpen(false)} className="text-left py-2 hover:text-orange-500 border-b border-slate-50">Utilities</Link>
+            <Link to="/dashboard" onClick={() => setIsMenuOpen(false)} className="text-left py-2 hover:text-orange-500 border-b border-slate-50">Dashboard</Link>
             <button 
-              onClick={() => { handleScrollToCategories(); setIsMenuOpen(false); }}
+              onClick={() => { navigate('/dashboard'); setIsMenuOpen(false); }}
               className="w-full py-3 bg-orange-500 text-white rounded-2xl text-center shadow-lg"
             >
               Get Started Free
@@ -311,18 +309,6 @@ function Navbar() {
 function Footer() {
   const navigate = useNavigate();
 
-  const handleScrollToCategories = () => {
-    const el = document.getElementById('habitats');
-    if (el) {
-      el.scrollIntoView({ behavior: 'smooth' });
-    } else {
-      navigate('/');
-      setTimeout(() => {
-        document.getElementById('habitats')?.scrollIntoView({ behavior: 'smooth' });
-      }, 100);
-    }
-  };
-
   return (
     <footer className="bg-white border-t border-slate-100 pt-20 pb-10 px-6 mt-20" id="support-footer">
       <div className="max-w-7xl mx-auto">
@@ -332,7 +318,7 @@ function Footer() {
               <BrandLogo iconClassName="w-7 h-7" />
             </div>
             <p className="text-slate-500 leading-relaxed text-sm">
-              Your ultimate online destination for a vast array of free, high-quality web tools. Simplifying the digital jungle one tool at a time.
+              Your ultimate online destination for high-end digital identity optimization, sandboxed builders, and quick developer utility tools.
             </p>
           </div>
           
@@ -340,9 +326,18 @@ function Footer() {
             <h5 className="font-black text-slate-900 mb-6 uppercase tracking-wider text-sm">Quick Links</h5>
             <ul className="space-y-4 text-slate-600 font-semibold text-sm">
               <li><Link to="/" className="hover:text-orange-500 transition-colors">Home Sandbox</Link></li>
-              <li><button onClick={handleScrollToCategories} className="hover:text-orange-500 text-left transition-colors">Explore All Tools</button></li>
+              <li><Link to="/link-in-bio" className="hover:text-orange-500 transition-colors">Link-In-Bio Builder</Link></li>
+              <li><Link to="/github-readme" className="hover:text-orange-500 transition-colors">GitHub README Builder</Link></li>
+              <li><Link to="/resume-builder" className="hover:text-orange-500 transition-colors">Resume Builder</Link></li>
+              <li><Link to="/tools" className="hover:text-orange-500 transition-colors">Supporting Utilities</Link></li>
+              <li><Link to="/dashboard" className="hover:text-orange-500 transition-colors">Saved Projects Dashboard</Link></li>
+            </ul>
+          </div>
+
+          <div>
+            <h5 className="font-black text-slate-900 mb-6 uppercase tracking-wider text-sm">Trust & Privacy</h5>
+            <ul className="space-y-4 text-slate-600 font-semibold text-sm">
               <li><Link to="/about" className="hover:text-orange-500 transition-colors">About Us</Link></li>
-              <li><Link to="/blog" className="hover:text-orange-500 transition-colors">Blog Chronicles</Link></li>
               <li><Link to="/privacy" className="hover:text-orange-500 transition-colors">Privacy Policy</Link></li>
               <li><Link to="/terms" className="hover:text-orange-500 transition-colors">Terms of Service</Link></li>
               <li><Link to="/disclaimer" className="hover:text-orange-500 transition-colors">Legal Disclaimer</Link></li>
@@ -351,27 +346,13 @@ function Footer() {
           </div>
 
           <div>
-            <h5 className="font-black text-slate-900 mb-6 uppercase tracking-wider text-sm">Popular Tools</h5>
-            <ul className="space-y-4 text-slate-600 font-semibold text-sm">
-              <li><Link to="/invoice-generator" className="hover:text-orange-500 transition-colors">Premium Invoice Generator</Link></li>
-              <li><Link to="/format-converter" className="hover:text-orange-500 transition-colors">Format Converter & Compressor</Link></li>
-              <li><Link to="/emi-calculator" className="hover:text-orange-500 transition-colors">EMI Loan Calculator</Link></li>
-              <li><Link to="/fifa-live-tracker" className="hover:text-orange-500 transition-colors">FIFA Live Match Tracker</Link></li>
-            </ul>
-          </div>
-
-          <div>
-            <h5 className="font-black text-slate-900 mb-6 uppercase tracking-wider text-sm">Join the Pride</h5>
-            <p className="text-slate-500 mb-4 text-sm">Get notified about new wildlife tools we release.</p>
-            <div className="flex gap-2">
-              <input type="email" placeholder="Email" className="bg-slate-100 border-none rounded-xl px-4 py-3 text-sm flex-grow outline-none focus:ring-2 ring-orange-500 font-semibold" />
-              <button className="bg-slate-900 text-white px-4 py-3 rounded-xl hover:bg-orange-500 transition-colors font-bold text-sm">Go</button>
-            </div>
+            <h5 className="font-black text-slate-900 mb-6 uppercase tracking-wider text-sm">100% Secure Sandbox</h5>
+            <p className="text-slate-500 mb-4 text-sm font-semibold">None of your documents, links, or bios are sent to any remote database. Everything executes in client memory.</p>
           </div>
         </div>
         
         <div className="pt-8 border-t border-slate-100 flex flex-col md:flex-row justify-between items-center gap-4">
-          <p className="text-slate-400 text-sm font-medium">© 2026 Wild ToolTrove. All rights reserved.</p>
+          <p className="text-slate-400 text-sm font-medium">© 2026 ToolTrove Sandbox. All rights reserved.</p>
           <div className="flex gap-6">
             {['Twitter', 'GitHub', 'LinkedIn'].map(social => (
               <span key={social} className="text-slate-400 hover:text-slate-900 cursor-pointer text-sm font-bold uppercase tracking-widest">{social}</span>
@@ -520,289 +501,211 @@ function AISuggestionBar() {
 
 // ==================== PAGE 1: HOME PAGE ====================
 function HomePage() {
-  const [searchQuery, setSearchQuery] = useState('');
   const navigate = useNavigate();
 
-  const handleScrollToCategories = () => {
-    document.getElementById('habitats')?.scrollIntoView({ behavior: 'smooth' });
-  };
-
-  // Global search suggestions
-  const allTools = CATEGORIES.flatMap(cat => cat.tools.map(tool => ({ name: tool, catId: cat.id, path: cat.path })));
-  const filteredTools = searchQuery.trim() === '' 
-    ? [] 
-    : allTools.filter(t => t.name.toLowerCase().includes(searchQuery.toLowerCase()));
-
   return (
-    <div className="w-full">
+    <div className="w-full text-slate-800">
       {/* Hero Section */}
-      <section className="pt-36 pb-20 px-6">
-        <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-12 items-center">
-          <motion.div 
-            initial={{ opacity: 0, x: -30 }}
-            animate={{ opacity: 1, x: 0 }}
+      <section className="pt-40 pb-20 px-6 relative overflow-hidden bg-gradient-to-b from-[#FDFBF7] to-white">
+        {/* Ambient Gradient Glows */}
+        <div className="absolute top-20 left-1/4 w-96 h-96 bg-orange-100/40 rounded-full blur-[100px] pointer-events-none"></div>
+        <div className="absolute bottom-10 right-1/4 w-[500px] h-[500px] bg-yellow-100/30 rounded-full blur-[120px] pointer-events-none"></div>
+
+        <div className="max-w-6xl mx-auto text-center space-y-8 relative z-10">
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
+            className="inline-flex items-center gap-2 px-4 py-2 bg-orange-100/60 text-orange-700 rounded-full text-xs font-black uppercase tracking-wider"
           >
-            <div className="inline-flex items-center gap-2 px-4 py-2 bg-orange-100 text-orange-700 rounded-full text-sm font-bold mb-6 animate-float-slow">
-              <Zap className="w-4 h-4 animate-bounce" /> 100% Free Wildlife Utilities
-            </div>
-            <h2 className="text-5xl md:text-7xl font-black leading-tight text-slate-900 mb-6">
-              Master Your Digital <span className="text-orange-500 underline decoration-orange-200 decoration-8 underline-offset-8">Jungle.</span>
+            <Sparkles className="w-4 h-4 text-orange-500 animate-pulse" /> AI-Powered Digital Identity Suite
+          </motion.div>
+
+          <motion.h1
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.1 }}
+            className="text-5xl md:text-7xl font-black tracking-tight text-slate-900 leading-tight max-w-4xl mx-auto"
+          >
+            Elevate Your <span className="text-orange-500 bg-gradient-to-r from-orange-600 to-amber-500 bg-clip-text text-transparent">Professional</span> Presence
+          </motion.h1>
+
+          <motion.p
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+            className="text-lg md:text-xl text-slate-500 font-semibold leading-relaxed max-w-2xl mx-auto"
+          >
+            Build stunning multi-theme Link in Bio portfolios, developer-centric GitHub Profile READMEs, and print-perfect ATS Resumes. Always 100% sandboxed, secure, and client-side.
+          </motion.p>
+
+          <motion.div
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.3 }}
+            className="flex flex-wrap gap-4 justify-center"
+          >
+            <button
+              onClick={() => navigate('/dashboard')}
+              className="px-8 py-4 bg-slate-950 hover:bg-orange-500 text-white font-black text-sm uppercase tracking-wider rounded-2xl shadow-xl hover:shadow-orange-200 transition-all flex items-center gap-2 group hover:scale-105 duration-300"
+            >
+              Launch Dashboard <ChevronRight className="w-5 h-5 group-hover:translate-x-0.5 transition-transform" />
+            </button>
+            <button
+              onClick={() => navigate('/tools')}
+              className="px-8 py-4 bg-white border-2 border-slate-200 text-slate-700 hover:border-slate-400 font-black text-sm uppercase tracking-wider rounded-2xl transition-all hover:scale-105 duration-300"
+            >
+              Supporting Utilities
+            </button>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* Core Tools Identity Suite */}
+      <section className="py-20 px-6 bg-slate-50/50 relative">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center max-w-2xl mx-auto mb-16 space-y-4">
+            <h2 className="text-3xl md:text-5xl font-black tracking-tight text-slate-900">
+              The Identity Toolkit
             </h2>
-            <p className="text-xl text-slate-600 mb-6 leading-relaxed max-w-lg">
-              ToolTrove offers a complete suite of powerful online tools designed to simplify your life. Fast, secure, client-side, and always free.
+            <p className="text-slate-400 font-bold uppercase tracking-wider text-xs">
+              Select an editor to start crafting your identity
             </p>
+          </div>
 
-            {/* AI Assistant dynamic suggestion bar */}
-            <div className="mb-8 p-4 bg-orange-50/60 border border-orange-100 rounded-3xl flex items-center gap-3 max-w-lg shadow-sm animate-fade-in">
-              <div className="p-2.5 bg-white rounded-xl shadow-md shrink-0">
-                <Sparkles className="text-orange-500 w-4 h-4 animate-pulse" />
+          <div className="grid md:grid-cols-3 gap-8">
+            {/* Link in Bio Card */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              onClick={() => navigate('/link-in-bio')}
+              className="group cursor-pointer p-1 rounded-3xl bg-gradient-to-br from-white to-slate-100 border-2 border-slate-200/80 hover:border-orange-400/50 shadow-lg hover:shadow-2xl transition-all duration-300 flex flex-col justify-between h-[360px]"
+            >
+              <div className="p-8">
+                <div className="mb-6 w-12 h-12 rounded-2xl bg-orange-50 flex items-center justify-center border border-orange-100 group-hover:scale-110 transition-transform duration-300">
+                  <Sparkles className="w-6 h-6 text-orange-500" />
+                </div>
+                <h3 className="text-2xl font-black text-slate-900 group-hover:text-orange-500 transition-colors mb-3">
+                  Link in Bio Suite
+                </h3>
+                <p className="text-slate-500 text-xs font-semibold leading-relaxed">
+                  Design beautiful multi-link portfolio hubs like Linktree. Includes customizable pre-built templates, social widgets, click analytics, and HTML export.
+                </p>
               </div>
-              <p className="text-xs font-semibold text-slate-700 leading-relaxed">
-                <span className="font-black text-orange-600 uppercase tracking-widest text-[9px] block mb-0.5 animate-pulse">AI Smart Suggestion</span>
-                <AISuggestionBar />
-              </p>
-            </div>
+              <div className="p-8 pt-0 flex justify-between items-center text-xs font-black text-orange-500 tracking-wider uppercase">
+                <span>Start Crafting</span>
+                <ChevronRight className="w-5 h-5 group-hover:translate-x-1.5 transition-transform" />
+              </div>
+            </motion.div>
 
-            <div className="flex flex-wrap gap-4">
-              <button 
-                onClick={handleScrollToCategories}
-                className="px-8 py-4 bg-orange-500 text-white font-bold rounded-2xl shadow-xl shadow-orange-200 hover:scale-105 transition-transform flex items-center gap-2"
-              >
-                Explore The Habitat <ChevronRight className="w-5 h-5" />
-              </button>
-              <button 
-                onClick={() => document.getElementById('why-us')?.scrollIntoView({behavior:'smooth'})}
-                className="px-8 py-4 bg-white border-2 border-slate-200 text-slate-700 font-bold rounded-2xl hover:bg-slate-50 transition-colors"
-              >
-                Why ToolTrove?
-              </button>
-            </div>
-          </motion.div>
+            {/* GitHub README Card */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              onClick={() => navigate('/github-readme')}
+              className="group cursor-pointer p-1 rounded-3xl bg-gradient-to-br from-white to-slate-100 border-2 border-slate-200/80 hover:border-orange-400/50 shadow-lg hover:shadow-2xl transition-all duration-300 flex flex-col justify-between h-[360px]"
+            >
+              <div className="p-8">
+                <div className="mb-6 w-12 h-12 rounded-2xl bg-orange-50 flex items-center justify-center border border-orange-100 group-hover:scale-110 transition-transform duration-300">
+                  <Terminal className="w-6 h-6 text-orange-500" />
+                </div>
+                <h3 className="text-2xl font-black text-slate-900 group-hover:text-orange-500 transition-colors mb-3">
+                  GitHub README
+                </h3>
+                <p className="text-slate-500 text-xs font-semibold leading-relaxed">
+                  Create high-fidelity developer profiles. Featuring customizable badges databases, stats integrations, drag-and-drop sections ordering, and AI skill categorization.
+                </p>
+              </div>
+              <div className="p-8 pt-0 flex justify-between items-center text-xs font-black text-orange-500 tracking-wider uppercase">
+                <span>Compile Profile</span>
+                <ChevronRight className="w-5 h-5 group-hover:translate-x-1.5 transition-transform" />
+              </div>
+            </motion.div>
 
-          <motion.div 
-            className="relative"
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.8, delay: 0.2 }}
-          >
-            <div className="aspect-square bg-gradient-to-br from-orange-100 to-yellow-50 rounded-[4rem] flex items-center justify-center p-12 overflow-hidden relative border-4 border-white shadow-2xl">
-              {/* Decorative Jungle Leaves (SVGs) */}
-              <div className="absolute top-0 right-0 w-32 h-32 opacity-20 transform translate-x-10 -translate-y-10 animate-sway">
-                <svg viewBox="0 0 100 100" fill="green"><path d="M0 100 Q50 0 100 100" /></svg>
+            {/* Resume Builder Card */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              onClick={() => navigate('/resume-builder')}
+              className="group cursor-pointer p-1 rounded-3xl bg-gradient-to-br from-white to-slate-100 border-2 border-slate-200/80 hover:border-orange-400/50 shadow-lg hover:shadow-2xl transition-all duration-300 flex flex-col justify-between h-[360px]"
+            >
+              <div className="p-8">
+                <div className="mb-6 w-12 h-12 rounded-2xl bg-orange-50 flex items-center justify-center border border-orange-100 group-hover:scale-110 transition-transform duration-300">
+                  <FileText className="w-6 h-6 text-orange-500" />
+                </div>
+                <h3 className="text-2xl font-black text-slate-900 group-hover:text-orange-500 transition-colors mb-3">
+                  ATS Resume Builder
+                </h3>
+                <p className="text-slate-500 text-xs font-semibold leading-relaxed">
+                  Construct print-perfect applicant tracking system friendly resumes. Real-time preview alignment, Gemma bullet refiners, and complete ATS scoring analysis.
+                </p>
               </div>
-              <div className="absolute bottom-0 left-0 w-48 h-48 opacity-10 transform -translate-x-12 translate-y-12 rotate-45 animate-sway">
-                <svg viewBox="0 0 100 100" fill="green"><path d="M0 100 Q50 0 100 100" /></svg>
+              <div className="p-8 pt-0 flex justify-between items-center text-xs font-black text-orange-500 tracking-wider uppercase">
+                <span>Design Resume</span>
+                <ChevronRight className="w-5 h-5 group-hover:translate-x-1.5 transition-transform" />
               </div>
-              
-              <div className="grid grid-cols-2 gap-8 relative z-10">
-                <div 
-                  onClick={() => navigate('/invoice-generator')}
-                  className="bg-white p-6 rounded-3xl shadow-xl border border-slate-100 flex flex-col items-center cursor-pointer hover:border-orange-400 hover:scale-105 transition-all"
-                >
-                  <OwlMascot />
-                  <span className="mt-2 font-bold text-slate-500 text-sm">Invoice Gen</span>
-                </div>
-                <div 
-                  onClick={() => navigate('/emi-calculator')}
-                  className="bg-white p-6 rounded-3xl shadow-xl border border-slate-100 flex flex-col items-center cursor-pointer hover:border-orange-400 hover:scale-105 transition-all"
-                >
-                  <ElephantMascot />
-                  <span className="mt-2 font-bold text-slate-500 text-sm">EMI Calculator</span>
-                </div>
-                <div 
-                  onClick={() => navigate('/format-converter')}
-                  className="bg-white p-6 rounded-3xl shadow-xl border border-slate-100 flex flex-col items-center cursor-pointer hover:border-orange-400 hover:scale-105 transition-all"
-                >
-                  <ChameleonMascot />
-                  <span className="mt-2 font-bold text-slate-500 text-sm">Compressor</span>
-                </div>
-                <div 
-                  onClick={() => navigate('/password-generator')}
-                  className="bg-white p-6 rounded-3xl shadow-xl border border-slate-100 flex flex-col items-center cursor-pointer hover:border-orange-400 hover:scale-105 transition-all"
-                >
-                  <LionMascot />
-                  <span className="mt-2 font-bold text-slate-500 text-sm">Security</span>
-                </div>
-              </div>
-            </div>
-          </motion.div>
+            </motion.div>
+          </div>
         </div>
       </section>
 
-      {/* Infinite Scrolling Marquee */}
-      <div className="overflow-hidden bg-white border-y border-slate-100 py-6 flex flex-col gap-4">
-        <motion.div 
-          animate={{ x: [0, -1000] }}
-          transition={{ repeat: Infinity, duration: 40, ease: 'linear' }}
-          className="flex gap-4 whitespace-nowrap min-w-max"
-        >
-          {['🗜️ PDF Compressor', '✍️ AI Resume Builder', '🖼️ Background Remover', '🐛 Code Debugger', '🗄️ SQL Generator', '📝 Paraphraser', '🎥 Video Compressor', '🔑 Password Generator', '📧 Cold Email Writer', '🧾 Invoice Generator', '📱 QR Code Generator', '📺 YouTube Script Writer', '💰 GST Calculator', '🔍 SEO Meta Generator', '🔣 Regex Tester', '⬆️ Image Upscaler', '📖 OCR Tool', '🔄 JSON Formatter', '🌐 AI Translator', '📊 Word Counter'].map((tool, i) => (
-            <div key={i} className="px-4 py-2 bg-slate-50 border border-slate-100 rounded-full font-semibold text-slate-600 text-sm">{tool}</div>
-          ))}
-        </motion.div>
-        
-        <motion.div 
-          animate={{ x: [-1000, 0] }}
-          transition={{ repeat: Infinity, duration: 40, ease: 'linear' }}
-          className="flex gap-4 whitespace-nowrap min-w-max"
-        >
-          {['🔐 Plagiarism Checker', '🧮 EMI Calculator', '📄 PDF to Word', '💳 IFSC Finder', '🎨 Color Palette', '🔗 URL Shortener', '📅 Age Calculator', '💱 Currency Converter', '🛡️ Hash Checker', '✅ PAN Validator', '📌 Case Converter', '📋 Markdown Editor', '⏱️ Pomodoro Timer', '🔍 IP Lookup', '📊 Keyword Checker', '🏷️ Meta Tag Generator', '📐 Unit Converter', '✉️ Temp Email', '🖋️ Signature Generator', '💼 Business Plan Writer'].map((tool, i) => (
-            <div key={i} className="px-4 py-2 bg-slate-50 border border-slate-100 rounded-full font-semibold text-slate-600 text-sm">{tool}</div>
-          ))}
-        </motion.div>
-      </div>
-
-      {/* 📰 Recent Blogs Bar — dark strip */}
-      <RecentBlogsBar />
-
-      {/* Categories Grid */}
-      <section className="py-24 px-6 bg-slate-50/50 optimize-rendering" id="habitats">
-        <div className="max-w-7xl mx-auto">
-          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-16">
-            <div>
-              <h3 className="text-3xl md:text-4xl font-black text-slate-900 mb-4">Discover Our Diverse Habitats</h3>
-              <p className="text-slate-500 font-medium">Explore categories designed to make your digital life easier.</p>
-            </div>
-            
-            {/* Master Search Bar */}
-            <div className="relative group w-full md:w-80">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5 group-focus-within:text-orange-500" />
-              <input 
-                type="text" 
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search tools (e.g. EMI, PDF, Invoice)..." 
-                className="pl-12 pr-6 py-4 bg-white border-2 border-slate-200 rounded-2xl w-full outline-none focus:border-orange-500 focus:shadow-lg transition-all text-sm font-semibold"
-              />
-              
-              {/* Suggestions dropdown */}
-              {filteredTools.length > 0 && (
-                <div className="absolute left-0 w-full mt-2 bg-white border border-slate-200 rounded-2xl shadow-xl z-30 max-h-60 overflow-y-auto divide-y divide-slate-100">
-                  {filteredTools.map((t, i) => (
-                    <button
-                      key={i}
-                      onClick={() => { navigate(`/${getToolPath(t.name)}`); setSearchQuery(''); }}
-                      className="w-full text-left px-4 py-3 hover:bg-orange-50 text-xs font-bold text-slate-700 flex items-center justify-between"
-                    >
-                      <span>{t.name}</span>
-                      <span className="text-[10px] text-orange-500 uppercase tracking-widest font-black">Open Tool →</span>
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
-
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {CATEGORIES.map((cat, idx) => (
-              <motion.div 
-                key={cat.id}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: idx * 0.1 }}
-                onClick={() => navigate(`/tools/${cat.path}`)}
-                className={`group p-1 rounded-3xl bg-gradient-to-br from-white to-slate-100 border-2 ${cat.borderColor} shadow-xl hover:shadow-2xl hover:-translate-y-2 transition-all cursor-pointer gpu-accelerated touch-latency-fix`}
-              >
-                <div className="p-8 rounded-[1.4rem] h-full flex flex-col justify-between">
+      {/* Feature Focus Section: Security & Utilities */}
+      <section className="py-24 px-6 overflow-hidden bg-slate-950 text-white rounded-[3rem] mx-6 mb-20" id="utilities">
+        <div className="max-w-6xl mx-auto grid lg:grid-cols-2 gap-12 items-center">
+          <div className="space-y-6">
+            <span className="text-xs font-bold text-orange-400 uppercase tracking-widest block">Local Sandboxed Processing</span>
+            <h3 className="text-4xl md:text-5xl font-black leading-tight">100% Client-Side Privacy</h3>
+            <p className="text-slate-400 font-semibold leading-relaxed text-sm">
+              We process all your sensitive data inside your browser. No databases, no external networks, no caching. Complete isolation for ultimate peace of mind.
+            </p>
+            <div className="space-y-6 pt-4">
+              {[
+                { title: "Smart Utilities Hub", desc: "Instantly scan and generate QR codes, utilize AI-powered OCR to extract markdown text, shorten URLs, and customize social link previews." },
+                { title: "Saved Projects Dashboard", desc: "Retrieve, modify, and manage all your Link in Bio configurations, GitHub profiles, and ATS Resumes dynamically from browser local storage." }
+              ].map((feat, idx) => (
+                <div key={idx} className="flex gap-4 items-start">
+                  <div className="w-2.5 h-2.5 rounded-full bg-orange-500 mt-2 shrink-0"></div>
                   <div>
-                    <div className="mb-6 flex justify-between items-start">
-                      <div className="p-3 bg-white rounded-2xl shadow-inner group-hover:rotate-6 transition-transform">
-                        {cat.icon}
-                      </div>
-                      {cat.mascot}
-                    </div>
-                    <h4 className="text-xl font-black text-slate-900 mb-2">{cat.title}</h4>
-                    <p className="text-slate-500 text-sm mb-6 leading-relaxed">{cat.description}</p>
-                  </div>
-                  
-                  <div className="space-y-2.5">
-                    {cat.tools.slice(0, 5).map(tool => (
-                      <button 
-                        key={tool} 
-                        onClick={(e) => { e.stopPropagation(); navigate(`/${getToolPath(tool)}`); }}
-                        className="w-full text-left flex items-center gap-2 text-xs font-bold text-slate-600 hover:text-orange-500 transition-colors"
-                      >
-                        <div className="w-1.5 h-1.5 rounded-full bg-orange-400"></div>
-                        {tool}
-                      </button>
-                    ))}
-                    {cat.tools.length > 5 && (
-                      <div className="text-xs text-slate-400 font-bold pl-3.5 italic">+ {cat.tools.length - 5} more tools</div>
-                    )}
-                    <div 
-                      className="pt-4 border-t border-slate-150 mt-4 flex items-center justify-between text-orange-600 font-bold text-xs"
-                    >
-                      Explore Habitat <ChevronRight className="w-4 h-4" />
-                    </div>
+                    <h5 className="font-bold text-lg text-slate-100">{feat.title}</h5>
+                    <p className="text-slate-400 text-xs mt-1 leading-relaxed">{feat.desc}</p>
                   </div>
                 </div>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Google Gemma AI Chat assistant */}
-      <section className="py-10 px-6">
-        <div className="max-w-7xl mx-auto">
-          <Suspense fallback={<div className="h-96 w-full bg-slate-900/40 rounded-[2.5rem] animate-pulse"></div>}>
-            <ChatAssistant />
-          </Suspense>
-        </div>
-      </section>
-
-      {/* 🔥 Trending / Popular Tools Section */}
-      <TrendingToolsSection />
-
-      {/* 👤 Personalized Activity Section (shows only if user has used tools) */}
-      <PersonalizedActivitySection />
-
-      {/* Chronicles & Insights Blog Section */}
-      <InsightsSection />
-
-      {/* Why Us section */}
-      <section className="py-24 px-6 overflow-hidden bg-slate-950 text-white rounded-[3rem] mx-6" id="why-us">
-        <div className="max-w-7xl mx-auto">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
-            <div>
-              <span className="text-xs font-bold text-orange-400 uppercase tracking-widest block mb-4">Unrivalled Security</span>
-              <h3 className="text-4xl md:text-5xl font-black mb-8 leading-tight">Why Settle for Less?</h3>
-              <div className="space-y-8">
-                {[
-                  { icon: <Zap />, title: "Lightning Fast client-side compilation", desc: "Most tool calculations, conversions, and rendering complete instantly right inside your local browser sandbox." },
-                  { icon: <ShieldCheck />, title: "Secure Habitat", desc: "No databases, no file caches. Your document contents never leave your device to secure ultimate privacy." },
-                  { icon: <Award />, title: "100% Free Forever", desc: "No subscriptions, no dynamic payment limits. Pure high-fidelity utilities designed for Indian small businesses." }
-                ].map((feat, i) => (
-                  <div key={i} className="flex gap-4">
-                    <div className="shrink-0 w-12 h-12 bg-white/10 rounded-2xl flex items-center justify-center text-orange-400">
-                      {feat.icon}
-                    </div>
-                    <div>
-                      <h4 className="font-bold text-xl mb-1">{feat.title}</h4>
-                      <p className="text-slate-400 leading-relaxed text-sm">{feat.desc}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
+              ))}
             </div>
-            
-            <div className="relative flex justify-center">
-              <div className="w-64 h-64 md:w-80 md:h-80 bg-white/5 rounded-full flex items-center justify-center border border-white/10 relative animate-spin-slow">
-                <div className="absolute -top-6 bg-orange-500 p-4 rounded-2xl shadow-lg cursor-pointer" onClick={() => navigate('/invoice-generator')}>
-                  <OwlMascot />
+            <div className="pt-6 flex gap-4">
+              <button
+                onClick={() => navigate('/tools')}
+                className="px-6 py-3 bg-orange-500 hover:bg-orange-600 text-white font-black text-xs uppercase tracking-wider rounded-xl transition-all shadow-md"
+              >
+                Launch Utilities
+              </button>
+              <button
+                onClick={() => navigate('/dashboard')}
+                className="px-6 py-3 bg-white/10 hover:bg-white/20 text-white font-black text-xs uppercase tracking-wider rounded-xl transition-all"
+              >
+                Open Dashboard
+              </button>
+            </div>
+          </div>
+
+          <div className="relative flex justify-center">
+            {/* Beautiful visual showcase representating local sandboxing */}
+            <div className="w-80 h-80 rounded-[3rem] bg-gradient-to-tr from-slate-900 to-slate-800 border border-white/10 flex items-center justify-center p-8 relative shadow-2xl overflow-hidden">
+              <div className="absolute inset-0 bg-radial-gradient from-orange-500/10 to-transparent pointer-events-none"></div>
+              <div className="space-y-6 text-center z-10">
+                <div className="w-16 h-16 rounded-2xl bg-white/10 border border-white/20 flex items-center justify-center mx-auto shadow-inner">
+                  <Sparkles className="w-8 h-8 text-orange-400 animate-pulse" />
                 </div>
-                <div className="absolute -bottom-6 bg-orange-500 p-4 rounded-2xl shadow-lg cursor-pointer" onClick={() => navigate('/password-generator')}>
-                  <LionMascot />
+                <div className="space-y-2">
+                  <h4 className="font-black text-xl text-slate-200">Sandbox Environment</h4>
+                  <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Active Guardian Shield</p>
                 </div>
-                <div className="absolute -left-6 bg-orange-500 p-4 rounded-2xl shadow-lg cursor-pointer" onClick={() => navigate('/emi-calculator')}>
-                  <ElephantMascot />
+                <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 rounded-lg text-[10px] font-black uppercase tracking-wider">
+                  Secure Client Memory
                 </div>
-                <div className="absolute -right-6 bg-orange-500 p-4 rounded-2xl shadow-lg cursor-pointer" onClick={() => navigate('/format-converter')}>
-                  <ChameleonMascot />
-                </div>
-                <div className="w-1/2 h-1/2 bg-white/10 rounded-full blur-xl"></div>
               </div>
             </div>
           </div>
@@ -1264,6 +1167,11 @@ export default function App() {
             <Suspense fallback={<SkeletonLoader />}>
               <Routes>
                 <Route path="/" element={<HomePage />} />
+                <Route path="/link-in-bio" element={<LinkInBio />} />
+                <Route path="/github-readme" element={<GithubReadme />} />
+                <Route path="/resume-builder" element={<ResumeBuilder />} />
+                <Route path="/tools" element={<UtilityTools />} />
+                <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/about" element={<AboutPage />} />
                 <Route path="/privacy" element={<PrivacyPage />} />
                 <Route path="/terms" element={<TermsPage />} />
