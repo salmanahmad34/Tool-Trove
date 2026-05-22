@@ -20,7 +20,6 @@ import ErrorBoundary from './components/ErrorBoundary';
 // --- Dynamically Imported Premium Identity Core Pages ---
 const LinkInBio = lazy(() => import('./pages/LinkInBio'));
 const GithubReadme = lazy(() => import('./pages/GithubReadme'));
-const ResumeBuilder = lazy(() => import('./pages/ResumeBuilder'));
 const Dashboard = lazy(() => import('./pages/Dashboard'));
 
 // --- Dynamically Imported Trust Pages ---
@@ -96,7 +95,6 @@ function Navbar() {
             <Link to="/" className="hover:text-orange-500 transition-colors">Home</Link>
             <Link to="/link-in-bio" className="hover:text-orange-500 transition-colors">Link in Bio</Link>
             <Link to="/github-readme" className="hover:text-orange-500 transition-colors">README</Link>
-            <Link to="/resume-builder" className="hover:text-orange-500 transition-colors">Resume</Link>
             <Link to="/dashboard" className="hover:text-orange-500 transition-colors">Dashboard</Link>
             <button 
               onClick={() => navigate('/dashboard')}
@@ -123,7 +121,6 @@ function Navbar() {
             <Link to="/" onClick={() => setIsMenuOpen(false)} className="text-left py-2 hover:text-orange-500 border-b border-slate-50">Home</Link>
             <Link to="/link-in-bio" onClick={() => setIsMenuOpen(false)} className="text-left py-2 hover:text-orange-500 border-b border-slate-50">Link in Bio</Link>
             <Link to="/github-readme" onClick={() => setIsMenuOpen(false)} className="text-left py-2 hover:text-orange-500 border-b border-slate-50">README Builder</Link>
-            <Link to="/resume-builder" onClick={() => setIsMenuOpen(false)} className="text-left py-2 hover:text-orange-500 border-b border-slate-50">Resume Builder</Link>
             <Link to="/dashboard" onClick={() => setIsMenuOpen(false)} className="text-left py-2 hover:text-orange-500 border-b border-slate-50">Dashboard</Link>
             <button 
               onClick={() => { navigate('/dashboard'); setIsMenuOpen(false); }}
@@ -158,7 +155,6 @@ function Footer() {
             <ul className="space-y-4 text-slate-600 font-semibold text-sm">
               <li><Link to="/link-in-bio" className="hover:text-orange-500 transition-colors">Link-In-Bio Builder</Link></li>
               <li><Link to="/github-readme" className="hover:text-orange-500 transition-colors">GitHub README Builder</Link></li>
-              <li><Link to="/resume-builder" className="hover:text-orange-500 transition-colors">Resume Builder</Link></li>
               <li><Link to="/dashboard" className="hover:text-orange-500 transition-colors">Creator Dashboard</Link></li>
             </ul>
           </div>
@@ -231,7 +227,7 @@ function HomePage() {
               transition={{ duration: 0.6, delay: 0.2 }}
               className="text-lg md:text-xl text-slate-500 font-semibold leading-relaxed"
             >
-              Create AI-powered Link in Bio pages, GitHub READMEs, and ATS-ready resumes from one premium workspace.
+              Create AI-powered Link in Bio pages and GitHub READMEs from one premium workspace.
             </motion.p>
 
             <motion.div
@@ -251,12 +247,6 @@ function HomePage() {
                 className="px-8 py-4 bg-white border-2 border-slate-200 text-slate-700 hover:border-slate-400 font-black text-sm uppercase tracking-wider rounded-2xl transition-all hover:-translate-y-1"
               >
                 Build README
-              </button>
-              <button
-                onClick={() => navigate('/resume-builder')}
-                className="px-8 py-4 bg-white border-2 border-slate-200 text-slate-700 hover:border-slate-400 font-black text-sm uppercase tracking-wider rounded-2xl transition-all hover:-translate-y-1"
-              >
-                Design Resume
               </button>
             </motion.div>
           </div>
@@ -291,19 +281,7 @@ function HomePage() {
               <p className="text-sm font-semibold text-slate-500">Generate developer profiles that highlight your stack, stats, and top repositories.</p>
             </motion.div>
 
-            {/* Card 3: ATS Resume Builder */}
-            <motion.div 
-              initial={{ opacity: 0, x: 50 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.8, delay: 0.6 }}
-              className="absolute bottom-10 left-20 w-72 bg-white/60 backdrop-blur-md border border-white/80 p-6 rounded-3xl shadow-2xl z-10 hover:-translate-y-2 transition-transform duration-300"
-            >
-              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-400 to-teal-500 text-white flex items-center justify-center mb-4 shadow-lg">
-                <FileText className="w-6 h-6" />
-              </div>
-              <h3 className="font-black text-xl text-slate-900 mb-2">ATS Resume Builder</h3>
-              <p className="text-sm font-semibold text-slate-500">Pass screeners easily with structurally perfect, AI-refined resumes.</p>
-            </motion.div>
+
 
              {/* Small 4th Card: AI Optimization */}
             <motion.div 
@@ -367,7 +345,6 @@ export default function App() {
                 <Route path="/" element={<HomePage />} />
                 <Route path="/link-in-bio" element={<LinkInBio />} />
                 <Route path="/github-readme" element={<GithubReadme />} />
-                <Route path="/resume-builder" element={<ResumeBuilder />} />
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/about" element={<AboutPage />} />
                 <Route path="/privacy" element={<PrivacyPage />} />

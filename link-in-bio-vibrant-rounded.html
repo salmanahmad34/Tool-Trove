@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vibrant & Fun | Link in Bio</title>
+  
+  <!-- Font: Quicksand for a highly rounded, friendly look -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@500;700;800&display=swap" rel="stylesheet">
+  
+  <style>
+    /* CSS Reset */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Quicksand', -apple-system, sans-serif;
+    }
+
+    /* Variables */
+    :root {
+      --bg-gradient: linear-gradient(135deg, #ff9a76, #ffb88c, #d5aaff);
+      --card-mint: #a8e6cf;
+      --card-sky: #a1d8ff;
+      --card-sun: #ffe8a8;
+      --card-pink: #ffb3ba;
+      --accent-coral: #ff6b6b;
+      --text-main: #2c3e50;
+      --radius-heavy: 32px;
+      --radius-pill: 50px;
+    }
+
+    /* Base Styling */
+    body {
+      background: var(--bg-gradient);
+      background-size: 400% 400%;
+      animation: gradientShift 15s ease infinite;
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      padding: 3rem 1rem;
+      overflow-x: hidden;
+    }
+
+    @keyframes gradientShift {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    .container {
+      width: 100%;
+      max-width: 480px;
+      display: flex;
+      flex-direction: column;
+      gap: 2.5rem;
+    }
+
+    /* Profile Section */
+    .profile {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      padding: 1rem 0;
+    }
+
+    /* Avatar animations */
+    .avatar-wrapper {
+      position: relative;
+      width: 150px;
+      height: 150px;
+      border-radius: 50%;
+      margin-bottom: 1.5rem;
+      /* Rotating gradient border */
+      background: linear-gradient(45deg, #ff9a76, #ffb88c, #d5aaff, #a1d8ff, #a8e6cf);
+      background-size: 300% 300%;
+      padding: 6px;
+      animation: rotateBorder 4s linear infinite, float 6s ease-in-out infinite;
+      box-shadow: 0 15px 35px rgba(255, 107, 107, 0.3);
+    }
+
+    @keyframes rotateBorder {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0px) rotate(0deg); }
+      50% { transform: translateY(-15px) rotate(3deg); }
+    }
+
+    .avatar-wrapper img {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 4px solid white;
+      background-color: white;
+    }
+
+    h1 {
+      font-size: 38px;
+      font-weight: 800;
+      letter-spacing: -1px;
+      margin-bottom: 0.75rem;
+      color: white;
+      text-shadow: 2px 4px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .bio {
+      font-size: 18px;
+      font-weight: 700;
+      color: white;
+      line-height: 1.4;
+      background: rgba(255, 255, 255, 0.25);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      padding: 1rem 1.5rem;
+      border-radius: var(--radius-heavy);
+      box-shadow: 0 8px 32px rgba(255, 107, 107, 0.15);
+      border: 2px solid rgba(255, 255, 255, 0.4);
+    }
+
+    /* Social Media Section */
+    .social-strip {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1.5rem;
+      justify-items: center;
+      padding: 0 1rem;
+    }
+
+    .social-btn {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+      text-decoration: none;
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+      transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); /* Bounce easing */
+      border: 3px solid white;
+    }
+
+    .social-btn:hover {
+      transform: translateY(-8px) scale(1.1);
+    }
+
+    /* Unique social button colors */
+    .social-btn:nth-child(1) { background-color: var(--card-pink); color: var(--accent-coral); box-shadow: 0 10px 25px rgba(255, 179, 186, 0.6); }
+    .social-btn:nth-child(2) { background-color: var(--card-sky); color: #2980b9; box-shadow: 0 10px 25px rgba(161, 216, 255, 0.6); }
+    .social-btn:nth-child(3) { background-color: var(--card-sun); color: #f39c12; box-shadow: 0 10px 25px rgba(255, 232, 168, 0.6); }
+    .social-btn:nth-child(4) { background-color: var(--card-mint); color: #27ae60; box-shadow: 0 10px 25px rgba(168, 230, 207, 0.6); }
+
+    /* Floating animation for cards */
+    @keyframes slowFloat1 { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+    @keyframes slowFloat2 { 0%, 100% { transform: translateY(-4px); } 50% { transform: translateY(4px); } }
+
+    /* Link Cards */
+    .links-wrapper {
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+
+    .link-card {
+      position: relative;
+      display: flex;
+      align-items: center;
+      padding: 1.25rem 1.5rem;
+      border-radius: var(--radius-heavy);
+      text-decoration: none;
+      color: var(--text-main);
+      box-shadow: 0 12px 24px rgba(0, 0, 0, 0.08);
+      border: 3px solid white;
+      transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    /* Assigning pastel colors and float anims to cards */
+    .link-card:nth-child(1) { background-color: var(--card-mint); animation: slowFloat1 5s ease-in-out infinite; }
+    .link-card:nth-child(2) { background-color: var(--card-sky); animation: slowFloat2 6s ease-in-out infinite; }
+    .link-card:nth-child(3) { background-color: var(--card-sun); animation: slowFloat1 7s ease-in-out infinite; }
+    .link-card:nth-child(4) { background-color: var(--card-pink); animation: slowFloat2 5.5s ease-in-out infinite; }
+
+    /* Hover effect to override float briefly or blend with it */
+    .link-card:hover {
+      transform: scale(1.05) rotate(-2deg) !important;
+      box-shadow: 0 20px 30px rgba(0, 0, 0, 0.15);
+      z-index: 10;
+    }
+    .link-card:nth-child(even):hover {
+      transform: scale(1.05) rotate(2deg) !important;
+    }
+
+    .card-icon {
+      font-size: 44px;
+      margin-right: 1.25rem;
+      background: white;
+      width: 76px;
+      height: 76px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: var(--radius-heavy);
+      box-shadow: inset 0 4px 10px rgba(0,0,0,0.05);
+      flex-shrink: 0;
+    }
+
+    .card-content {
+      flex-grow: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .card-title {
+      font-size: 22px;
+      font-weight: 800;
+    }
+
+    .card-desc {
+      font-size: 15px;
+      font-weight: 700;
+      opacity: 0.8;
+    }
+
+    .card-cta {
+      margin-left: 1rem;
+      background: white;
+      color: var(--accent-coral);
+      padding: 0.75rem 1.25rem;
+      border-radius: var(--radius-pill);
+      font-weight: 800;
+      font-size: 15px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+      transition: all 0.3s ease;
+    }
+
+    .link-card:hover .card-cta {
+      background: var(--text-main);
+      color: white;
+      transform: scale(1.1);
+    }
+
+    /* Mobile Adjustments */
+    @media (max-width: 480px) {
+      .social-strip {
+        grid-template-columns: repeat(2, 1fr);
+        max-width: 200px;
+        margin: 0 auto;
+        gap: 1.5rem;
+      }
+      
+      .link-card {
+        flex-direction: column;
+        text-align: center;
+        padding: 2rem 1.5rem;
+        gap: 1rem;
+      }
+
+      .card-icon {
+        margin-right: 0;
+        margin-bottom: 0.5rem;
+      }
+
+      .card-cta {
+        margin-left: 0;
+        margin-top: 0.5rem;
+        width: 100%;
+      }
+      
+      .avatar-wrapper {
+        width: 130px;
+        height: 130px;
+      }
+      
+      h1 {
+        font-size: 32px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    
+    <!-- Hero Section -->
+    <header class="profile">
+      <div class="avatar-wrapper">
+        <img src="https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?w=400&h=400&fit=crop" alt="Chloe Smiles">
+      </div>
+      
+      <h1>Chloe ✨</h1>
+      <p class="bio">
+        Hi there! 👋 I make colorful digital art and share fun tutorials. 🎨✨ Let's create something awesome! 🌈
+      </p>
+    </header>
+
+    <!-- Social Media Strip -->
+    <section class="social-strip">
+      <a href="#" class="social-btn" aria-label="Instagram">📸</a>
+      <a href="#" class="social-btn" aria-label="Twitter">🐦</a>
+      <a href="#" class="social-btn" aria-label="YouTube">🎥</a>
+      <a href="#" class="social-btn" aria-label="TikTok">🎵</a>
+    </section>
+
+    <!-- Link Cards -->
+    <section class="links-wrapper">
+      
+      <a href="#" class="link-card">
+        <div class="card-icon">🛍️</div>
+        <div class="card-content">
+          <div class="card-title">My Sticker Shop</div>
+          <div class="card-desc">Grab limited edition cute stickers!</div>
+        </div>
+        <div class="card-cta">Visit</div>
+      </a>
+
+      <a href="#" class="link-card">
+        <div class="card-icon">🎨</div>
+        <div class="card-content">
+          <div class="card-title">Procreate Brushes</div>
+          <div class="card-desc">Download my free custom brush pack</div>
+        </div>
+        <div class="card-cta">Get 'em</div>
+      </a>
+
+      <a href="#" class="link-card">
+        <div class="card-icon">🍕</div>
+        <div class="card-content">
+          <div class="card-title">Buy me a slice!</div>
+          <div class="card-desc">Support my creative journey</div>
+        </div>
+        <div class="card-cta">Support</div>
+      </a>
+
+      <a href="#" class="link-card">
+        <div class="card-icon">💌</div>
+        <div class="card-content">
+          <div class="card-title">Weekly Newsletter</div>
+          <div class="card-desc">Join 10k+ artists making magic</div>
+        </div>
+        <div class="card-cta">Subscribe</div>
+      </a>
+
+    </section>
+
+  </div>
+
+</body>
+</html>

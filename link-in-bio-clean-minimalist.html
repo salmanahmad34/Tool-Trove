@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Clean Minimalist | Link in Bio</title>
+  
+  <!-- Fonts: Playfair Display (Serif) & Inter (Sans Serif) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+  
+  <style>
+    /* CSS Reset */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    /* Core Variables */
+    :root {
+      --bg-color: #faf8f3;
+      --card-bg: #ffffff;
+      --accent-black: #1a1a1a;
+      --accent-gold: #d4a574;
+      --border-light: #e5e5e5;
+      --text-dark: #333333;
+      --text-light: #999999;
+      --font-serif: 'Playfair Display', Georgia, serif;
+      --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+
+    /* Base Styling */
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-dark);
+      font-family: var(--font-sans);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      padding: 4rem 1rem;
+      line-height: 1.6;
+    }
+
+    /* Typography Hierarchy */
+    h1 {
+      font-family: var(--font-serif);
+      font-size: 36px;
+      color: var(--accent-black);
+      font-weight: 700;
+      letter-spacing: -0.5px;
+      line-height: 1.2;
+    }
+
+    h2 {
+      font-family: var(--font-sans);
+      font-size: 22px;
+      color: var(--accent-black);
+      font-weight: 600;
+      letter-spacing: -0.3px;
+    }
+
+    p {
+      font-size: 15px;
+      color: var(--text-dark);
+    }
+
+    .small-text {
+      font-size: 13px;
+      color: var(--text-light);
+    }
+
+    /* Container */
+    .container {
+      width: 100%;
+      max-width: 460px;
+      display: flex;
+      flex-direction: column;
+      gap: 3rem;
+    }
+
+    /* Profile Section */
+    .profile {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+    }
+
+    .avatar-wrapper {
+      margin-bottom: 2rem;
+    }
+
+    .avatar {
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 1px solid var(--accent-black);
+      padding: 4px; /* Creates the thin border gap look */
+      background-color: var(--bg-color);
+    }
+
+    .name-wrapper {
+      position: relative;
+      margin-bottom: 1rem;
+      display: inline-block;
+    }
+
+    /* Gold underline accent */
+    .name-wrapper::after {
+      content: '';
+      position: absolute;
+      bottom: -4px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 40px;
+      height: 2px;
+      background-color: var(--accent-gold);
+    }
+
+    .bio {
+      max-width: 85%;
+      margin: 0.5rem auto 1rem;
+    }
+
+    .location {
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    .location svg {
+      width: 14px;
+      height: 14px;
+      stroke: var(--text-light);
+    }
+
+    /* Social Icons Section */
+    .social-strip {
+      display: flex;
+      justify-content: center;
+      gap: 1.5rem;
+    }
+
+    .social-icon {
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--accent-black);
+      text-decoration: none;
+      transition: color 0.3s ease;
+    }
+
+    .social-icon svg {
+      width: 22px;
+      height: 22px;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 1.5;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      transition: transform 0.3s ease;
+    }
+
+    .social-icon:hover {
+      color: var(--accent-gold);
+    }
+
+    .social-icon:hover svg {
+      transform: translateY(-2px);
+    }
+
+    /* Link Cards Grid/List */
+    .links-wrapper {
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+    }
+
+    .link-card {
+      display: flex;
+      align-items: center;
+      background-color: var(--card-bg);
+      border: 1px solid var(--border-light);
+      border-left: 4px solid var(--accent-gold);
+      padding: 1.25rem 1.5rem;
+      text-decoration: none;
+      color: var(--accent-black);
+      transition: all 0.3s ease;
+      /* Minimal shadow */
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+    }
+
+    .link-card:hover {
+      background-color: #f5f5f5;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+      border-left-width: 6px; /* Subtle interaction */
+    }
+
+    .card-icon {
+      width: 24px;
+      height: 24px;
+      margin-right: 1.25rem;
+      color: var(--accent-black);
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .card-icon svg {
+      width: 100%;
+      height: 100%;
+      stroke: currentColor;
+      stroke-width: 1.5;
+      fill: none;
+    }
+
+    .card-content {
+      flex-grow: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .card-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--accent-black);
+    }
+
+    .card-desc {
+      font-size: 14px;
+      color: var(--text-light);
+    }
+
+    .card-arrow {
+      color: var(--border-light);
+      transition: color 0.3s ease, transform 0.3s ease;
+    }
+
+    .card-arrow svg {
+      width: 20px;
+      height: 20px;
+      stroke: currentColor;
+      stroke-width: 1.5;
+      fill: none;
+    }
+
+    .link-card:hover .card-arrow {
+      color: var(--accent-gold);
+      transform: translateX(4px);
+    }
+
+    /* Minimal Footer */
+    .footer {
+      text-align: center;
+      margin-top: 2rem;
+      padding-top: 2rem;
+      border-top: 1px solid var(--border-light);
+      text-transform: uppercase;
+      letter-spacing: 2px;
+    }
+
+    /* Mobile Responsive Adjustments */
+    @media (max-width: 480px) {
+      body {
+        padding: 3rem 1.25rem;
+      }
+      
+      h1 {
+        font-size: 32px;
+      }
+
+      .avatar {
+        width: 100px;
+        height: 100px;
+      }
+
+      .link-card {
+        padding: 1rem 1.25rem;
+      }
+
+      .card-title {
+        font-size: 15px;
+      }
+      
+      .card-desc {
+        font-size: 13px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    
+    <!-- Profile Section -->
+    <section class="profile">
+      <div class="avatar-wrapper">
+        <img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&h=400&fit=crop" alt="Eleanor Vance" class="avatar">
+      </div>
+      
+      <div class="name-wrapper">
+        <h1>Eleanor Vance</h1>
+      </div>
+      
+      <p class="bio">Senior Legal Consultant specializing in corporate intellectual property and venture scaling strategies.</p>
+      
+      <div class="location small-text">
+        <svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 21s-8-4.5-8-11.8A8 8 0 0 1 12 1a8 8 0 0 1 8 8.2c0 7.3-8 11.8-8 11.8z"></path><circle cx="12" cy="9" r="2.5"></circle></svg>
+        New York City, NY
+      </div>
+    </section>
+
+    <!-- Social Media Strip -->
+    <section class="social-strip">
+      <a href="#" class="social-icon" aria-label="LinkedIn">
+        <svg viewBox="0 0 24 24"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path><rect x="2" y="9" width="4" height="12"></rect><circle cx="4" cy="4" r="2"></circle></svg>
+      </a>
+      <a href="#" class="social-icon" aria-label="Twitter">
+        <svg viewBox="0 0 24 24"><path d="M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-18 11.6 2.2.1 4.4-.6 6-2C3 15.5.5 9.6 3 5c2.2 2.6 5.6 4.1 9 4-.9-4.2 4-6.6 7-3.8 1.1 0 3-1.2 3-1.2z"></path></svg>
+      </a>
+      <a href="#" class="social-icon" aria-label="Email">
+        <svg viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
+      </a>
+    </section>
+
+    <!-- Link List -->
+    <section class="links-wrapper">
+      
+      <a href="#" class="link-card">
+        <div class="card-icon">
+          <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+        </div>
+        <div class="card-content">
+          <div class="card-title">Book a Consultation</div>
+          <div class="card-desc">Schedule a 30-minute discovery call</div>
+        </div>
+        <div class="card-arrow">
+          <svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+        </div>
+      </a>
+
+      <a href="#" class="link-card">
+        <div class="card-icon">
+          <svg viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
+        </div>
+        <div class="card-content">
+          <div class="card-title">Corporate Portfolio</div>
+          <div class="card-desc">Case studies and legal precedents</div>
+        </div>
+        <div class="card-arrow">
+          <svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+        </div>
+      </a>
+
+      <a href="#" class="link-card">
+        <div class="card-icon">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
+        </div>
+        <div class="card-content">
+          <div class="card-title">Latest Publication</div>
+          <div class="card-desc">"Navigating IP Law in Tech Startups"</div>
+        </div>
+        <div class="card-arrow">
+          <svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+        </div>
+      </a>
+
+      <a href="#" class="link-card">
+        <div class="card-icon">
+          <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+        </div>
+        <div class="card-content">
+          <div class="card-title">Upcoming Speaking Event</div>
+          <div class="card-desc">Keynote at Global Law Forum 2026</div>
+        </div>
+        <div class="card-arrow">
+          <svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+        </div>
+      </a>
+
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer small-text">
+      Compiled by ToolTrove
+    </footer>
+
+  </div>
+
+</body>
+</html>

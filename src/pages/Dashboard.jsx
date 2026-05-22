@@ -30,7 +30,6 @@ export default function Dashboard() {
   const handleLaunch = (type) => {
     if (type === 'link-in-bio') navigate('/link-in-bio');
     else if (type === 'github-readme') navigate('/github-readme');
-    else if (type === 'resume-builder') navigate('/resume-builder');
   };
 
   return (
@@ -56,7 +55,7 @@ export default function Dashboard() {
           </div>
           <h2 className="text-3xl md:text-5xl font-black tracking-tight leading-tight">Welcome to Your <span className="text-orange-500 underline decoration-orange-200 decoration-8 underline-offset-8">Identity Suite</span></h2>
           <p className="text-slate-400 text-sm md:text-base leading-relaxed">
-            Manage your saved Link-in-Bios, custom GitHub README files, and resumes. All profiles remain completely in your browser memory for ultimate privacy.
+            Manage your saved Link-in-Bios and custom GitHub README files. All profiles remain completely in your browser memory for ultimate privacy.
           </p>
         </div>
 
@@ -83,7 +82,7 @@ export default function Dashboard() {
             <div className="space-y-2">
               <h4 className="text-slate-800 font-black text-xl">Start Building Your Digital Identity</h4>
               <p className="text-slate-500 text-sm max-w-md mx-auto font-medium">
-                You do not have any saved bios, markdowns, or resumes. Click any builder shortcut below to launch your next project!
+                You do not have any saved bios or markdowns. Click any builder shortcut below to launch your next project!
               </p>
             </div>
 
@@ -99,12 +98,6 @@ export default function Dashboard() {
                 className="px-5 py-3 bg-orange-500 hover:bg-orange-600 text-white rounded-xl text-xs font-black uppercase tracking-wider transition-all shadow-md"
               >
                 Build README
-              </button>
-              <button 
-                onClick={() => navigate('/resume-builder')}
-                className="px-5 py-3 bg-white border-2 border-slate-200 text-slate-700 rounded-xl text-xs font-black uppercase tracking-wider hover:bg-slate-50 transition-all"
-              >
-                Design Resume
               </button>
             </div>
           </div>

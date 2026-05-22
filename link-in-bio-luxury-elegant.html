@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Luxury & Elegant | Link in Bio</title>
+  
+  <!-- Fonts: Cormorant Garamond (Serif) & Montserrat (Sans Serif) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Montserrat:wght@300;400;500&display=swap" rel="stylesheet">
+  
+  <style>
+    /* CSS Reset */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    /* Core Variables */
+    :root {
+      --bg-dark: #0d0d0d;
+      --card-bg: #1f1f1f;
+      --accent-gold: #d4af37;
+      --accent-burgundy: #6b1f47;
+      --text-main: #f5f5f5;
+      --text-muted: #aaaaaa;
+      --font-serif: 'Cormorant Garamond', Georgia, serif;
+      --font-sans: 'Montserrat', -apple-system, sans-serif;
+      --transition-slow: all 400ms cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    }
+
+    /* Base Styling */
+    body {
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      font-family: var(--font-sans);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      padding: 5rem 1rem;
+      line-height: 1.6;
+      /* Subtle noise texture for premium feel */
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.03'/%3E%3C/svg%3E");
+    }
+
+    /* Animation Keyframes */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(15px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .animate-fade-up {
+      animation: fadeUp 1s ease-out forwards;
+      opacity: 0;
+    }
+    
+    .delay-1 { animation-delay: 200ms; }
+    .delay-2 { animation-delay: 400ms; }
+    .delay-3 { animation-delay: 600ms; }
+
+    /* Typography Hierarchy */
+    h1, h2, h3 {
+      font-family: var(--font-serif);
+      font-weight: 600;
+    }
+
+    h1 {
+      font-size: 38px;
+      color: var(--accent-gold);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      line-height: 1.2;
+    }
+
+    p {
+      font-size: 13px;
+      color: var(--text-muted);
+      font-weight: 300;
+      letter-spacing: 0.5px;
+    }
+
+    /* Container */
+    .container {
+      width: 100%;
+      max-width: 480px;
+      display: flex;
+      flex-direction: column;
+      gap: 3.5rem;
+    }
+
+    /* Profile Section */
+    .profile {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+    }
+
+    .avatar-wrapper {
+      position: relative;
+      margin-bottom: 2.5rem;
+    }
+
+    .avatar-wrapper::after {
+      content: '';
+      position: absolute;
+      top: -8px; left: -8px; right: -8px; bottom: -8px;
+      border: 1px solid rgba(212, 175, 55, 0.3);
+      border-radius: 50%;
+      pointer-events: none;
+    }
+
+    .avatar {
+      width: 110px;
+      height: 110px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 2px solid var(--accent-gold);
+      padding: 3px;
+      background-color: var(--bg-dark);
+    }
+
+    .name-wrapper {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 1rem;
+    }
+
+    /* Decorative gold lines */
+    .decorative-line {
+      width: 40px;
+      height: 1px;
+      background-color: var(--accent-gold);
+      opacity: 0.6;
+    }
+
+    .bio {
+      max-width: 90%;
+      margin: 0 auto;
+      font-style: italic;
+      font-family: var(--font-serif);
+      font-size: 18px;
+      color: var(--text-main);
+    }
+
+    /* Social Icons Section */
+    .social-strip {
+      display: flex;
+      justify-content: center;
+      gap: 1.25rem;
+    }
+
+    .social-icon {
+      width: 38px;
+      height: 38px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--accent-gold);
+      text-decoration: none;
+      border: 1px solid rgba(212, 175, 55, 0.4);
+      border-radius: 50%;
+      transition: var(--transition-slow);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .social-icon svg {
+      width: 16px;
+      height: 16px;
+      fill: currentColor;
+      z-index: 2;
+      transition: var(--transition-slow);
+    }
+
+    .social-icon::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-color: var(--accent-gold);
+      opacity: 0;
+      transition: var(--transition-slow);
+      z-index: 1;
+    }
+
+    .social-icon:hover {
+      border-color: var(--accent-gold);
+      box-shadow: 0 0 15px rgba(212, 175, 55, 0.2);
+    }
+
+    .social-icon:hover::before {
+      opacity: 1;
+    }
+
+    .social-icon:hover svg {
+      color: var(--bg-dark);
+    }
+
+    /* Link Cards List */
+    .links-wrapper {
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+    }
+
+    .link-card {
+      display: flex;
+      align-items: center;
+      background-color: var(--card-bg);
+      border: 1.5px solid rgba(212, 175, 55, 0.2);
+      padding: 1.25rem 1.75rem;
+      text-decoration: none;
+      color: var(--text-main);
+      transition: var(--transition-slow);
+      position: relative;
+    }
+
+    /* Subtle subtle burgundy hover overlay */
+    .link-card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(107, 31, 71, 0.05), transparent);
+      opacity: 0;
+      transition: var(--transition-slow);
+      pointer-events: none;
+    }
+
+    .link-card:hover {
+      border-color: rgba(212, 175, 55, 0.6);
+      box-shadow: 0 4px 20px rgba(212, 175, 55, 0.1);
+      background-color: #242424;
+      transform: translateY(-2px);
+    }
+
+    .link-card:hover::before {
+      opacity: 1;
+    }
+
+    .card-icon {
+      width: 20px;
+      height: 20px;
+      margin-right: 1.25rem;
+      color: var(--accent-gold);
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: var(--transition-slow);
+    }
+
+    .card-icon svg {
+      width: 100%;
+      height: 100%;
+      stroke: currentColor;
+      stroke-width: 1.5;
+      fill: none;
+    }
+
+    .card-content {
+      flex-grow: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    .card-title {
+      font-size: 12px;
+      font-weight: 500;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--text-main);
+      transition: var(--transition-slow);
+    }
+
+    .link-card:hover .card-title {
+      color: var(--accent-gold);
+    }
+
+    .card-desc {
+      font-size: 12px;
+      color: var(--text-muted);
+      font-weight: 300;
+    }
+
+    /* Call-To-Action Button */
+    .cta-container {
+      margin-top: 1rem;
+    }
+
+    .cta-button {
+      display: block;
+      width: 100%;
+      text-align: center;
+      padding: 1.25rem;
+      background-color: transparent;
+      border: 1.5px solid var(--accent-gold);
+      color: var(--accent-gold);
+      text-decoration: none;
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      transition: var(--transition-slow);
+    }
+
+    .cta-button:hover {
+      background-color: var(--accent-gold);
+      color: var(--bg-dark);
+      box-shadow: 0 0 25px rgba(212, 175, 55, 0.2);
+    }
+
+    /* Minimal Footer */
+    .footer {
+      text-align: center;
+      margin-top: 1rem;
+      font-size: 10px;
+      color: rgba(255, 255, 255, 0.2);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+
+    /* Mobile Responsive */
+    @media (max-width: 480px) {
+      body { padding: 3rem 1.25rem; }
+      h1 { font-size: 28px; }
+      .avatar { width: 90px; height: 90px; }
+      .link-card { padding: 1rem 1.25rem; }
+      .card-icon { margin-right: 1rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    
+    <!-- Profile Section -->
+    <section class="profile animate-fade-up">
+      <div class="avatar-wrapper">
+        <img src="https://images.unsplash.com/photo-1550525811-e5869dd03032?w=400&h=400&fit=crop" alt="Isabella Laurent" class="avatar">
+      </div>
+      
+      <div class="name-wrapper">
+        <div class="decorative-line"></div>
+        <h1>Isabella Laurent</h1>
+        <div class="decorative-line"></div>
+      </div>
+      
+      <p class="bio">Curator of fine aesthetics and bespoke interior architecture.</p>
+    </section>
+
+    <!-- Social Media Strip -->
+    <section class="social-strip animate-fade-up delay-1">
+      <a href="#" class="social-icon" aria-label="Instagram">
+        <svg viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.051.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg>
+      </a>
+      <a href="#" class="social-icon" aria-label="Pinterest">
+        <svg viewBox="0 0 24 24"><path d="M12.017 0C5.396 0 .029 5.367.029 11.987c0 5.079 3.158 9.417 7.618 11.162-.105-.949-.199-2.403.041-3.439.219-.937 1.406-5.957 1.406-5.957s-.359-.72-.359-1.781c0-1.663.967-2.911 2.168-2.911 1.024 0 1.518.769 1.518 1.688 0 1.029-.653 2.567-.992 3.992-.285 1.193.6 2.165 1.775 2.165 2.128 0 3.768-2.245 3.768-5.487 0-2.861-2.063-4.869-5.008-4.869-3.41 0-5.409 2.562-5.409 5.199 0 1.033.394 2.143.889 2.741.099.12.112.225.085.345-.09.375-.293 1.199-.334 1.363-.053.225-.172.271-.401.165-1.495-.69-2.433-2.878-2.433-4.646 0-3.776 2.748-7.252 7.951-7.252 4.168 0 7.392 2.967 7.392 6.923 0 4.135-2.607 7.462-6.233 7.462-1.214 0-2.354-.629-2.758-1.379l-.749 2.848c-.269 1.045-1.004 2.352-1.498 3.146 1.123.345 2.306.535 3.55.535 6.607 0 11.985-5.365 11.985-11.987C23.97 5.39 18.592.026 11.985.026L12.017 0z"/></svg>
+      </a>
+      <a href="#" class="social-icon" aria-label="Email">
+        <svg viewBox="0 0 24 24"><path d="M0 3v18h24v-18zm21.518 2L12 12.713 2.482 5zm-19.518 14v-11.817l10 7.877 10-7.877v11.817z"/></svg>
+      </a>
+    </section>
+
+    <!-- Link List -->
+    <section class="links-wrapper animate-fade-up delay-2">
+      
+      <a href="#" class="link-card">
+        <div class="card-icon">
+          <svg viewBox="0 0 24 24"><polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 17 12 22 22 17"></polyline><polyline points="2 12 12 17 22 12"></polyline></svg>
+        </div>
+        <div class="card-content">
+          <div class="card-title">View Portfolio</div>
+          <div class="card-desc">The 2026 Collection</div>
+        </div>
+      </a>
+
+      <a href="#" class="link-card">
+        <div class="card-icon">
+          <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+        </div>
+        <div class="card-content">
+          <div class="card-title">Latest Editorial</div>
+          <div class="card-desc">Vogue Architecture & Design</div>
+        </div>
+      </a>
+
+      <a href="#" class="link-card">
+        <div class="card-icon">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+        </div>
+        <div class="card-content">
+          <div class="card-title">Consultation Services</div>
+          <div class="card-desc">Book a private aesthetic review</div>
+        </div>
+      </a>
+
+      <div class="cta-container animate-fade-up delay-3">
+        <a href="#" class="cta-button">Inquire Now</a>
+      </div>
+
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer animate-fade-up delay-3">
+      Powered by ToolTrove
+    </footer>
+
+  </div>
+
+</body>
+</html>
