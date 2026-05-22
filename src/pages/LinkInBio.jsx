@@ -1,134 +1,94 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
-  Sparkles, Plus, Trash2, Download, QrCode, Eye, Copy, Check, 
-  ExternalLink, Mail, 
-  Globe, Palette, Type, Image as ImageIcon, ArrowLeft, LayoutGrid, 
-  TrendingUp, RefreshCw, Smartphone
+  Sparkles, Plus, Trash2, Download, Copy, Check, ExternalLink, 
+  Mail, LayoutGrid, RefreshCw, Smartphone, Image as ImageIcon, 
+  Settings, Link2, Monitor, X
 } from 'lucide-react';
-import { Instagram, Linkedin, Youtube, Twitter } from '../components/SocialIcons';
+import { Instagram, Linkedin, Youtube, Twitter, Github } from '../components/SocialIcons';
 import { callGemmaAI } from '../utils/ai';
-
-// Predefined Fonts
-const FONTS = [
-  { id: 'sans', name: 'Plus Jakarta Sans (Modern)', className: 'font-sans' },
-  { id: 'serif', name: 'Lora (Elegant Serif)', className: 'font-serif' },
-  { id: 'mono', name: 'Fira Code (Tech Mono)', className: 'font-mono' }
-];
-
-// Predefined Themes with complete visual attributes
-const THEMES = [
-  {
-    id: 'minimalist',
-    name: 'Minimalist Dark',
-    bgClass: 'bg-slate-950 text-slate-100',
-    cardClass: 'bg-slate-900 border border-slate-800 text-slate-200 hover:bg-slate-800',
-    buttonColor: '#1E293B',
-    accentColor: '#F8FAFC',
-    textColor: '#F8FAFC',
-    bioColor: '#94A3B8'
-  },
-  {
-    id: 'creative',
-    name: 'Creative Gradient',
-    bgClass: 'bg-gradient-to-br from-purple-600 via-pink-500 to-orange-400 text-white',
-    cardClass: 'bg-white/20 backdrop-blur-sm border border-white/30 text-white hover:bg-white/30',
-    buttonColor: 'rgba(255,255,255,0.2)',
-    accentColor: '#FFFFFF',
-    textColor: '#FFFFFF',
-    bioColor: '#FFE4E6'
-  },
-  {
-    id: 'professional',
-    name: 'Executive Corporate',
-    bgClass: 'bg-slate-50 text-slate-900',
-    cardClass: 'bg-white border-2 border-slate-200 shadow-md text-slate-700 hover:border-orange-500 hover:bg-slate-50',
-    buttonColor: '#FFFFFF',
-    accentColor: '#EA580C',
-    textColor: '#0F172A',
-    bioColor: '#64748B'
-  },
-  {
-    id: 'modern-glass',
-    name: 'Modern Glassmorphic',
-    bgClass: 'bg-gradient-to-tr from-indigo-900 to-slate-900 text-slate-100 relative overflow-hidden',
-    cardClass: 'bg-white/10 backdrop-blur-md border border-white/10 text-slate-100 hover:bg-white/15 hover:border-white/20 shadow-lg',
-    buttonColor: 'rgba(255,255,255,0.1)',
-    accentColor: '#A5B4FC',
-    textColor: '#F8FAFC',
-    bioColor: '#CBD5E1'
-  },
-  {
-    id: 'trendy-neon',
-    name: 'Cyberpunk Neon',
-    bgClass: 'bg-black text-emerald-400 border border-emerald-950',
-    cardClass: 'bg-zinc-950 border border-emerald-500/30 text-emerald-400 hover:border-emerald-400 hover:shadow-[0_0_12px_rgba(16,185,129,0.3)]',
-    buttonColor: '#09090B',
-    accentColor: '#10B981',
-    textColor: '#10B981',
-    bioColor: '#059669'
-  }
-];
 
 export default function LinkInBio() {
   const navigate = useNavigate();
   
   // Customization States
-  const [profileName, setProfileName] = useState('Sarah Jenkins');
-  const [bio, setBio] = useState('Product designer crafting secure sandboxes @ToolTrove. Explaining tech with minimal visuals.');
-  const [profilePic, setProfilePic] = useState('https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150');
-  const [selectedFont, setSelectedFont] = useState('sans');
-  const [selectedTheme, setSelectedTheme] = useState('creative');
+  const [profileName, setProfileName] = useState('Alex Creator');
+  const [bio, setBio] = useState('Digital artist & tech enthusiast building modern experiences.');
+  const [location, setLocation] = useState('Neo-Tokyo, CA');
+  const [profilePic, setProfilePic] = useState('https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?w=300');
+  
   const [copied, setCopied] = useState(false);
-  const [analytics, setAnalytics] = useState({ views: 182, clicks: {} });
-
-  // Social Links
-  const [socials, setSocials] = useState({
-    instagram: 'sarah_design',
-    linkedin: 'sarah-jenkins-designer',
-    youtube: 'SarahDesigns',
-    twitter: 'sarah_tweets',
-    email: 'sarah@tooltrove.com'
-  });
-
-  // Custom Links Blocks
-  const [links, setLinks] = useState([
-    { id: '1', title: '💼 Hire Me / Design Portfolio', url: 'https://sarahjenkins.design', clicks: 42 },
-    { id: '2', title: '🎨 Download Free Figma Templates', url: 'https://figma.com/@sarah', clicks: 89 },
-    { id: '3', title: '💻 Read My Weekly Tech Blog', url: 'https://blog.sarah.design', clicks: 51 }
-  ]);
-
-  // AI Inputs
-  const [aiDescription, setAiDescription] = useState('Vibrant creative UI designer focusing on glassmorphism and accessibility');
+  const [aiDescription, setAiDescription] = useState('');
   const [isGeneratingBio, setIsGeneratingBio] = useState(false);
 
-  // Sync analytics with localStorage
+  // Social Links (Dynamic)
+  const [socials, setSocials] = useState([
+    { id: '1', platform: 'instagram', url: 'https://instagram.com/alex' },
+    { id: '2', platform: 'twitter', url: 'https://twitter.com/alex' },
+    { id: '3', platform: 'linkedin', url: 'https://linkedin.com/in/alex' },
+    { id: '4', platform: 'youtube', url: 'https://youtube.com/c/alex' }
+  ]);
+
+  // Product/Link Cards (Dynamic)
+  const [cards, setCards] = useState([
+    { 
+      id: '1', 
+      title: 'My Latest Portfolio', 
+      description: 'Check out my recent design projects and case studies.', 
+      imageUrl: '', 
+      link: 'https://portfolio.com', 
+      category: 'Work', 
+      accentColor: '#9d4edd' 
+    },
+    { 
+      id: '2', 
+      title: 'YouTube Masterclass', 
+      description: 'Learn how to build modern UI components from scratch.', 
+      imageUrl: '', 
+      link: 'https://youtube.com', 
+      category: 'Course', 
+      accentColor: '#3a86ff' 
+    }
+  ]);
+
+  // Advanced Customization
+  const [customization, setCustomization] = useState({
+    primaryColor: '#9d4edd',
+    secondaryColor: '#3a86ff',
+    glowIntensity: 50,
+    animationSpeed: 'normal' // slow, normal, fast
+  });
+
+  // Load from LocalStorage
   useEffect(() => {
-    const saved = localStorage.getItem('tooltrove_link_analytics');
-    if (saved) {
-      setAnalytics(JSON.parse(saved));
-    } else {
-      const initialClicks = {};
-      links.forEach(l => { initialClicks[l.id] = l.clicks; });
-      const init = { views: 182, clicks: initialClicks };
-      setAnalytics(init);
-      localStorage.setItem('tooltrove_link_analytics', JSON.stringify(init));
+    const savedItems = localStorage.getItem('tooltrove_dashboard_items');
+    if (savedItems) {
+      const items = JSON.parse(savedItems);
+      const project = items.find(i => i.type === 'link-in-bio');
+      if (project && project.config) {
+        setProfileName(project.config.profileName || profileName);
+        setBio(project.config.bio || bio);
+        setLocation(project.config.location || location);
+        setProfilePic(project.config.profilePic || profilePic);
+        setSocials(project.config.socials || socials);
+        setCards(project.config.cards || cards);
+        setCustomization(project.config.customization || customization);
+      }
     }
   }, []);
 
-  // Save changes to Dashboard items (localStorage)
-  const saveToDashboard = () => {
+  // Save changes to Dashboard items
+  const handleSave = () => {
     const savedItems = localStorage.getItem('tooltrove_dashboard_items') 
       ? JSON.parse(localStorage.getItem('tooltrove_dashboard_items')) 
       : [];
     
-    // Check if this project already exists
     const existingIdx = savedItems.findIndex(i => i.type === 'link-in-bio');
     const project = {
       type: 'link-in-bio',
       title: profileName + "'s Link-in-Bio",
       updatedAt: new Date().toLocaleDateString(),
-      config: { profileName, bio, profilePic, selectedFont, selectedTheme, socials, links }
+      config: { profileName, bio, location, profilePic, socials, cards, customization }
     };
 
     if (existingIdx > -1) {
@@ -137,44 +97,70 @@ export default function LinkInBio() {
       savedItems.push(project);
     }
     localStorage.setItem('tooltrove_dashboard_items', JSON.stringify(savedItems));
-  };
-
-  const handleSave = () => {
-    saveToDashboard();
     alert('Project successfully saved to your Dashboard!');
   };
 
-  // Add Link Block
-  const addLink = () => {
-    const newId = Date.now().toString();
-    setLinks([...links, { id: newId, title: 'Custom Link Title', url: 'https://', clicks: 0 }]);
+  const handleReset = () => {
+    if(window.confirm('Reset all fields to default?')) {
+      setProfileName('Alex Creator');
+      setBio('Digital artist & tech enthusiast building modern experiences.');
+      setLocation('Neo-Tokyo, CA');
+      setProfilePic('https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?w=300');
+      setSocials([{ id: '1', platform: 'instagram', url: 'https://instagram.com/' }]);
+      setCards([{ id: '1', title: 'New Link', description: '', imageUrl: '', link: 'https://', category: 'Link', accentColor: '#9d4edd' }]);
+      setCustomization({ primaryColor: '#9d4edd', secondaryColor: '#3a86ff', glowIntensity: 50, animationSpeed: 'normal' });
+    }
   };
 
-  // Remove Link Block
-  const removeLink = (id) => {
-    setLinks(links.filter(l => l.id !== id));
+  // Image Upload Handler (FileReader to Base64)
+  const handleImageUpload = (e, callback) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) {
+      alert("File size exceeds 5MB limit.");
+      return;
+    }
+    const reader = new FileReader();
+    reader.onloadend = () => callback(reader.result);
+    reader.readAsDataURL(file);
   };
 
-  // Update Link Block
-  const updateLink = (id, field, val) => {
-    setLinks(links.map(l => l.id === id ? { ...l, [field]: val } : l));
+  // --- Dynamic Social Array Handlers ---
+  const addSocial = () => {
+    setSocials([...socials, { id: Date.now().toString(), platform: 'instagram', url: 'https://' }]);
+  };
+  const updateSocial = (id, field, val) => {
+    setSocials(socials.map(s => s.id === id ? { ...s, [field]: val } : s));
+  };
+  const removeSocial = (id) => {
+    setSocials(socials.filter(s => s.id !== id));
   };
 
-  // Simulate Clicks in Mock Device
-  const simulateClick = (linkId, url) => {
-    const updatedClicks = { ...analytics.clicks, [linkId]: (analytics.clicks[linkId] || 0) + 1 };
-    const updated = { ...analytics, clicks: updatedClicks };
-    setAnalytics(updated);
-    localStorage.setItem('tooltrove_link_analytics', JSON.stringify(updated));
-    window.open(url, '_blank');
+  // --- Dynamic Card Array Handlers ---
+  const addCard = () => {
+    setCards([...cards, { 
+      id: Date.now().toString(), 
+      title: 'New Card', 
+      description: '', 
+      imageUrl: '', 
+      link: 'https://', 
+      category: 'Link', 
+      accentColor: customization.primaryColor 
+    }]);
+  };
+  const updateCard = (id, field, val) => {
+    setCards(cards.map(c => c.id === id ? { ...c, [field]: val } : c));
+  };
+  const removeCard = (id) => {
+    setCards(cards.filter(c => c.id !== id));
   };
 
-  // AI Bio Generator Call
+  // --- AI Generator ---
   const generateBioWithAI = async () => {
     if (!aiDescription.trim()) return;
     setIsGeneratingBio(true);
     try {
-      const sys = "You are a professional copywriting assistant inside ToolTrove's Link-in-Bio builder. Generate a punchy, engaging, and professional bio (maximum 120 characters) based on the user's description. Return ONLY the bio string. No headers, quotes, or conversational filler.";
+      const sys = "You are a professional copywriting assistant. Generate a punchy, engaging, and professional bio (maximum 150 characters) based on the user's description. Return ONLY the bio string. No headers or quotes.";
       const generated = await callGemmaAI(sys, `Write a short bio for: ${aiDescription}`);
       setBio(generated.replace(/^["']|["']$/g, '').trim());
     } catch (err) {
@@ -184,79 +170,188 @@ export default function LinkInBio() {
     }
   };
 
-  // Theme Object
-  const theme = THEMES.find(t => t.id === selectedTheme) || THEMES[0];
-  const font = FONTS.find(f => f.id === selectedFont) || FONTS[0];
+  // --- Helper to render SVG string for HTML Export ---
+  const getSocialIconSVG = (platform) => {
+    switch(platform) {
+      case 'instagram': return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="20" x="2" y="2" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" x2="17.51" y1="6.5" y2="6.5"/></svg>`;
+      case 'linkedin': return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect width="4" height="12" x="2" y="9"/><circle cx="4" cy="4" r="2"/></svg>`;
+      case 'twitter': return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-18 11.6 2.2.1 4.4-.6 6-2C3 15.5.5 9.6 3 5c2.2 2.6 5.6 4.1 9 4-.9-4.2 4-6.6 7-3.8 1.1 0 3-1.2 3-1.2z"/></svg>`;
+      case 'youtube': return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 17a24.12 24.12 0 0 1 0-10 2 2 0 0 1 1.4-1.4 49.56 49.56 0 0 1 16.2 0A2 2 0 0 1 21.5 7a24.12 24.12 0 0 1 0 10 2 2 0 0 1-1.4 1.4 49.55 49.55 0 0 1-16.2 0A2 2 0 0 1 2.5 17"/><path d="m10 15 5-3-5-3z"/></svg>`;
+      case 'github': return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4"/><path d="M9 18c-4.51 2-5-2-7-2"/></svg>`;
+      case 'tiktok': return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5v3a8 8 0 0 1-5-1z"/></svg>`;
+      case 'email': return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>`;
+      default: return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>`;
+    }
+  };
 
-  // Export shareable standalone single-file HTML code
+  const getSocialIconComponent = (platform, className) => {
+    switch(platform) {
+      case 'instagram': return <Instagram className={className} />;
+      case 'linkedin': return <Linkedin className={className} />;
+      case 'twitter': return <Twitter className={className} />;
+      case 'youtube': return <Youtube className={className} />;
+      case 'github': return <Github className={className} />;
+      case 'tiktok': return <div className={className} style={{display: 'flex', alignItems: 'center', justifyContent: 'center'}}><svg width="60%" height="60%" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5v3a8 8 0 0 1-5-1z"/></svg></div>;
+      case 'email': return <Mail className={className} />;
+      default: return <Link2 className={className} />;
+    }
+  };
+
+  // --- Export HTML Function ---
   const downloadHTML = () => {
-    const customStyles = `
-      body {
-        font-family: system-ui, -apple-system, sans-serif;
-        backgroundClass: ${selectedTheme === 'minimalist' ? '#020617' : selectedTheme === 'trendy-neon' ? '#000000' : 'linear-gradient(to bottom right, #C084FC, #F43F5E, #FB923C)'};
-        margin: 0;
-        padding: 0;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        min-height: 100vh;
-      }
-      .card {
-        width: 100%;
-        max-width: 480px;
-        padding: 2.5rem 1.5rem;
-        text-align: center;
-        border-radius: 2rem;
-      }
-    `;
-
+    const animDuration = customization.animationSpeed === 'slow' ? '15s' : customization.animationSpeed === 'fast' ? '5s' : '10s';
+    
     const htmlContent = `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>${profileName} | Link in Bio</title>
-  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&display=swap" rel="stylesheet">
   <style>
-    body { font-family: sans-serif; }
+    :root {
+      --bg-dark: #0f1419;
+      --primary: ${customization.primaryColor};
+      --secondary: ${customization.secondaryColor};
+      --text-main: #ffffff;
+      --text-muted: rgba(255, 255, 255, 0.7);
+      --glass-bg: rgba(255, 255, 255, 0.05);
+      --glass-border: rgba(255, 255, 255, 0.1);
+      --glow-intensity: ${customization.glowIntensity / 100};
+    }
+    
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+    
+    body {
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      padding: 3rem 1rem;
+      position: relative;
+      overflow-x: hidden;
+      background-image: 
+        radial-gradient(circle at 15% 50%, rgba(157, 78, 221, calc(0.15 * var(--glow-intensity))), transparent 40%),
+        radial-gradient(circle at 85% 30%, rgba(58, 134, 255, calc(0.15 * var(--glow-intensity))), transparent 40%);
+      background-size: 200% 200%;
+      animation: bgPulse ${animDuration} ease-in-out infinite alternate;
+    }
+
+    @keyframes bgPulse {
+      0% { background-position: 0% 50%; }
+      100% { background-position: 100% 50%; }
+    }
+
+    .container { width: 100%; max-width: 450px; display: flex; flex-direction: column; gap: 2rem; z-index: 10; }
+
+    .profile { text-align: center; display: flex; flex-direction: column; align-items: center; gap: 1rem; }
+    .avatar-wrapper {
+      position: relative; width: 110px; height: 110px; border-radius: 50%; padding: 4px;
+      background: linear-gradient(45deg, var(--primary), var(--secondary));
+      background-size: 300% 300%;
+      animation: borderCycle 4s ease infinite;
+      box-shadow: 0 0 calc(30px * var(--glow-intensity)) var(--primary);
+    }
+    @keyframes borderCycle {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+    .avatar-wrapper img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; border: 3px solid var(--bg-dark); background-color: var(--bg-dark); }
+    .profile-name { font-size: 2rem; font-weight: 800; letter-spacing: -0.02em; }
+    .profile-bio { font-weight: 400; color: var(--text-muted); line-height: 1.5; font-size: 0.95rem; }
+    .profile-location {
+      font-size: 0.85rem; font-weight: 600; background: var(--glass-bg); border: 1px solid var(--glass-border);
+      backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); padding: 0.4rem 1rem; border-radius: 2rem; color: var(--secondary);
+    }
+
+    .social-strip { display: flex; justify-content: center; flex-wrap: wrap; gap: 1rem; }
+    .social-icon {
+      width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+      background: var(--glass-bg); backdrop-filter: blur(10px); border: 1px solid var(--glass-border); color: var(--text-main);
+      text-decoration: none; transition: all 0.3s ease; position: relative;
+    }
+    .social-icon svg { width: 20px; height: 20px; fill: none; stroke: currentColor; position: relative; z-index: 2; }
+    .social-icon::before {
+      content: ''; position: absolute; inset: 0; border-radius: 50%; background: var(--primary); opacity: 0; transition: opacity 0.3s ease; z-index: 1;
+    }
+    .social-icon:hover { border-color: var(--primary); color: #fff; transform: translateY(-3px); box-shadow: 0 0 calc(20px * var(--glow-intensity)) var(--primary); }
+    .social-icon:hover::before { opacity: 1; }
+    .social-icon:nth-child(even):before { background: var(--secondary); }
+    .social-icon:nth-child(even):hover { border-color: var(--secondary); box-shadow: 0 0 calc(20px * var(--glow-intensity)) var(--secondary); }
+
+    .links-wrapper { display: flex; flex-direction: column; gap: 1rem; }
+    .link-card {
+      position: relative; display: flex; align-items: center; padding: 1rem 1.25rem; background: var(--glass-bg);
+      backdrop-filter: blur(12px); border: 1px solid var(--glass-border); border-radius: 1rem; text-decoration: none;
+      color: var(--text-main); overflow: hidden; transition: all 0.3s ease;
+    }
+    .link-card::after {
+      content: ''; position: absolute; bottom: 0; left: 0; width: 100%; height: 3px; background: linear-gradient(90deg, var(--primary), var(--secondary));
+      opacity: 0.5; transition: opacity 0.3s ease;
+    }
+    .link-card:hover {
+      transform: scale(1.02); background: rgba(255, 255, 255, 0.08); border-color: var(--secondary);
+      box-shadow: 0 0 calc(25px * var(--glow-intensity)) rgba(58, 134, 255, 0.3);
+    }
+    .link-card:hover::after { opacity: 1; }
+    .card-icon { margin-right: 1rem; color: var(--secondary); display: flex; align-items: center; justify-content: center; }
+    .card-icon img { width: 44px; height: 44px; border-radius: 12px; object-fit: cover; }
+    .card-icon svg { width: 24px; height: 24px; stroke-width: 2; }
+    .card-content { flex-grow: 1; display: flex; flex-direction: column; }
+    .card-badge { align-self: flex-start; font-size: 0.65rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; color: var(--primary); }
+    .card-title { font-weight: 800; font-size: 1.05rem; background: linear-gradient(90deg, #fff, #ddd); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 2px; transition: all 0.3s ease; }
+    .link-card:hover .card-title { background: linear-gradient(90deg, var(--primary), var(--secondary)); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+    .card-desc { font-size: 0.8rem; color: var(--text-muted); }
+    
+    .footer-credit { text-align: center; font-size: 0.75rem; color: var(--text-muted); opacity: 0.5; margin-top: 2rem; font-weight: 600; }
   </style>
 </head>
-<body class="min-h-screen flex items-center justify-center p-4 md:p-8 ${theme.bgClass}">
-  <div class="w-full max-w-md text-center space-y-6 ${font.className}">
-    <!-- Profile -->
-    <div class="flex flex-col items-center space-y-4">
-      <img src="${profilePic}" alt="${profileName}" class="w-24 h-24 rounded-full border-4 border-white/50 object-cover shadow-lg">
-      <div>
-        <h1 class="text-2xl font-black tracking-tight" style="color: ${theme.textColor}">${profileName}</h1>
-        <p class="text-sm mt-2 font-medium max-w-sm px-4" style="color: ${theme.bioColor}">${bio}</p>
+<body>
+  <div class="container">
+    <div class="profile">
+      <div class="avatar-wrapper">
+        <img src="${profilePic}" alt="${profileName}" />
       </div>
+      <h1 class="profile-name">${profileName}</h1>
+      <p class="profile-bio">${bio}</p>
+      ${location ? `<div class="profile-location">📍 ${location}</div>` : ''}
     </div>
 
-    <!-- Social Links -->
-    <div class="flex justify-center gap-4 py-2">
-      ${socials.instagram ? `<a href="https://instagram.com/${socials.instagram}" target="_blank" class="p-2.5 rounded-full hover:scale-110 transition-transform" style="background-color: ${theme.buttonColor}; color: ${theme.textColor}"><svg class="w-5 h-5 fill-current" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.051.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg></a>` : ''}
-      ${socials.linkedin ? `<a href="https://linkedin.com/in/${socials.linkedin}" target="_blank" class="p-2.5 rounded-full hover:scale-110 transition-transform" style="background-color: ${theme.buttonColor}; color: ${theme.textColor}"><svg class="w-5 h-5 fill-current" viewBox="0 0 24 24"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.779-1.75-1.75s.784-1.75 1.75-1.75 1.75.779 1.75 1.75-.784 1.75-1.75 1.75zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/></svg></a>` : ''}
-      ${socials.twitter ? `<a href="https://twitter.com/${socials.twitter}" target="_blank" class="p-2.5 rounded-full hover:scale-110 transition-transform" style="background-color: ${theme.buttonColor}; color: ${theme.textColor}"><svg class="w-5 h-5 fill-current" viewBox="0 0 24 24"><path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z"/></svg></a>` : ''}
-      ${socials.email ? `<a href="mailto:${socials.email}" class="p-2.5 rounded-full hover:scale-110 transition-transform" style="background-color: ${theme.buttonColor}; color: ${theme.textColor}"><svg class="w-5 h-5 fill-current" viewBox="0 0 24 24"><path d="M0 3v18h24v-18zm21.518 2L12 12.713 2.482 5zm-19.518 14v-11.817l10 7.877 10-7.877v11.817z"/></svg></a>` : ''}
-    </div>
-
-    <!-- Link Blocks -->
-    <div class="space-y-4 px-2">
-      ${links.map(l => `
-        <a 
-          href="${l.url}" 
-          target="_blank" 
-          class="block py-4 px-6 rounded-2xl font-bold transition-all hover:scale-102 flex justify-between items-center ${theme.cardClass}"
-        >
-          <span>${l.title}</span>
-          <svg class="w-4 h-4 opacity-60" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
+    <div class="social-strip">
+      ${socials.map(s => `
+        <a href="${s.url}" class="social-icon" target="_blank" aria-label="${s.platform}">
+          ${getSocialIconSVG(s.platform)}
         </a>
       `).join('')}
     </div>
 
-    <div class="pt-8 text-[10px] opacity-40" style="color: ${theme.textColor}">
-      Powered by ToolTrove Sandbox • Secure In-Browser Identity
+    <div class="links-wrapper">
+      ${cards.map(c => `
+        <a href="${c.link}" class="link-card" target="_blank">
+          ${c.imageUrl ? `
+            <div class="card-icon">
+              <img src="${c.imageUrl}" alt="Icon" />
+            </div>
+          ` : `
+            <div class="card-icon" style="color: ${c.accentColor}">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25"/></svg>
+            </div>
+          `}
+          <div class="card-content">
+            ${c.category ? `<span class="card-badge" style="color: ${c.accentColor}">${c.category}</span>` : ''}
+            <h2 class="card-title">${c.title}</h2>
+            ${c.description ? `<p class="card-desc">${c.description}</p>` : ''}
+          </div>
+        </a>
+      `).join('')}
     </div>
+    
+    <div class="footer-credit">⚡ Compiled by ToolTrove</div>
   </div>
 </body>
 </html>`;
@@ -276,291 +371,227 @@ export default function LinkInBio() {
   };
 
   return (
-    <div className="w-full max-w-7xl mx-auto pt-32 pb-20 px-6 touch-latency-fix">
+    <div className="w-full max-w-7xl mx-auto pt-32 pb-20 px-4 md:px-6 touch-latency-fix">
       
       {/* Header breadcrumb */}
-      <div className="flex items-center gap-2 mb-8">
-        <button 
-          onClick={() => navigate('/')} 
-          className="flex items-center gap-1.5 text-slate-500 font-bold hover:text-slate-900 transition-colors text-sm"
-        >
-          <ArrowLeft className="w-4 h-4" /> Home
-        </button>
-        <ChevronRightIcon className="w-3.5 h-3.5 text-slate-400" />
-        <span className="text-orange-500 font-black text-sm uppercase tracking-wider">Link in Bio Generator</span>
+      <div className="flex items-center justify-between mb-8">
+        <div className="flex items-center gap-2">
+          <button onClick={() => navigate('/')} className="flex items-center gap-1.5 text-slate-500 font-bold hover:text-slate-900 transition-colors text-sm">
+            <ArrowLeft className="w-4 h-4" /> Home
+          </button>
+          <ChevronRightIcon className="w-3.5 h-3.5 text-slate-400" />
+          <span className="text-orange-500 font-black text-sm uppercase tracking-wider hidden sm:inline">Modern Gradient Dark Editor</span>
+        </div>
       </div>
 
-      <div className="grid lg:grid-cols-12 gap-10 items-start">
+      <div className="grid lg:grid-cols-12 gap-8 items-start">
         
         {/* ==================== LEFT CONFIG PANEL ==================== */}
-        <div className="lg:col-span-7 space-y-8">
+        <div className="lg:col-span-7 space-y-6">
           
-          {/* Main settings card */}
-          <div className="bg-white p-6 md:p-8 rounded-3xl border border-slate-200 shadow-xl space-y-6">
-            <div className="flex justify-between items-start flex-wrap gap-4 border-b border-slate-100 pb-5">
-              <div className="flex items-center gap-3">
-                <div className="p-3 bg-orange-100 text-orange-600 rounded-2xl">
-                  <LayoutGrid className="w-6 h-6" />
-                </div>
-                <div>
-                  <h3 className="text-2xl font-black text-slate-900">Custom Identity Designer</h3>
-                  <p className="text-xs text-slate-500 font-medium">Build your premium multi-theme Link-In-Bio sandbox.</p>
-                </div>
+          {/* Action Bar */}
+          <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-md flex justify-between items-center flex-wrap gap-3">
+            <div className="flex items-center gap-2">
+              <div className="p-2 bg-indigo-100 text-indigo-600 rounded-xl">
+                <Settings className="w-5 h-5" />
               </div>
-              
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={handleSave}
-                  className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-black uppercase tracking-wider transition-all shadow-md"
-                >
-                  Save Project
-                </button>
-                <button
-                  onClick={downloadHTML}
-                  className="px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-xl text-xs font-black uppercase tracking-wider transition-all shadow-md flex items-center gap-1.5"
-                >
-                  <Download className="w-3.5 h-3.5" /> HTML
-                </button>
+              <h3 className="text-lg font-black text-slate-900">Editor Controls</h3>
+            </div>
+            
+            <div className="flex items-center gap-2">
+              <button onClick={handleReset} className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl text-xs font-bold uppercase transition-colors">
+                Reset
+              </button>
+              <button onClick={handleSave} className="px-4 py-1.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-black uppercase tracking-wider transition-all shadow-sm">
+                Save
+              </button>
+              <button onClick={downloadHTML} className="px-4 py-1.5 bg-orange-500 hover:bg-orange-600 text-white rounded-xl text-xs font-black uppercase tracking-wider transition-all shadow-sm flex items-center gap-1.5">
+                <Download className="w-3.5 h-3.5" /> HTML
+              </button>
+            </div>
+          </div>
+
+          {/* Profile Config */}
+          <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-5">
+            <h4 className="font-black text-sm text-slate-900 border-b border-slate-100 pb-2">Profile Details</h4>
+            
+            <div className="grid md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <label className="block text-xs font-bold text-slate-500 uppercase">Profile Name</label>
+                <input 
+                  type="text" value={profileName} onChange={(e) => setProfileName(e.target.value)}
+                  className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold outline-none focus:border-indigo-500 transition-colors"
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="block text-xs font-bold text-slate-500 uppercase">Location</label>
+                <input 
+                  type="text" value={location} onChange={(e) => setLocation(e.target.value)}
+                  className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold outline-none focus:border-indigo-500 transition-colors"
+                />
               </div>
             </div>
 
-            {/* Profile Config */}
-            <div className="grid md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <label className="block text-xs font-black uppercase tracking-widest text-slate-400">Profile Name</label>
+            <div className="space-y-2">
+              <label className="block text-xs font-bold text-slate-500 uppercase">Avatar Image (Upload or URL)</label>
+              <div className="flex gap-2">
                 <input 
-                  type="text" 
-                  value={profileName}
-                  onChange={(e) => setProfileName(e.target.value)}
-                  className="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-semibold outline-none focus:bg-white focus:border-orange-500 transition-all"
+                  type="text" value={profilePic} onChange={(e) => setProfilePic(e.target.value)} placeholder="Paste URL here..."
+                  className="flex-1 p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-mono outline-none focus:border-indigo-500"
                 />
-              </div>
-              
-              <div className="space-y-2">
-                <label className="block text-xs font-black uppercase tracking-widest text-slate-400">Avatar Image URL</label>
-                <input 
-                  type="text" 
-                  value={profilePic}
-                  onChange={(e) => setProfilePic(e.target.value)}
-                  className="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-mono outline-none focus:bg-white focus:border-orange-500 transition-all text-xs"
-                />
+                <label className="px-4 py-3 bg-indigo-50 text-indigo-600 font-bold text-xs rounded-xl cursor-pointer hover:bg-indigo-100 transition-colors flex items-center gap-1">
+                  <ImageIcon className="w-4 h-4" /> Upload
+                  <input type="file" className="hidden" accept="image/*" onChange={(e) => handleImageUpload(e, setProfilePic)} />
+                </label>
               </div>
             </div>
 
             {/* AI Generator Box */}
-            <div className="p-5 bg-gradient-to-br from-orange-50/60 to-transparent border border-orange-100 rounded-3xl space-y-4">
+            <div className="p-4 bg-indigo-50/50 border border-indigo-100 rounded-2xl space-y-3">
               <div className="flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-orange-500 animate-pulse" />
-                <h5 className="font-black text-xs text-orange-700 uppercase tracking-widest">Gemma AI Bio Generator</h5>
+                <Sparkles className="w-4 h-4 text-indigo-500 animate-pulse" />
+                <h5 className="font-black text-xs text-indigo-700 uppercase tracking-widest">AI Bio Writer</h5>
               </div>
-              <p className="text-[11px] text-slate-500 leading-relaxed font-semibold">
-                Type a brief line about your core expertise, and we will formulate a highly optimized professional bio automatically.
-              </p>
-              
               <div className="flex gap-2">
                 <input
-                  type="text"
-                  value={aiDescription}
-                  onChange={(e) => setAiDescription(e.target.value)}
-                  placeholder="e.g. Fullstack React engineer and content creator focused on clean UI code"
-                  className="flex-1 px-4 py-3 bg-white border border-slate-200 rounded-xl text-xs font-semibold outline-none focus:border-orange-400 focus:shadow-inner"
+                  type="text" value={aiDescription} onChange={(e) => setAiDescription(e.target.value)}
+                  placeholder="e.g. Graphic designer from NY"
+                  className="flex-1 px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs outline-none focus:border-indigo-400"
                 />
                 <button
-                  onClick={generateBioWithAI}
-                  disabled={isGeneratingBio || !aiDescription.trim()}
-                  className="px-4 py-3 bg-orange-500 hover:bg-orange-600 disabled:opacity-50 text-white font-black text-xs uppercase tracking-wider rounded-xl transition-all shadow-md shrink-0 flex items-center gap-1.5"
+                  onClick={generateBioWithAI} disabled={isGeneratingBio || !aiDescription.trim()}
+                  className="px-4 py-2 bg-indigo-500 hover:bg-indigo-600 disabled:opacity-50 text-white font-bold text-xs rounded-xl transition-all"
                 >
-                  {isGeneratingBio ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : 'Write'}
+                  {isGeneratingBio ? '...' : 'Write'}
                 </button>
               </div>
             </div>
 
-            {/* Bio textarea */}
             <div className="space-y-2">
-              <label className="block text-xs font-black uppercase tracking-widest text-slate-400">Bio Text (Max 120 chars)</label>
+              <label className="block text-xs font-bold text-slate-500 uppercase">Bio Text (Max 150 chars)</label>
               <textarea 
-                rows="2"
-                maxLength="120"
-                value={bio}
-                onChange={(e) => setBio(e.target.value)}
-                className="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-medium outline-none focus:bg-white focus:border-orange-500 transition-all resize-none"
+                rows="2" maxLength="150" value={bio} onChange={(e) => setBio(e.target.value)}
+                className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium outline-none focus:border-indigo-500 resize-none"
               />
             </div>
           </div>
 
           {/* Social Links Panel */}
-          <div className="bg-white p-6 md:p-8 rounded-3xl border border-slate-200 shadow-xl space-y-6">
-            <h4 className="font-black text-sm text-slate-900 border-b border-slate-100 pb-3 flex items-center gap-2">
-              <Globe className="w-4 h-4 text-orange-500" /> Social Identity Channels
-            </h4>
+          <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-5">
+            <div className="flex justify-between items-center border-b border-slate-100 pb-2">
+              <h4 className="font-black text-sm text-slate-900">Social Links</h4>
+              <button onClick={addSocial} className="text-xs font-bold text-indigo-600 bg-indigo-50 px-3 py-1 rounded-lg flex items-center gap-1 hover:bg-indigo-100">
+                <Plus className="w-3 h-3" /> Add
+              </button>
+            </div>
             
-            <div className="grid md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <label className="text-[10px] font-black uppercase text-slate-400 flex items-center gap-1"><Instagram className="w-3 h-3" /> Instagram Handle</label>
-                <input 
-                  type="text" 
-                  value={socials.instagram}
-                  onChange={(e) => setSocials({...socials, instagram: e.target.value})}
-                  placeholder="username"
-                  className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold outline-none focus:bg-white"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-[10px] font-black uppercase text-slate-400 flex items-center gap-1"><Linkedin className="w-3 h-3" /> LinkedIn Handle</label>
-                <input 
-                  type="text" 
-                  value={socials.linkedin}
-                  onChange={(e) => setSocials({...socials, linkedin: e.target.value})}
-                  placeholder="sarah-jenkins"
-                  className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold outline-none focus:bg-white"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-[10px] font-black uppercase text-slate-400 flex items-center gap-1"><Twitter className="w-3 h-3" /> Twitter Handle</label>
-                <input 
-                  type="text" 
-                  value={socials.twitter}
-                  onChange={(e) => setSocials({...socials, twitter: e.target.value})}
-                  placeholder="username"
-                  className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold outline-none focus:bg-white"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-[10px] font-black uppercase text-slate-400 flex items-center gap-1"><Mail className="w-3 h-3" /> Email Address</label>
-                <input 
-                  type="text" 
-                  value={socials.email}
-                  onChange={(e) => setSocials({...socials, email: e.target.value})}
-                  placeholder="you@domain.com"
-                  className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold outline-none focus:bg-white"
-                />
-              </div>
+            <div className="space-y-3">
+              {socials.map((social) => (
+                <div key={social.id} className="flex gap-2 items-center p-2 bg-slate-50 border border-slate-200 rounded-xl">
+                  <select 
+                    value={social.platform} 
+                    onChange={(e) => updateSocial(social.id, 'platform', e.target.value)}
+                    className="p-2 bg-white border border-slate-200 rounded-lg text-xs font-bold outline-none"
+                  >
+                    <option value="instagram">Instagram</option>
+                    <option value="twitter">Twitter</option>
+                    <option value="linkedin">LinkedIn</option>
+                    <option value="youtube">YouTube</option>
+                    <option value="github">GitHub</option>
+                    <option value="tiktok">TikTok</option>
+                    <option value="email">Email</option>
+                    <option value="other">Other Link</option>
+                  </select>
+                  <input 
+                    type="text" value={social.url} onChange={(e) => updateSocial(social.id, 'url', e.target.value)}
+                    className="flex-1 p-2 bg-white border border-slate-200 rounded-lg text-xs outline-none font-mono" placeholder="URL"
+                  />
+                  <button onClick={() => removeSocial(social.id)} className="p-2 text-rose-500 hover:bg-rose-50 rounded-lg">
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
+              ))}
             </div>
           </div>
 
-          {/* Links Blocks Panel */}
-          <div className="bg-white p-6 md:p-8 rounded-3xl border border-slate-200 shadow-xl space-y-6">
-            <div className="flex justify-between items-center border-b border-slate-100 pb-3">
-              <h4 className="font-black text-sm text-slate-900 flex items-center gap-2">
-                <Palette className="w-4 h-4 text-orange-500" /> Custom Links Blocks
-              </h4>
-              
-              <button 
-                onClick={addLink}
-                className="px-3.5 py-1.5 bg-orange-50 hover:bg-orange-100 text-orange-600 rounded-xl text-[11px] font-black uppercase tracking-wider transition-all flex items-center gap-1"
-              >
-                <Plus className="w-3.5 h-3.5" /> Add Block
+          {/* Link Cards Panel */}
+          <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-5">
+            <div className="flex justify-between items-center border-b border-slate-100 pb-2">
+              <h4 className="font-black text-sm text-slate-900">Product / Link Cards</h4>
+              <button onClick={addCard} className="text-xs font-bold text-indigo-600 bg-indigo-50 px-3 py-1 rounded-lg flex items-center gap-1 hover:bg-indigo-100">
+                <Plus className="w-3 h-3" /> Add Card
               </button>
             </div>
 
             <div className="space-y-4">
-              {links.map((link, idx) => (
-                <div key={link.id} className="p-4 bg-slate-50/50 border border-slate-200 rounded-2xl flex flex-col md:flex-row gap-3 items-end">
-                  <div className="flex-1 space-y-3 w-full">
-                    <input
-                      type="text"
-                      value={link.title}
-                      onChange={(e) => updateLink(link.id, 'title', e.target.value)}
-                      placeholder="Custom Button Label"
-                      className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-700 outline-none"
-                    />
-                    <input
-                      type="text"
-                      value={link.url}
-                      onChange={(e) => updateLink(link.id, 'url', e.target.value)}
-                      placeholder="Destination URL (https://...)"
-                      className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs font-mono outline-none"
-                    />
-                  </div>
-
-                  <div className="flex items-center gap-3 shrink-0">
-                    <div className="text-center text-[10px] font-black text-slate-400 uppercase tracking-widest px-2.5 py-1 bg-white border border-slate-200 rounded-xl">
-                      Clicks: {analytics.clicks[link.id] || 0}
-                    </div>
-                    <button 
-                      onClick={() => removeLink(link.id)}
-                      className="p-2 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-xl transition-colors"
-                    >
-                      <Trash2 className="w-4 h-4" />
+              {cards.map((card, idx) => (
+                <div key={card.id} className="p-4 bg-slate-50 border border-slate-200 rounded-2xl relative space-y-3">
+                  <div className="absolute top-3 right-3 flex gap-2">
+                    <button onClick={() => removeCard(card.id)} className="p-1.5 bg-white text-rose-500 border border-slate-200 shadow-sm hover:bg-rose-50 rounded-lg">
+                      <Trash2 className="w-3.5 h-3.5" />
                     </button>
+                  </div>
+                  <div className="text-xs font-black text-slate-400 uppercase tracking-widest mb-1">Card #{idx + 1}</div>
+                  
+                  <div className="grid md:grid-cols-2 gap-3">
+                    <input type="text" value={card.title} onChange={(e) => updateCard(card.id, 'title', e.target.value)} placeholder="Card Title" className="w-full p-2.5 bg-white border border-slate-200 rounded-xl text-xs font-bold outline-none" />
+                    <input type="text" value={card.category} onChange={(e) => updateCard(card.id, 'category', e.target.value)} placeholder="Badge/Category (e.g. Product)" className="w-full p-2.5 bg-white border border-slate-200 rounded-xl text-xs font-bold outline-none" />
+                  </div>
+                  <input type="text" value={card.description} onChange={(e) => updateCard(card.id, 'description', e.target.value)} placeholder="Short Description (Max 80 chars)" maxLength="80" className="w-full p-2.5 bg-white border border-slate-200 rounded-xl text-xs outline-none" />
+                  <input type="text" value={card.link} onChange={(e) => updateCard(card.id, 'link', e.target.value)} placeholder="Destination URL" className="w-full p-2.5 bg-white border border-slate-200 rounded-xl text-xs font-mono outline-none" />
+                  
+                  <div className="flex items-center gap-3">
+                    <input type="color" value={card.accentColor} onChange={(e) => updateCard(card.id, 'accentColor', e.target.value)} className="w-8 h-8 rounded cursor-pointer border-0 p-0" title="Accent Color" />
+                    <input type="text" value={card.imageUrl} onChange={(e) => updateCard(card.id, 'imageUrl', e.target.value)} placeholder="Image URL (optional)" className="flex-1 p-2.5 bg-white border border-slate-200 rounded-xl text-xs font-mono outline-none" />
+                    <label className="p-2.5 bg-indigo-50 text-indigo-600 rounded-xl cursor-pointer hover:bg-indigo-100 flex-shrink-0">
+                      <ImageIcon className="w-4 h-4" />
+                      <input type="file" className="hidden" accept="image/*" onChange={(e) => handleImageUpload(e, (res) => updateCard(card.id, 'imageUrl', res))} />
+                    </label>
                   </div>
                 </div>
               ))}
             </div>
           </div>
 
-          {/* Theme & Styling Selection */}
-          <div className="bg-white p-6 md:p-8 rounded-3xl border border-slate-200 shadow-xl space-y-6">
-            <h4 className="font-black text-sm text-slate-900 border-b border-slate-100 pb-3 flex items-center gap-2">
-              <Type className="w-4 h-4 text-orange-500" /> Theme Styling Engines
-            </h4>
-
-            {/* Themes grid */}
-            <div className="space-y-4">
-              <label className="block text-xs font-black uppercase tracking-widest text-slate-400">Design Presets</label>
-              <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-                {THEMES.map(t => (
-                  <button
-                    key={t.id}
-                    onClick={() => setSelectedTheme(t.id)}
-                    className={`p-3 rounded-2xl border-2 text-[10px] font-black uppercase tracking-wider transition-all text-center ${
-                      selectedTheme === t.id 
-                        ? 'border-orange-500 bg-orange-50/20 text-orange-600 shadow-sm' 
-                        : 'border-slate-200 text-slate-500 hover:border-slate-400'
-                    }`}
-                  >
-                    {t.name.split(' ')[0]}
-                  </button>
-                ))}
+          {/* Theme Customization */}
+          <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-5">
+            <h4 className="font-black text-sm text-slate-900 border-b border-slate-100 pb-2">Global Customization</h4>
+            
+            <div className="grid md:grid-cols-2 gap-6">
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-bold text-slate-500 uppercase">Primary Color</label>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-mono text-slate-400">{customization.primaryColor}</span>
+                    <input type="color" value={customization.primaryColor} onChange={(e) => setCustomization({...customization, primaryColor: e.target.value})} className="w-8 h-8 rounded cursor-pointer" />
+                  </div>
+                </div>
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-bold text-slate-500 uppercase">Secondary Color</label>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-mono text-slate-400">{customization.secondaryColor}</span>
+                    <input type="color" value={customization.secondaryColor} onChange={(e) => setCustomization({...customization, secondaryColor: e.target.value})} className="w-8 h-8 rounded cursor-pointer" />
+                  </div>
+                </div>
               </div>
-            </div>
-
-            {/* Font selector */}
-            <div className="space-y-2">
-              <label className="block text-xs font-black uppercase tracking-widest text-slate-400">Typography Preset</label>
-              <div className="grid grid-cols-3 gap-3">
-                {FONTS.map(f => (
-                  <button
-                    key={f.id}
-                    onClick={() => setSelectedFont(f.id)}
-                    className={`p-3 rounded-xl border text-xs font-bold transition-all text-center ${
-                      selectedFont === f.id 
-                        ? 'border-orange-500 bg-orange-50/10 text-orange-600' 
-                        : 'border-slate-200 text-slate-600 hover:border-slate-300'
-                    }`}
-                  >
-                    {f.name.split(' ')[0]}
-                  </button>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          {/* Analytics simulation log */}
-          <div className="bg-slate-900 p-6 rounded-3xl text-white space-y-4">
-            <div className="flex justify-between items-center border-b border-slate-800 pb-3">
-              <h4 className="font-black text-xs uppercase tracking-widest text-slate-400 flex items-center gap-1.5">
-                <TrendingUp className="w-4 h-4 text-orange-500" /> Link-In-Bio Analytics Logs
-              </h4>
-              <span className="px-2.5 py-0.5 bg-orange-500/10 border border-orange-500/20 text-orange-400 rounded-md text-[9px] font-black uppercase">
-                Active Tracking
-              </span>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="p-4 bg-slate-950/40 border border-slate-800 rounded-2xl text-center space-y-1">
-                <span className="text-2xl font-black text-slate-100">{analytics.views}</span>
-                <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Total Profile Views</p>
-              </div>
-
-              <div className="p-4 bg-slate-950/40 border border-slate-800 rounded-2xl text-center space-y-1">
-                <span className="text-2xl font-black text-emerald-400">
-                  {Object.values(analytics.clicks).reduce((a, b) => a + b, 0)}
-                </span>
-                <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Total Links Clicked</p>
+              
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <div className="flex justify-between items-center text-xs font-bold text-slate-500 uppercase">
+                    <label>Glow Intensity</label>
+                    <span>{customization.glowIntensity}%</span>
+                  </div>
+                  <input type="range" min="0" max="100" value={customization.glowIntensity} onChange={(e) => setCustomization({...customization, glowIntensity: e.target.value})} className="w-full accent-indigo-500" />
+                </div>
+                
+                <div className="space-y-2">
+                  <label className="text-xs font-bold text-slate-500 uppercase">Animation Speed</label>
+                  <select value={customization.animationSpeed} onChange={(e) => setCustomization({...customization, animationSpeed: e.target.value})} className="w-full p-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold outline-none">
+                    <option value="slow">Slow & Subtle</option>
+                    <option value="normal">Normal</option>
+                    <option value="fast">Fast & Energetic</option>
+                  </select>
+                </div>
               </div>
             </div>
           </div>
@@ -568,13 +599,12 @@ export default function LinkInBio() {
         </div>
 
         {/* ==================== RIGHT MOBILE PREVIEW PANEL ==================== */}
-        <div className="lg:col-span-5 lg:sticky lg:top-32 space-y-6">
+        <div className="lg:col-span-5 lg:sticky lg:top-32 space-y-4">
           
           <div className="text-center font-black text-xs uppercase tracking-widest text-slate-400 flex items-center justify-center gap-2">
-            <Smartphone className="w-4 h-4" /> Live Mobile Sandbox Preview
+            <Monitor className="w-4 h-4" /> Live Responsive Preview
           </div>
 
-          {/* Standalone simulated smartphone frame */}
           <div className="mx-auto w-[320px] md:w-[360px] h-[640px] bg-slate-950 rounded-[3rem] p-3 shadow-2xl border-4 border-slate-800 relative flex flex-col overflow-hidden">
             
             {/* Camera speaker bezel */}
@@ -583,120 +613,85 @@ export default function LinkInBio() {
               <div className="w-2.5 h-2.5 bg-slate-950 rounded-full ml-3 border border-slate-800"></div>
             </div>
 
-            {/* Dynamic scrollable canvas container matching selections */}
-            <div className={`flex-1 rounded-[2.5rem] overflow-y-auto px-6 py-14 flex flex-col justify-between items-center text-center select-none scrollbar-none transition-all duration-300 relative ${theme.bgClass}`}>
-              
-              {/* Blur elements forModern Glass */}
-              {selectedTheme === 'modern-glass' && (
-                <>
-                  <div className="absolute -top-10 -left-10 w-32 h-32 bg-indigo-500/30 rounded-full blur-2xl pointer-events-none"></div>
-                  <div className="absolute -bottom-10 -right-10 w-32 h-32 bg-pink-500/20 rounded-full blur-2xl pointer-events-none"></div>
-                </>
-              )}
-
-              <div className="w-full space-y-6">
+            {/* Custom Preview Wrapper */}
+            <div 
+              className="flex-1 rounded-[2.5rem] overflow-y-auto overflow-x-hidden text-center select-none scrollbar-none relative"
+              style={{
+                backgroundColor: '#0f1419',
+                color: '#ffffff',
+                backgroundImage: `radial-gradient(circle at 15% 50%, ${customization.primaryColor}${Math.floor(customization.glowIntensity * 2.5).toString(16).padStart(2, '0')}, transparent 50%), radial-gradient(circle at 85% 30%, ${customization.secondaryColor}${Math.floor(customization.glowIntensity * 2.5).toString(16).padStart(2, '0')}, transparent 50%)`,
+                backgroundSize: '100% 100%' // Static in preview to save GPU, animation handles movement
+              }}
+            >
+              <div className="px-5 py-14 min-h-full flex flex-col gap-6 relative z-10">
                 
-                {/* Avatar & Identifiers */}
-                <div className="flex flex-col items-center space-y-3">
-                  <img 
-                    src={profilePic} 
-                    alt={profileName}
-                    className="w-20 h-20 rounded-full border-2 border-white/50 object-cover shadow-md hover:scale-105 transition-transform" 
-                  />
-                  
+                {/* Profile */}
+                <div className="flex flex-col items-center gap-3">
+                  <div 
+                    className="w-[100px] h-[100px] rounded-full p-[3px]"
+                    style={{
+                      background: `linear-gradient(45deg, ${customization.primaryColor}, ${customization.secondaryColor})`,
+                      boxShadow: `0 0 ${customization.glowIntensity * 0.3}px ${customization.primaryColor}`
+                    }}
+                  >
+                    <img src={profilePic} alt={profileName} className="w-full h-full rounded-full object-cover border-2 border-[#0f1419] bg-[#0f1419]" />
+                  </div>
                   <div>
-                    <h4 
-                      className={`text-lg font-black tracking-tight ${font.className}`}
-                      style={{ color: theme.textColor }}
-                    >
-                      {profileName}
-                    </h4>
-                    <p 
-                      className="text-xs font-semibold leading-relaxed max-w-[240px] mt-1.5 mx-auto"
-                      style={{ color: theme.bioColor }}
-                    >
-                      {bio}
-                    </p>
+                    <h1 className="text-[1.35rem] font-black leading-tight">{profileName}</h1>
+                    <p className="text-[0.8rem] font-medium opacity-80 max-w-[250px] mx-auto mt-1.5">{bio}</p>
+                    {location && (
+                      <div 
+                        className="inline-block mt-3 px-3 py-1 text-[0.7rem] font-bold rounded-full border"
+                        style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderColor: 'rgba(255,255,255,0.1)', color: customization.secondaryColor }}
+                      >
+                        📍 {location}
+                      </div>
+                    )}
                   </div>
                 </div>
 
-                {/* Social icons */}
-                <div className="flex justify-center gap-3.5 py-1">
-                  {socials.instagram && (
-                    <a 
-                      href={`https://instagram.com/${socials.instagram}`}
-                      target="_blank"
-                      className="p-2 rounded-full hover:scale-110 transition-transform shadow-sm"
-                      style={{ backgroundColor: theme.buttonColor, color: theme.textColor }}
+                {/* Socials */}
+                <div className="flex flex-wrap justify-center gap-3">
+                  {socials.map(s => (
+                    <div 
+                      key={s.id} 
+                      className="w-10 h-10 rounded-full flex items-center justify-center border transition-all"
+                      style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderColor: 'rgba(255,255,255,0.1)' }}
                     >
-                      <Instagram className="w-4 h-4" />
-                    </a>
-                  )}
-
-                  {socials.linkedin && (
-                    <a 
-                      href={`https://linkedin.com/in/${socials.linkedin}`}
-                      target="_blank"
-                      className="p-2 rounded-full hover:scale-110 transition-transform shadow-sm"
-                      style={{ backgroundColor: theme.buttonColor, color: theme.textColor }}
-                    >
-                      <Linkedin className="w-4 h-4" />
-                    </a>
-                  )}
-
-                  {socials.twitter && (
-                    <a 
-                      href={`https://twitter.com/${socials.twitter}`}
-                      target="_blank"
-                      className="p-2 rounded-full hover:scale-110 transition-transform shadow-sm"
-                      style={{ backgroundColor: theme.buttonColor, color: theme.textColor }}
-                    >
-                      <Twitter className="w-4 h-4" />
-                    </a>
-                  )}
-
-                  {socials.email && (
-                    <a 
-                      href={`mailto:${socials.email}`}
-                      className="p-2 rounded-full hover:scale-110 transition-transform shadow-sm"
-                      style={{ backgroundColor: theme.buttonColor, color: theme.textColor }}
-                    >
-                      <Mail className="w-4 h-4" />
-                    </a>
-                  )}
+                      {getSocialIconComponent(s.platform, 'w-4 h-4 text-white')}
+                    </div>
+                  ))}
                 </div>
 
-                {/* Custom Card Link Blocks */}
-                <div className="space-y-3.5 w-full">
-                  {links.map((link) => (
-                    <button
-                      key={link.id}
-                      onClick={() => simulateClick(link.id, link.url)}
-                      className={`w-full py-3 px-5 rounded-xl font-black text-xs flex justify-between items-center transition-all ${theme.cardClass} ${font.className}`}
+                {/* Cards */}
+                <div className="flex flex-col gap-3 w-full">
+                  {cards.map(c => (
+                    <div 
+                      key={c.id} 
+                      className="w-full p-4 rounded-2xl border text-left flex items-center gap-3"
+                      style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderColor: 'rgba(255,255,255,0.1)' }}
                     >
-                      <span>{link.title}</span>
-                      <ExternalLink className="w-3.5 h-3.5 opacity-60" />
-                    </button>
+                      {c.imageUrl ? (
+                        <img src={c.imageUrl} className="w-10 h-10 rounded-xl object-cover shrink-0" alt="card" />
+                      ) : (
+                        <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 bg-white/5" style={{ color: c.accentColor }}>
+                          <ExternalLink className="w-5 h-5" />
+                        </div>
+                      )}
+                      <div>
+                        {c.category && <div className="text-[0.6rem] font-black uppercase tracking-wider mb-0.5" style={{ color: c.accentColor }}>{c.category}</div>}
+                        <h3 className="text-[0.9rem] font-black leading-tight text-white">{c.title}</h3>
+                        {c.description && <p className="text-[0.65rem] opacity-70 mt-1">{c.description}</p>}
+                      </div>
+                    </div>
                   ))}
                 </div>
 
               </div>
-
-              {/* device footer */}
-              <div 
-                className="text-[9px] font-black tracking-widest uppercase opacity-40 pt-6 mt-4 w-full"
-                style={{ color: theme.textColor }}
-              >
-                ⚡ Compiled by ToolTrove
-              </div>
-
             </div>
 
             {/* bottom home button indicator */}
-            <div className="h-10 w-full flex items-center justify-center shrink-0">
-              <div className="w-28 h-1 bg-slate-800 rounded-full"></div>
-            </div>
-
+            <div className="absolute bottom-2 left-1/2 -translate-x-1/2 w-28 h-1 bg-slate-800 rounded-full z-50"></div>
           </div>
 
           {/* Copy link buttons */}
@@ -713,12 +708,10 @@ export default function LinkInBio() {
         </div>
 
       </div>
-
     </div>
   );
 }
 
-// Simple internal helper wrapper to ensure clean chevron rendering
 function ChevronRightIcon({ className }) {
   return (
     <svg className={className} fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
