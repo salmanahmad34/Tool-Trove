@@ -39,6 +39,7 @@
       background-image: 
         radial-gradient(circle at 15% 50%, rgba(255, 0, 110, 0.15), transparent 40%),
         radial-gradient(circle at 85% 30%, rgba(0, 245, 255, 0.15), transparent 40%);
+      background-size: 200% 200%;
       animation: bgPulse 10s ease-in-out infinite alternate;
     }
 
@@ -145,6 +146,7 @@
       width: 20px;
       height: 20px;
       fill: currentColor;
+      position: relative;
       z-index: 2;
     }
 
@@ -268,6 +270,7 @@
       /* Gradient Text */
       background: linear-gradient(90deg, #fff, #ddd);
       -webkit-background-clip: text;
+      background-clip: text;
       -webkit-text-fill-color: transparent;
       margin-bottom: 2px;
       transition: all 0.3s ease;
@@ -276,6 +279,7 @@
     .link-card:hover .card-title {
       background: linear-gradient(90deg, var(--neon-pink), var(--neon-cyan));
       -webkit-background-clip: text;
+      background-clip: text;
       -webkit-text-fill-color: transparent;
     }
 
@@ -354,11 +358,11 @@
     <!-- Hero / Profile Section -->
     <div class="profile">
       <div class="avatar-wrapper">
-        <img src="https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?w=300&h=300&fit=crop" alt="Profile Avatar">
+        <img src="https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?w=300&amp;h=300&amp;fit=crop" alt="Profile Avatar" />
       </div>
       
       <h1 class="profile-name">Cameron Neon</h1>
-      <p class="profile-bio">Cyber-security analyst & digital artist. Merging logic with vibrant creative expression.</p>
+      <p class="profile-bio">Cyber-security analyst &amp; digital artist. Merging logic with vibrant creative expression.</p>
       
       <div class="profile-location">
         📍 Neo-Tokyo, CA
@@ -390,7 +394,7 @@
         </div>
         <div class="card-content">
           <h2 class="card-title">Digital Portfolio v3.0</h2>
-          <p class="card-desc">Interactive WebGL & Glassmorphism works</p>
+          <p class="card-desc">Interactive WebGL &amp; Glassmorphism works</p>
         </div>
       </a>
 
