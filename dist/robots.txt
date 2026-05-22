@@ -1,0 +1,6 @@
+# Global Crawl Directives for ToolTrove
+User-agent: *
+Allow: /
+
+# Sitemap Target Location
+Sitemap: https://salmanahmad34.github.io/Tool-Trove/sitemap.xml
