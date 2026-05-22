@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { 
   Sparkles, Plus, Trash2, Download, Copy, Check, ExternalLink, 
   Mail, LayoutGrid, RefreshCw, Smartphone, Image as ImageIcon, 
-  Settings, Link2, Monitor, X
+  Settings, Link2, Monitor, X, ArrowLeft
 } from 'lucide-react';
 import { Instagram, Linkedin, Youtube, Twitter, Github } from '../components/SocialIcons';
 import { callGemmaAI } from '../utils/ai';
