@@ -6,7 +6,6 @@ import {
   BookOpen, Calendar, ArrowLeft, Heart, Terminal, Cpu, Info, HelpCircle
 } from 'lucide-react';
 import SEOManager from '../components/SEOManager';
-import { OwlMascot } from '../components/Mascots';
 
 // ==================== 1. ABOUT PAGE ====================
 export function AboutPage() {
@@ -261,18 +260,18 @@ export function ContactPage() {
   const [form, setForm] = useState({ name: '', email: '', subject: '', message: '' });
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
-  const [mascotText, setMascotText] = useState("Hoot! I'm the Wise Owl. Drop us a message, and I'll fly it over to our developer team in the morning!");
+  const [mascotText, setMascotText] = useState("Hello! Drop us a message, and we'll review it immediately!");
 
   const handleSend = (e) => {
     e.preventDefault();
     if (!form.name || !form.email || !form.message) return;
     setLoading(true);
-    setMascotText("Hoo-hoo! I'm carrying your letter across the digital skies right now! Just a moment...");
+    setMascotText("Sending your message safely across the network... Just a moment!");
     
     setTimeout(() => {
       setLoading(false);
       setSuccess(true);
-      setMascotText("Hoot! Success! Your message has been safely delivered to our developer trove. I will bring an answer back to your email inbox within 24 hours!");
+      setMascotText("Success! Your message has been safely delivered. We'll reply within 24 hours!");
     }, 2000);
   };
 
@@ -301,10 +300,10 @@ export function ContactPage() {
           <div className="p-6 bg-slate-50 border border-slate-200 rounded-3xl space-y-6 text-center md:text-left">
             <div className="flex justify-center md:justify-start gap-4 items-center">
               <div className="p-3 bg-orange-500 text-white rounded-2xl shadow-lg">
-                <OwlMascot />
+                <MessageSquare className="w-6 h-6 text-white" />
               </div>
               <div>
-                <h4 className="font-black text-slate-800 text-sm">Wise Owl Helper</h4>
+                <h4 className="font-black text-slate-800 text-sm">Support Agent</h4>
                 <span className="text-[10px] text-emerald-600 font-bold uppercase tracking-wider flex items-center gap-1">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping"></span> Active Guide
                 </span>
@@ -345,7 +344,7 @@ export function ContactPage() {
                 </div>
                 <h3 className="text-2xl font-black text-slate-800">Letter Safely Sent!</h3>
                 <p className="text-slate-500 font-semibold leading-relaxed text-sm max-w-xs mx-auto">
-                  Our owl flew straight into the developer hub. We will review your ideas and answer your email address in 24 hours.
+                  Your message was safely delivered. We will review your ideas and answer your email address in 24 hours.
                 </p>
                 <button 
                   onClick={() => { setSuccess(false); setForm({ name:'', email:'', subject:'', message:'' }); }}
@@ -411,7 +410,7 @@ export function ContactPage() {
                 >
                   {loading ? (
                     <span className="flex items-center gap-1.5">
-                      <Clock className="w-5 h-5 animate-spin" /> Dispatching Owl...
+                      <Clock className="w-5 h-5 animate-spin" /> Dispatching Message...
                     </span>
                   ) : (
                     <span className="flex items-center gap-1.5">

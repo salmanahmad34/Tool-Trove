@@ -1,0 +1,22 @@
+{
+  "name": "ToolTrove — AI Creator Toolkit",
+  "short_name": "ToolTrove",
+  "description": "Build your Link in Bio, GitHub README, and ATS-optimized Resume with AI.",
+  "start_url": "/Tool-Trove/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#ff5c1a",
+  "icons": [
+    {
+      "src": "/Tool-Trove/pwa-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/Tool-Trove/pwa-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

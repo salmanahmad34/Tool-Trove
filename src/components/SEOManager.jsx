@@ -18,8 +18,8 @@ export default function SEOManager({
   useEffect(() => {
     // 1. Update Title
     const formattedTitle = title 
-      ? `${title} | ToolTrove — 100% Free AI Utilities`
-      : "ToolTrove — 150+ Free Online AI Tools & Developer Utilities";
+      ? `${title} | ToolTrove — AI Creator Toolkit`
+      : "ToolTrove — AI Creator Toolkit";
     document.title = formattedTitle;
 
     // 2. Update Meta Description
@@ -29,7 +29,7 @@ export default function SEOManager({
       metaDesc.setAttribute('name', 'description');
       document.head.appendChild(metaDesc);
     }
-    metaDesc.setAttribute('content', description || "India's #1 free online tool platform. 150+ professional tools — PDF tools, AI writing, developer utilities, images & more. 100% client-side safe.");
+    metaDesc.setAttribute('content', description || "Build your Link in Bio, GitHub README, and ATS-optimized Resume with AI.");
 
     // 3. Update Canonical URL
     let linkCanonical = document.querySelector('link[rel="canonical"]');
